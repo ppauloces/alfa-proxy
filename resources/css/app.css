@@ -1,11 +1,61 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+/* Force Tailwind to regenerate classes */
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+@layer components {
+    .nav-link {
+        color: #63637c;
+        transition: all 0.3s;
+    }
+    
+    .nav-link:hover {
+        color: #2055d5;
+        background-color: #DCE5FD;
+    }
+}
+
+@layer base {
+    /* Gilroy Font - Arquivos em public/fonts/gilroy/ */
+    @font-face {
+        font-family: 'Gilroy';
+        font-style: normal;
+        font-weight: 300;
+        src: url('/fonts/gilroy/Gilroy-Light.otf') format('opentype');
+        font-display: swap;
+    }
+    
+    @font-face {
+        font-family: 'Gilroy';
+        font-style: normal;
+        font-weight: 800;
+        src: url('/fonts/gilroy/Gilroy-ExtraBold.otf') format('opentype');
+        font-display: swap;
+    }
+    
+    /* SF Pro Display - Arquivos em public/fonts/sfpro/ */
+    @font-face {
+        font-family: 'SF Pro';
+        font-style: normal;
+        font-weight: 400;
+        src: url('/fonts/sfpro/SFPRODISPLAYREGULAR.OTF') format('opentype');
+        font-display: swap;
+    }
+    
+    @font-face {
+        font-family: 'SF Pro';
+        font-style: normal;
+        font-weight: 500;
+        src: url('/fonts/sfpro/SFPRODISPLAYMEDIUM.OTF') format('opentype');
+        font-display: swap;
+    }
+    
+    @font-face {
+        font-family: 'SF Pro';
+        font-style: normal;
+        font-weight: 700;
+        src: url('/fonts/sfpro/SFPRODISPLAYBOLD.OTF') format('opentype');
+        font-display: swap;
+    }
 }

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 
 //Rota página inicial
 Route::get('/', function () {
-    return view('welcome');
+    return view('index');
 })->name('inicial');
 
 Route::get('/faq', function() {

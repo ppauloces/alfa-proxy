@@ -42,26 +42,38 @@ Route::post('/redefinir-senha', [RecuperarSenhaController::class, 'redefinir'])-
 //Rotas de usuários logados
 Route::middleware(['auth', CheckUserStatus::class])->group(function () {
 
-    Route::get('/dash', function () {
-        return view('dash.index');
-    })->name('dash.show');
+    // Dashboard principal - Gerenciar Proxies
+    Route::get('/dash', [LogadoController::class, 'dash'])->name('dash.show');
 
-    Route::get('/dashboard', [LogadoController::class, 'dashboard'])->name('dashboard.show');
-    Route::get('/saldo', [LogadoController::class, 'saldo'])->name('saldo.show');
-    Route::get('/socks5', [LogadoController::class, 'socks5'])->name('socks5.show');
+    // Meu Perfil
+    Route::get('/perfil', [LogadoController::class, 'perfil'])->name('perfil.show');
+    Route::post('/perfil/atualizar', [LogadoController::class, 'atualizarPerfil'])->name('perfil.atualizar');
+    Route::post('/perfil/alterar-senha', [LogadoController::class, 'alterarSenha'])->name('perfil.senha');
+
+    // Ordens / Proxies Ativos
+    Route::get('/proxies', [LogadoController::class, 'proxies'])->name('proxies.show');
+    Route::post('/proxies/renovar', [LogadoController::class, 'renovarProxy'])->name('proxies.renovar');
+    Route::post('/proxies/exportar', [LogadoController::class, 'exportarProxies'])->name('proxies.exportar');
+
+    // Nova Compra
+    Route::get('/nova-compra', [LogadoController::class, 'novaCompra'])->name('compra.nova');
+    Route::post('/nova-compra/processar', [LogadoController::class, 'processarCompra'])->name('compra.processar');
+
+    // Histórico de Transações
     Route::get('/transacoes', [LogadoController::class, 'transacoes'])->name('transacoes.show');
+
+    // Carteira / Saldo
+    Route::get('/saldo', [LogadoController::class, 'saldo'])->name('saldo.show');
+    Route::post('/saldo/adicionar', [LogadoController::class, 'adicionarSaldo'])->name('saldo.adicionar');
+
+    // Outras rotas existentes
     Route::get('/cupons', [LogadoController::class, 'cupons'])->name('cupons.show');
     Route::get('/duvidas', [LogadoController::class, 'duvidas'])->name('duvidas.show');
     Route::get('/api', [LogadoController::class, 'api'])->name('api.show');
-    Route::get('/comprar', [LogadoController::class, 'comprar_proxies'])->name('comprar.show');
-    Route::get('/pagamento', [LogadoController::class, 'pagamento'])->name('pagamento.show');
+    Route::get('/suporte', [LogadoController::class, 'suporte'])->name('suporte.show');
+    Route::get('/configuracoes', [LogadoController::class, 'configuracoes'])->name('configuracoes.show');
 
     Route::post('/pcm', [RecuperarSenhaController::class, 'recuperar_senha_main'])->name('trocar.senha.main');
-
-    Route::get('/api2', function () {
-        $usuario = User::where('id', Auth::id())->first();
-        return view('logado.api2', compact('usuario'));
-    });
 
 });
 

@@ -5,11 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AlfaProxy - Proxies SOCKS5 Premium</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrambleTextPlugin.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         .dropdown {
             position: relative;
@@ -61,46 +62,213 @@
             stroke-linecap: round;
             stroke-linejoin: round;
         }
+
+        /* Hero Text Animations */
+        @keyframes shimmer {
+            0% {
+                background-position: 200% center;
+            }
+
+            100% {
+                background-position: -200% center;
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.4));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 16px rgba(96, 165, 250, 0.8)) drop-shadow(0 0 24px rgba(96, 165, 250, 0.4));
+            }
+        }
+
+        .hero-main {
+            display: inline-block;
+            animation: float 4s ease-in-out infinite;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-highlight {
+            animation: glow 3s ease-in-out infinite;
+            text-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
+        }
+
+        .hero-btn-primary {
+            transition: all 0.3s ease;
+        }
+
+        .hero-btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(96, 165, 250, 0.4);
+        }
+
+        .hero-btn-secondary {
+            transition: all 0.3s ease;
+        }
+
+        .hero-btn-secondary:hover {
+            transform: translateY(-2px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Proxy Calculator Styles */
+        .proxy-calculator {
+            font-family: 'Onest', sans-serif;
+        }
+
+        .calculator-card {
+            min-height: 62px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .calculator-card select {
+            font-family: 'Onest', sans-serif;
+            border-radius: 12px;
+        }
+
+        .calculator-card select:focus {
+            outline: none;
+        }
+
+        /* Estilização do dropdown do select */
+        .calculator-card select option {
+            font-family: 'Onest', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 14px 18px;
+            background-color: #ffffff;
+            color: #1E293B;
+            border-radius: 8px;
+            margin: 4px 8px;
+        }
+
+        .calculator-card select option:hover {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e8f0ff 100%);
+            color: #2055d5;
+        }
+
+        .calculator-card select option:checked,
+        .calculator-card select option:focus {
+            background: linear-gradient(135deg, #2055d5 0%, #1e40af 100%);
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        /* Estilização da scrollbar do dropdown */
+        .calculator-card select::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .calculator-card select::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+
+        .calculator-card select::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+
+        .calculator-card select::-webkit-scrollbar-thumb:hover {
+            background: #2055d5;
+        }
+
+        .buy-proxy-btn {
+            font-family: 'Onest', sans-serif;
+            letter-spacing: 0.3px;
+        }
+
+        @keyframes price-pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        #priceDisplay {
+            font-family: 'Onest', sans-serif;
+        }
     </style>
 </head>
 
 <body class="bg-gray-50 font-sans">
-    <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <div class="container mx-auto px-4 py-6 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
+    <!-- Header Transparente -->
+    <header class="absolute top-0 left-0 right-0 z-50 bg-transparent">
+        <div class="container mx-auto px-4 py-6 flex justify-between items-center gap-8">
+            <div class="flex items-center">
                 <img src="{!! asset('images/logoproxy.webp') !!}" alt="Logo" height="200" width="250">
             </div>
-            <nav class="hidden md:flex space-x-8">
+            <!-- Glass Pill Menu -->
+            <nav
+                class="hidden md:flex items-center bg-white/15 backdrop-blur-xl border border-white/20 rounded-full px-5 py-3 shadow-lg shadow-black/5">
                 <a href="{{ route('inicial') }}"
-                    class="nav-link font-sf-pro text-base text-sf-nav font-medium px-4 py-2 rounded-lg">Início</a>
-                <a href="{{ route('inicial') }}"
-                    class="nav-link font-sf-pro text-base text-sf-nav font-medium px-4 py-2 rounded-lg">Planos</a>
-                <a href="{{ route('inicial') }}"
-                    class="nav-link font-sf-pro text-base text-sf-nav font-medium px-4 py-2 rounded-lg">API</a>
-                <a href="{{ route('duvidas.show') }}"
-                    class=" nav-link font-sf-pro text-base text-sf-nav font-medium px-4 py-2 rounded-lg">Suporte</a>
-            </nav>
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('login.show') }}" data-ripple-light="true"
-                    class="flex items-center text-base gap-2 select-none text-center text-[#2055d5] hover:text-white transition-all py-2 px-4 rounded-xl no-underline bg-[#DCE5FD] hover:bg-[#2055d5] "
-                    style="  transition: background-color 0.3s; font-weight: 500;">
-                    <i class="fas fa-user"></i>
-                    <span>Log-in</span>
+                    class="glass-pill-link font-onest text-base font-medium px-8 py-2 rounded-full text-white hover:text-[#2055dd] transition-all duration-300 ease-out hover:bg-white/20">
+                    Início
                 </a>
-                <a href="#calculator" class="text-gray-600 hover:text-blue-500"><i class="fas fa-shopping-cart"></i></a>
-                <button class="md:hidden text-gray-600">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
+                <a href="{{ route('inicial') }}"
+                    class="glass-pill-link font-onest text-base font-medium px-8 py-2 rounded-full text-white hover:text-[#2055dd] transition-all duration-300 ease-out hover:bg-white/20">
+                    Planos
+                </a>
+                <a href="{{ route('inicial') }}"
+                    class="glass-pill-link font-onest text-base font-medium px-8 py-2 rounded-full text-white hover:text-[#2055dd] transition-all duration-300 ease-out hover:bg-white/20">
+                    API
+                </a>
+                <a href="{{ route('duvidas.show') }}"
+                    class="glass-pill-link font-onest text-base font-medium px-8 py-2 rounded-full text-white hover:text-[#2055dd] transition-all duration-300 ease-out hover:bg-white/20">
+                    Suporte
+                </a>
+            </nav>
+            <div class="flex items-center gap-3">
+                @auth
+                    <a href="{{ route('dash.show') }}" data-ripple-light="true"
+                        class="flex items-center text-base gap-2 select-none text-center text-white hover:text-white transition-all py-2 px-5 rounded-xl no-underline bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30"
+                        style="transition: all 0.3s; font-weight: 500;">
+                        <i class="fa-solid fa-door-open"></i> <span>Acessar conta</span>
+                    </a>
+                @else
+                    <a href="{{ route('login.show') }}" data-ripple-light="true"
+                        class="flex items-center text-base gap-2 select-none text-center text-white hover:text-white transition-all py-2 px-5 rounded-xl no-underline bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30"
+                        style="transition: all 0.3s; font-weight: 500;">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Registre-se</span>
+                    </a>
+                    <button class="md:hidden text-white">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                @endauth
             </div>
         </div>
     </header>
 
     <!-- Hero Section -->
-    <section class="relative flex items-start justify-center overflow-hidden pt-32"
-        style="background: linear-gradient(to right, #438ccb, #316fab, #306da8, #3066a0, #2a508a, #233a72); min-height: 100vh;">
+    <section class="relative flex items-start justify-center overflow-hidden"
+        style="background: linear-gradient(to right, #438ccb, #316fab, #306da8, #3066a0, #2a508a, #233a72); min-height: 100vh; padding-top: 120px;">
         <div class="container mx-auto px-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-16 items-start">
 
                 <!-- Texto -->
                 <div class="text-left">
@@ -118,34 +286,99 @@
                     </svg>
 
                     <h1 id="heroTitle" class="text-white font-bold mb-6"
-                        style="font-family: 'Gilroy', sans-serif; font-size: 52px; line-height: 1.2; max-width: 650px;">
+                        style="font-family: 'Onest', sans-serif; font-size: 52px; line-height: 1.2; max-width: 650px;">
                         <span class="hero-main">Proxies Premium de</span><br>
-                        <span class="hero-highlight" style="color: #e8eef5;">Alta Performance</span>
+                        <span class="hero-highlight"
+                            style="background: linear-gradient(90deg, #60a5fa 0%, #e8eef5 50%, #60a5fa 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: shimmer 3s linear infinite;">Alta
+                            Performance</span>
                     </h1>
 
-                    <p id="heroSubtitle" class="text-white text-xl mb-8"
-                        style="font-family: 'Gilroy', sans-serif; font-weight: 400; max-width: 550px; opacity: 0.95;">
+                    <p id="heroSubtitle" class="text-white text-xl mb-10"
+                        style="font-family: 'Onest', sans-serif; font-weight: 400; max-width: 550px; opacity: 0.95;">
                         Velocidade, segurança e preços acessíveis. <br>
                         Conquiste resultados com a <strong style="color: #e8eef5;">AlfaProxy</strong>
                     </p>
 
-                    <div class="flex gap-4">
-                        <a href="#calculator"
-                            class="px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300"
-                            style="background-color: #ffffff; color: #2a508a; font-family: 'Gilroy', sans-serif; box-shadow: 0 4px 14px rgba(0,0,0,0.15);">
-                            Começar Agora
-                        </a>
-                        <a href="#features"
-                            class="px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 border-2"
-                            style="background-color: transparent; color: #ffffff; border-color: rgba(255,255,255,0.3); font-family: 'Gilroy', sans-serif;">
-                            Saiba Mais
-                        </a>
+                    <!-- Proxy Calculator -->
+                    <div id="calculator"
+                        class="proxy-calculator bg-white/95 backdrop-blur-md rounded-[28px] shadow-[0_4px_20px_rgba(0,0,0,0.08)] ring-1 ring-white/30 p-5 flex flex-col lg:flex-row items-stretch lg:items-center gap-3 w-full max-w-6xl relative z-10">
+
+                        <!-- Proxy Type -->
+                        <div
+                            class="calculator-card bg-white/60 backdrop-blur-md rounded-xl px-4 py-3 flex-1 min-w-[140px] relative group cursor-pointer hover:bg-white/80 transition-all duration-300">
+                            <label
+                                class="block text-[10px] font-semibold text-[#94A3B8] mb-1 uppercase tracking-wider">Tipo</label>
+                            <div class="flex items-center justify-between">
+                                <span class="text-[#1E293B] font-bold text-sm">SOCKS5</span>
+                                <svg class="w-3.5 h-3.5 text-[#94A3B8] transition-transform group-hover:translate-y-0.5"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Country -->
+                        <div
+                            class="calculator-card bg-white/60 backdrop-blur-md rounded-xl px-4 py-3 flex-1 min-w-[160px] relative group cursor-pointer hover:bg-white/80 transition-all duration-300">
+                            <label
+                                class="block text-[10px] font-semibold text-[#94A3B8] mb-1 uppercase tracking-wider">País</label>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <img src="https://flagcdn.com/w20/br.png" alt="Brasil" class="w-5 h-auto">
+                                    <span class="text-[#1E293B] font-bold text-sm">Brasil</span>
+                                </div>
+                                <svg class="w-3.5 h-3.5 text-[#94A3B8] transition-transform group-hover:translate-y-0.5"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            <div class="absolute -bottom-0.5 right-3 text-[9px] text-[#94A3B8] font-medium opacity-70">
+                                Outros países em breve</div>
+                        </div>
+
+                        <!-- Rental Period -->
+                        <div
+                            class="calculator-card bg-white/60 backdrop-blur-md rounded-xl px-4 py-3 flex-1 min-w-[140px] relative">
+                            <label
+                                class="block text-[10px] font-semibold text-[#94A3B8] mb-1 uppercase tracking-wider">Período</label>
+                            <select id="rentalPeriod"
+                                class="w-full text-[#1E293B] font-bold text-sm bg-transparent border-none outline-none appearance-none cursor-pointer hover:text-[#2055d5] transition-colors pr-5">
+                                <option value="30" data-price="20">30 dias</option>
+                                <option value="60" data-price="35">60 dias</option>
+                                <option value="90" data-price="45">90 dias</option>
+                                <option value="180" data-price="80">180 dias</option>
+                                <option value="360" data-price="120">360 dias</option>
+                            </select>
+                            <svg class="w-3.5 h-3.5 text-[#94A3B8] absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+
+                        <!-- Price Display & Buy Button -->
+                        <div class="flex flex-col lg:flex-row items-center gap-3 lg:gap-4 lg:pl-2 w-full lg:w-auto">
+                            <div class="text-center lg:text-right w-full lg:w-auto">
+                                <div class="text-[9px] font-bold text-[#94A3B8] uppercase tracking-wider mb-1">Total
+                                </div>
+                                <div id="priceDisplay"
+                                    class="text-2xl font-extrabold text-[#2055d5] leading-none whitespace-nowrap">R$ 20
+                                </div>
+                            </div>
+                            <a href="{{ route('login.show') }}"
+                                class="buy-proxy-btn bg-gradient-to-r from-[#4F8BFF] to-[#3AA0FF] text-white font-bold text-sm px-6 py-3 rounded-3xl shadow-[0_4px_16px_rgba(79,139,255,0.3)] hover:shadow-[0_6px_20px_rgba(79,139,255,0.4)] hover:brightness-105 hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-300 whitespace-nowrap w-full lg:w-auto text-center">
+                                Comprar Agora
+                            </a>
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- Animação Lottie do Planeta -->
-                <div class="hidden md:flex items-center justify-center">
-                    <div id="lottieAnimation" style="width: 500px; height: 500px;"></div>
+                <!-- Globo 3D Three.js -->
+                <div class="hidden lg:flex items-center justify-end pr-8">
+                    <canvas id="globeCanvas" style="width: 550px; height: 550px;"></canvas>
                 </div>
             </div>
         </div>
@@ -406,7 +639,7 @@
             // "Desenhar" a linha
             tl.to(logoPath, {
                 strokeDashoffset: 0,
-                duration: 2.5,
+                duration: 3,
                 ease: "power2.out"
             });
 
@@ -415,8 +648,16 @@
                 fill: "#e8eef5",
                 duration: 1.5,
                 repeat: 1,
+                repeatDelay: 2.5,
                 yoyo: true,
                 ease: "sine.inOut"
+            });
+
+            // "Apagar" a linha antes de reiniciar
+            tl.to(logoPath, {
+                strokeDashoffset: length,
+                duration: 3,
+                ease: "power2.in"
             });
 
             // Flutuação do logo
@@ -489,54 +730,82 @@
             // timeline para orquestrar tudo
             const tl = gsap.timeline({ delay: 1.5 }); // ajusta pra sincronizar com o logo
 
-            // Animação do título principal (mais lenta)
-            tl.add(() => scrambleText(mainTitle, mainText, 2.5))
-                .add(() => scrambleText(highlight, highlightText, 2.2), "+=0.3");
+            // Animação do título principal com efeito de entrada
+            tl.add(() => {
+                gsap.from(mainTitle, {
+                    x: -50,
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: "power3.out"
+                });
+                scrambleText(mainTitle, mainText, 2.5);
+            })
+                .add(() => {
+                    gsap.from(highlight, {
+                        scale: 0.9,
+                        opacity: 0,
+                        duration: 0.8,
+                        ease: "back.out(1.4)"
+                    });
+                    scrambleText(highlight, highlightText, 2.2);
+                }, "+=0.3");
 
-            // Subtítulo com scramble também, depois que o título terminar
+            // Subtítulo com scramble e entrada lateral
             tl.to(subtitle, {
                 opacity: 1,
                 duration: 0.3,
                 ease: "power1.out"
             }, "+=0.4")
-            .add(() => scrambleText(subtitle, subtitleText, 3), "-=0.2");
-        });
-    </script>
+                .add(() => {
+                    gsap.from(subtitle, {
+                        x: -30,
+                        duration: 0.5,
+                        ease: "power2.out"
+                    });
+                    scrambleText(subtitle, subtitleText, 3);
+                }, "-=0.2");
 
-    <!-- Lottie Animation -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const animationContainer = document.getElementById('lottieAnimation');
+            // ===========================
+            // Proxy Calculator Logic
+            // ===========================
+            const rentalPeriodSelect = document.getElementById('rentalPeriod');
+            const priceDisplay = document.getElementById('priceDisplay');
+            const calculator = document.querySelector('.proxy-calculator');
 
-            if (animationContainer) {
-                const animation = lottie.loadAnimation({
-                    container: animationContainer,
-                    renderer: 'svg',
-                    loop: true,
-                    autoplay: true,
-                    path: '{{ asset("images/planet.json") }}'
+            if (rentalPeriodSelect && priceDisplay) {
+                // Atualizar preço quando mudar período
+                rentalPeriodSelect.addEventListener('change', function () {
+                    const selectedOption = this.options[this.selectedIndex];
+                    const price = selectedOption.getAttribute('data-price');
+
+                    // Animação de troca de preço
+                    gsap.to(priceDisplay, {
+                        scale: 1.1,
+                        duration: 0.2,
+                        ease: "power2.out",
+                        onComplete: () => {
+                            priceDisplay.textContent = `R$ ${price}`;
+                            gsap.to(priceDisplay, {
+                                scale: 1,
+                                duration: 0.2,
+                                ease: "power2.out"
+                            });
+                        }
+                    });
                 });
 
-                // Animação de entrada com GSAP
-                gsap.from(animationContainer, {
+                // Animação de entrada da calculadora
+                gsap.from(calculator, {
                     opacity: 0,
-                    scale: 0.8,
-                    duration: 1.5,
-                    delay: 2,
-                    ease: "power3.out"
-                });
-
-                // Flutuação suave contínua
-                gsap.to(animationContainer, {
-                    y: -20,
-                    duration: 4,
-                    repeat: -1,
-                    yoyo: true,
-                    ease: "sine.inOut"
+                    y: 30,
+                    duration: 1,
+                    ease: "power3.out",
+                    delay: 2.5
                 });
             }
         });
     </script>
+
 
     <!-- Material Tailwind Ripple Effect -->
     <script async src="https://unpkg.com/@material-tailwind/html@latest/scripts/ripple.js"></script>

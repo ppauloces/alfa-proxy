@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,7 +11,7 @@
         color: #63637c;
         transition: all 0.3s;
     }
-    
+
     .nav-link:hover {
         color: #2055d5;
         background-color: #DCE5FD;
@@ -17,45 +19,7 @@
 }
 
 @layer base {
-    /* Gilroy Font - Arquivos em public/fonts/gilroy/ */
-    @font-face {
-        font-family: 'Gilroy';
-        font-style: normal;
-        font-weight: 300;
-        src: url('/fonts/gilroy/Gilroy-Light.otf') format('opentype');
-        font-display: swap;
-    }
-    
-    @font-face {
-        font-family: 'Gilroy';
-        font-style: normal;
-        font-weight: 800;
-        src: url('/fonts/gilroy/Gilroy-ExtraBold.otf') format('opentype');
-        font-display: swap;
-    }
-    
-    /* SF Pro Display - Arquivos em public/fonts/sfpro/ */
-    @font-face {
-        font-family: 'SF Pro';
-        font-style: normal;
-        font-weight: 400;
-        src: url('/fonts/sfpro/SFPRODISPLAYREGULAR.OTF') format('opentype');
-        font-display: swap;
-    }
-    
-    @font-face {
-        font-family: 'SF Pro';
-        font-style: normal;
-        font-weight: 500;
-        src: url('/fonts/sfpro/SFPRODISPLAYMEDIUM.OTF') format('opentype');
-        font-display: swap;
-    }
-    
-    @font-face {
-        font-family: 'SF Pro';
-        font-style: normal;
-        font-weight: 700;
-        src: url('/fonts/sfpro/SFPRODISPLAYBOLD.OTF') format('opentype');
-        font-display: swap;
+    body {
+        font-family: 'Onest', sans-serif;
     }
 }

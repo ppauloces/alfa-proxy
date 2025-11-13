@@ -42,6 +42,10 @@ Route::post('/redefinir-senha', [RecuperarSenhaController::class, 'redefinir'])-
 //Rotas de usuários logados
 Route::middleware(['auth', CheckUserStatus::class])->group(function () {
 
+    Route::get('/dash', function () {
+        return view('dash.index');
+    })->name('dash.show');
+
     Route::get('/dashboard', [LogadoController::class, 'dashboard'])->name('dashboard.show');
     Route::get('/saldo', [LogadoController::class, 'saldo'])->name('saldo.show');
     Route::get('/socks5', [LogadoController::class, 'socks5'])->name('socks5.show');

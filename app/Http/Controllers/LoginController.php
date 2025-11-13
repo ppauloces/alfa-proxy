@@ -10,6 +10,10 @@ class LoginController extends Controller
 {
     public function show()
     {
+        if(Auth::check()) {
+            return redirect()->route('dash.show');
+        }
+
         return view('auth.login');
     }
 
@@ -31,6 +35,6 @@ class LoginController extends Controller
 
     protected function authenticated(Request $request, $user)
     {
-        return redirect()->route('dashboard.show');
+        return redirect()->route('dash.show');
     }
 }

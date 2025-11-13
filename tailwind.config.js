@@ -8,9 +8,8 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                'gilroy': ['Gilroy', 'sans-serif'],
-                'sf-pro': ['SF Pro', 'sans-serif'],
-                'sans': ['Gilroy', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                'sans': ['Onest', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                'onest': ['Onest', 'sans-serif'],
             },
             fontSize: {
                 'sf-nav': ['18px', {

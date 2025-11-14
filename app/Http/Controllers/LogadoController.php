@@ -78,7 +78,6 @@ class LogadoController extends Controller
             'totalValor',
             'transacoes',
             'activeSection',
-            'users',
         ));
     }
 

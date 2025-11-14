@@ -79,7 +79,7 @@
                 <a href="{{ route('duvidas.show') }}" class="text-gray-600 hover:text-blue-500 font-medium">Suporte</a>
             </nav>
             <div class="flex items-center space-x-4">
-                <a href="{{ route('login.show') }}" class="text-gray-600 hover:text-blue-500"><i class="fas fa-user"></i></a>
+                <a href="{{ route('login') }}" class="text-gray-600 hover:text-blue-500"><i class="fas fa-user"></i></a>
                 <a href="#calculator" class="text-gray-600 hover:text-blue-500"><i class="fas fa-shopping-cart"></i></a>
                 <button class="md:hidden text-gray-600">
                     <i class="fas fa-bars text-xl"></i>

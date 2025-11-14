@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Vps extends Model
+{
+    protected $table = 'vps';
+
+    protected $fillable = [
+        'apelido',
+        'ip',
+        'usuario_ssh',
+        'senha_ssh',
+        'valor',
+        'pais',
+        'hospedagem',
+        'periodo_dias',
+        'data_contratacao',
+        'status',
+    ];
+
+    protected $casts = [
+        'valor' => 'decimal:2',
+        'data_contratacao' => 'date',
+    ];
+
+    // Relacionamento com proxies (stocks)
+    public function proxies()
+    {
+        return $this->hasMany(Stock::class, 'vps_id');
+    }
+}

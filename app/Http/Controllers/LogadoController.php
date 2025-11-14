@@ -77,7 +77,8 @@ class LogadoController extends Controller
             'pagamentos_pendentes',
             'totalValor',
             'transacoes',
-            'activeSection'
+            'activeSection',
+            'users',
         ));
     }
 

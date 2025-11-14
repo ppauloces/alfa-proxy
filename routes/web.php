@@ -23,7 +23,7 @@ Route::get('/faq', function() {
 })->name('faq');
 
 //Rotas de login
-Route::get('/login', [LoginController::class, 'show'])->name('login.show');
+Route::get('/login', [LoginController::class, 'show'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.perform');
 
 //Rota de logout
@@ -80,6 +80,7 @@ Route::middleware(['auth', CheckUserStatus::class])->group(function () {
 
 //Rotas de administradores
 Route::middleware(AdminMiddleware::class)->group(function () {
-    Route::get('/admin/proxies', [AdminController::class, 'proxies'])->name('proxies');
+    Route::get('/admin/proxies', [AdminController::class, 'proxies'])->name('proxies.show');
     Route::post('/admin/vps/cadastrar', [AdminController::class, 'cadastrarVps'])->name('vps.cadastrar');
+    Route::get('/admin/usuarios', [AdminController::class, 'usuarios'])->name('usuarios.show');
 });

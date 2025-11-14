@@ -372,6 +372,7 @@
 .faq-item.open .faq-answer { display: block; }
 .faq-icon { transition: transform 0.2s ease; }
 .faq-item.open .faq-icon { transform: rotate(180deg); }
+.rotate-180 { transform: rotate(180deg); }
 .setting-item {
     display: flex;
     justify-content: space-between;
@@ -412,11 +413,158 @@
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
+.admin-grid { display: grid; gap: 1.5rem; }
+.admin-card,
+.vps-card,
+.finance-card {
+    background: #fff;
+    border-radius: 24px;
+    border: 1px solid rgba(226,232,240,0.9);
+    padding: 1.5rem;
+    box-shadow: 0 12px 40px rgba(15,23,42,0.08);
+}
+.admin-card h2 { margin-bottom: 0.85rem; }
+.admin-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(79,139,255,0.1);
+    color: var(--sf-blue);
+}
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.admin-table th {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #94a3b8;
+    text-align: left;
+    padding-bottom: 0.75rem;
+}
+.admin-table td {
+    padding: 0.9rem 0;
+    border-top: 1px solid rgba(226,232,240,0.8);
+    font-size: 0.92rem;
+}
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    background: rgba(148,163,184,0.15);
+    color: #475569;
+}
+.badge-status[data-status="disponivel"] { background: rgba(16,185,129,0.12); color: #047857; }
+.badge-status[data-status="vendida"] { background: rgba(59,130,246,0.12); color: #1d4ed8; }
+.badge-status[data-status="bloqueada"] { background: rgba(248,113,113,0.15); color: #b91c1c; }
+.badge-status[data-status="inativa"] { background: rgba(148,163,184,0.2); color: #475569; }
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+.status-dot[data-status="disponivel"] { background: #10b981; }
+.status-dot[data-status="vendida"] { background: #2563eb; }
+.status-dot[data-status="bloqueada"] { background: #ef4444; }
+.status-dot[data-status="caida"] { background: #f97316; }
+.vps-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+}
+.vps-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+.vps-body {
+    margin-top: 1.25rem;
+    border-top: 1px dashed rgba(148,163,184,0.4);
+    padding-top: 1rem;
+}
+.proxy-pill {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 16px;
+    border: 1px solid rgba(226,232,240,0.9);
+}
+.admin-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.6);
+    backdrop-filter: blur(2px);
+    display: none;
+    z-index: 40;
+}
+.admin-modal-overlay.active { display: block; }
+.admin-modal {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(480px, calc(100% - 2rem));
+    background: #fff;
+    border-radius: 24px;
+    padding: 1.75rem;
+    box-shadow: 0 40px 80px rgba(15,23,42,0.2);
+    z-index: 41;
+    display: none;
+}
+.admin-modal.active { display: block; }
+.timeline {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.timeline-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    border-radius: 16px;
+    border: 1px solid rgba(226,232,240,0.8);
+}
+.trend-up { color: #059669; }
+.trend-down { color: #dc2626; }
+.finance-card .chart-bar {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(148,163,184,0.3);
+    overflow: hidden;
+}
+.finance-card .chart-bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--sf-blue-light), var(--sf-blue));
+}
+.replace-panel {
+    border-radius: 16px;
+    border: 1px dashed rgba(148,163,184,0.6);
+    padding: 0.9rem;
+    margin-top: 0.75rem;
+    background: rgba(248,250,252,0.8);
+}
 </style>
 @endsection
 
 @section('content')
 @php
+use App\Models\User;
 $proxyGroups = $proxyGroups ?? [
     'SOCKS5' => [
         [
@@ -466,6 +614,111 @@ $pagamentos_pendentes = $pagamentos_pendentes ?? $pagamentos->where('status', 0)
 $totalValor = $totalValor ?? $pagamentos_aprovados->sum('valor');
 $transacoes = $transacoes ?? $pagamentos;
 $currentSection = $activeSection ?? 'proxies';
+$clientLeads = [];
+$collaborators = [];
+
+if (Auth::user()?->isAdmin()) {
+
+    
+    $clientLeads = User::where('cargo', 'usuario')->get();
+
+
+    $adminOverview = [
+        ['icon' => 'fa-diagram-project', 'label' => 'Proxies geradas', 'value' => '1.284', 'chip' => '+12% esta semana'],
+        ['icon' => 'fa-server', 'label' => 'VPS operacionais', 'value' => '18', 'chip' => '3 renovações próximas'],
+        ['icon' => 'fa-sack-dollar', 'label' => 'Receita mensal', 'value' => 'R$ 74.250', 'chip' => '+8% vs. mês anterior'],
+        ['icon' => 'fa-shield-halved', 'label' => 'Proxies ativas', 'value' => '742', 'chip' => '96 aguardando health-check'],
+    ];
+
+    $generatedProxies = [
+        ['numero' => '#001', 'endereco' => '201.94.10.12:7010', 'user' => 'farm_br01', 'senha' => 'Lq9#22A', 'vps' => 'BR-ALFA 01', 'status' => 'Disponivel'],
+        ['numero' => '#002', 'endereco' => '201.94.10.12:7011', 'user' => 'farm_br01', 'senha' => 'Ts8@16P', 'vps' => 'BR-ALFA 01', 'status' => 'Disponivel'],
+        ['numero' => '#045', 'endereco' => '138.199.54.20:6201', 'user' => 'farm_us03', 'senha' => 'Hg7$33L', 'vps' => 'US-NODE 03', 'status' => 'Vendida'],
+        ['numero' => '#078', 'endereco' => '45.152.12.90:8870', 'user' => 'farm_eu02', 'senha' => 'Pa5!90X', 'vps' => 'EU-SCALA 02', 'status' => 'Porta bloqueada'],
+    ];
+
+  
+
+    $soldProxyCards = [
+        ['label' => 'Proxies vendidas (24h)', 'value' => '86', 'chip' => '+18% vs. ontem'],
+        ['label' => 'Ativas x Inativas', 'value' => '712 / 34', 'chip' => '4.5% inativas'],
+        ['label' => 'Receita acumulada', 'value' => 'R$ 212.400', 'chip' => '+R$ 9.800 esta semana'],
+        ['label' => 'Saldo em carteira', 'value' => 'R$ 18.920', 'chip' => 'Saldo disponível'],
+    ];
+
+    $soldProxies = [
+        [
+            'data' => '13/11 14:20',
+            'endereco' => '201.94.10.12:7014 | farm_br01 | Jk8#12S',
+            'porta' => '7014',
+            'comprador' => 'João Henrique',
+            'email' => 'joao@agenciaalpha.com',
+            'periodo' => '23 dias',
+            'status' => 'disponivel',
+            'valor' => 'R$ 210,00',
+            'gasto_cliente' => 'R$ 740,00',
+            'pedidos' => 4,
+        ],
+        [
+            'data' => '13/11 13:05',
+            'endereco' => '138.199.54.20:6202 | farm_us03 | Pl9!00W',
+            'porta' => '6202',
+            'comprador' => 'Camila Duarte',
+            'email' => 'camila@betmind.ai',
+            'periodo' => '11 dias',
+            'status' => 'vendida',
+            'valor' => 'US$ 52,00',
+            'gasto_cliente' => 'US$ 1.200,00',
+            'pedidos' => 9,
+        ],
+        [
+            'data' => '13/11 11:47',
+            'endereco' => '45.152.12.90:8869 | farm_eu02 | Wq1@77L',
+            'porta' => '8869',
+            'comprador' => 'Pedro Azevedo',
+            'email' => 'pedro@tradingpro.io',
+            'periodo' => '5 dias',
+            'status' => 'bloqueada',
+            'valor' => '€ 39,00',
+            'gasto_cliente' => '€ 230,00',
+            'pedidos' => 3,
+        ],
+    ];
+
+
+
+    
+    $financeCards = [
+        ['label' => 'Entradas (mês)', 'value' => 'R$ 64.200', 'trend' => '+14%', 'bar' => 82],
+        ['label' => 'Saídas (mês)', 'value' => 'R$ 18.450', 'trend' => '-5%', 'bar' => 48],
+        ['label' => 'Ticket médio', 'value' => 'R$ 242,00', 'trend' => '+6%', 'bar' => 66],
+    ];
+
+    $financeExtract = [
+        'saida' => [
+            ['descricao' => 'Renovação VPS BR-ALFA', 'categoria' => 'VPS', 'valor' => '-R$ 480,00', 'data' => '12/11 09:15'],
+            ['descricao' => 'Licença painel admin', 'categoria' => 'Software', 'valor' => '-R$ 210,00', 'data' => '11/11 17:41'],
+            ['descricao' => 'Anúncios performance', 'categoria' => 'Marketing', 'valor' => '-R$ 950,00', 'data' => '10/11 15:03'],
+        ],
+        'entrada' => [
+            ['descricao' => 'Compra João Henrique', 'categoria' => 'PIX', 'valor' => '+R$ 210,00', 'data' => '13/11 14:20'],
+            ['descricao' => 'Saldo ApostaPrime', 'categoria' => 'Cartão', 'valor' => '+R$ 1.500,00', 'data' => '13/11 12:08'],
+            ['descricao' => 'Recarga GrowthX', 'categoria' => 'USDT', 'valor' => '+US$ 320,00', 'data' => '13/11 09:50'],
+        ],
+    ];
+
+    $forecast = [
+        ['title' => 'Disponíveis para venda', 'value' => '312 proxies', 'detail' => 'Estoque garante 18 dias de operação'],
+        ['title' => 'Previsão receita 30d', 'value' => 'R$ 198K', 'detail' => 'Baseada na taxa média de recompra'],
+        ['title' => 'Capacidade de VPS', 'value' => '82%', 'detail' => 'Adicionar 2 VPS em dezembro'],
+    ];
+
+    $couponCampaigns = [
+        ['nome' => 'BLACKWEEK', 'desconto' => '25%', 'uso' => '182 usos', 'validade' => '30/11', 'status' => 'Ativa'],
+        ['nome' => 'RESELLER10', 'desconto' => '10%', 'uso' => '58 usos', 'validade' => '31/12', 'status' => 'Ativa'],
+        ['nome' => 'WELCOME50', 'desconto' => '50% primeira compra', 'uso' => '412 usos', 'validade' => 'Indefinido', 'status' => 'Pausada'],
+    ];
+}
 @endphp
 
 <div class="space-y-10" data-sections-wrapper>
@@ -493,7 +746,7 @@ $currentSection = $activeSection ?? 'proxies';
     @endif
 </div>
 
-<div class="flex flex-wrap gap-3">
+<div class="flex flex-wrap gap-3 mb-4 max-w-2xl">
     @foreach ($proxyGroups as $group => $proxies)
         <button type="button" class="tab-btn {{ $loop->first ? 'active' : '' }}" data-tab="{{ $group }}">
             {{ \Illuminate\Support\Str::headline($group) }}
@@ -584,7 +837,7 @@ $currentSection = $activeSection ?? 'proxies';
                 <p class="text-lg font-semibold text-slate-700 mb-2">Nenhum proxy cadastrado neste tipo.</p>
                 <p class="text-sm text-slate-500 mb-4">Contrate um novo proxy para visualizar aqui.</p>
                 <button type="button" data-section-link="nova-compra" class="inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors">
-                    Ver planos disponiveis
+                Comprar novos proxies
                     <i class="fas fa-arrow-right text-xs"></i>
                 </button>
             </div>
@@ -627,6 +880,67 @@ $currentSection = $activeSection ?? 'proxies';
 <section class="dash-section {{ $currentSection === 'configuracoes' ? 'active' : 'hidden' }}" data-section="configuracoes">
     @include('dash.partials.configuracoes')
 </section>
+
+@if(Auth::user()->isAdmin())
+    <section class="dash-section {{ $currentSection === 'admin-dashboard' ? 'active' : 'hidden' }}" data-section="admin-dashboard">
+        @include('dash.partials.admin.dashboard')
+    </section>
+
+    <section class="dash-section {{ $currentSection === 'admin-proxies' ? 'active' : 'hidden' }}" data-section="admin-proxies">
+        @include('dash.partials.admin.proxies')
+    </section>
+
+    <section class="dash-section {{ $currentSection === 'admin-transacoes' ? 'active' : 'hidden' }}" data-section="admin-transacoes">
+        @include('dash.partials.admin.transacoes')
+    </section>
+
+    <section class="dash-section {{ $currentSection === 'admin-usuarios' ? 'active' : 'hidden' }}" data-section="admin-usuarios">
+        @include('dash.partials.admin.usuarios')
+    </section>
+
+    <section class="dash-section {{ $currentSection === 'admin-relatorios' ? 'active' : 'hidden' }}" data-section="admin-relatorios">
+        @include('dash.partials.admin.relatorios')
+    </section>
+
+    <section class="dash-section {{ $currentSection === 'admin-cupons' ? 'active' : 'hidden' }}" data-section="admin-cupons">
+        @include('dash.partials.admin.cupons')
+    </section>
+
+    <div id="buyerModalOverlay" class="admin-modal-overlay"></div>
+    <div id="buyerModal" class="admin-modal">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Cliente</p>
+                <h3 class="text-2xl font-bold text-slate-900" data-buyer-name>---</h3>
+                <p class="text-sm text-slate-500" data-buyer-email>---</p>
+            </div>
+            <button type="button" class="text-slate-400 hover:text-slate-900" data-close-buyer>
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Pedidos</p>
+                <p class="text-lg font-semibold text-slate-900" data-buyer-orders>--</p>
+            </div>
+            <div>
+                <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Gasto total</p>
+                <p class="text-lg font-semibold text-slate-900" data-buyer-spent>--</p>
+            </div>
+        </div>
+        <div class="bg-slate-50 rounded-2xl p-4 mb-4 text-sm text-slate-600" data-buyer-note>
+            Histórico recente indisponível.
+        </div>
+        <div class="flex gap-3">
+            <button type="button" class="btn-primary flex-1" data-close-buyer>
+                <i class="fas fa-envelope"></i> Enviar mensagem
+            </button>
+            <button type="button" class="btn-secondary flex-1" data-close-buyer>
+                <i class="fas fa-user-shield"></i> Ver perfil completo
+            </button>
+        </div>
+    </div>
+@endif
 </div>
 @endsection
 
@@ -819,6 +1133,89 @@ window.copyToClipboard = function(text) {
     if (!saveSettingsBtn) return;
     saveSettingsBtn.addEventListener('click', () => {
         alert('Configuracoes salvas com sucesso!');
+    });
+})();
+
+(() => {
+    document.querySelectorAll('[data-admin-accordion]').forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            const targetId = trigger.getAttribute('data-admin-accordion');
+            const target = document.getElementById(targetId);
+            target?.classList.toggle('hidden');
+            trigger.querySelector('.fa-chevron-down')?.classList.toggle('rotate-180');
+        });
+    });
+})();
+
+(() => {
+    const overlay = document.getElementById('buyerModalOverlay');
+    const modal = document.getElementById('buyerModal');
+    if (!overlay || !modal) return;
+
+    const setModal = (btn) => {
+        modal.querySelector('[data-buyer-name]').textContent = btn.dataset.buyerName ?? 'Cliente';
+        modal.querySelector('[data-buyer-email]').textContent = btn.dataset.buyerEmail ?? '---';
+        modal.querySelector('[data-buyer-orders]').textContent = btn.dataset.buyerOrders ?? '--';
+        modal.querySelector('[data-buyer-spent]').textContent = btn.dataset.buyerSpent ?? '--';
+        modal.querySelector('[data-buyer-note]').textContent = `Histórico consolidado: ${btn.dataset.buyerOrders ?? '--'} pedidos • ${btn.dataset.buyerSpent ?? '--'} em proxies.`;
+    };
+
+    const closeModal = () => {
+        overlay.classList.remove('active');
+        modal.classList.remove('active');
+    };
+
+    document.querySelectorAll('[data-open-buyer]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            setModal(btn);
+            overlay.classList.add('active');
+            modal.classList.add('active');
+        });
+    });
+
+    overlay.addEventListener('click', closeModal);
+    modal.querySelectorAll('[data-close-buyer]').forEach(el => el.addEventListener('click', closeModal));
+})();
+
+(() => {
+    document.querySelectorAll('[data-toggle-port]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const isBlocked = btn.dataset.state === 'blocked';
+            btn.dataset.state = isBlocked ? 'open' : 'blocked';
+            btn.innerHTML = isBlocked
+                ? '<i class="fas fa-ban"></i> Bloquear'
+                : '<i class="fas fa-lock-open"></i> Desbloquear';
+            const target = document.querySelector(btn.dataset.target);
+            if (target) {
+                const statusLabel = isBlocked ? 'disponivel' : 'bloqueada';
+                target.dataset.status = statusLabel;
+                target.textContent = statusLabel === 'disponivel' ? 'Disponivel' : 'Porta bloqueada';
+            }
+        });
+    });
+})();
+
+(() => {
+    document.querySelectorAll('[data-action="test-proxy"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Testando';
+            btn.disabled = true;
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                alert('Teste disparado! Aguarde o retorno do health-check.');
+            }, 1200);
+        });
+    });
+})();
+
+(() => {
+    document.querySelectorAll('[data-replace-toggle]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = document.querySelector(btn.dataset.replaceToggle);
+            target?.classList.toggle('hidden');
+        });
     });
 })();
 @endsection

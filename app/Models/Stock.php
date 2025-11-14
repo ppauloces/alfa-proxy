@@ -8,19 +8,24 @@ class Stock extends Model
 {
     protected $table = 'stocks';
 
-    protected $fillable = ['tipo', 'ip', 'porta', 'usuario', 'senha', 'disponibilidade'];
+    protected $fillable = ['user_id', 'vps_id', 'tipo', 'ip', 'porta', 'usuario', 'senha', 'pais', 'expiracao', 'disponibilidade'];
 
 
-    
+
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    public function vps()
+    {
+        return $this->belongsTo(Vps::class);
+    }
+
 
     protected $casts = [
-    'expiracao' => 'datetime',
-];
+        'expiracao' => 'datetime',
+    ];
 
 }

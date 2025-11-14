@@ -77,7 +77,7 @@ class RecuperarSenhaController extends Controller
 
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
-        return redirect()->route('login.show')->with('success', 'Senha alterada com sucesso!');
+        return redirect()->route('login')->with('success', 'Senha alterada com sucesso!');
 
     }
 

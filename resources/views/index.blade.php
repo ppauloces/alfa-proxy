@@ -250,7 +250,7 @@
                         <i class="fa-solid fa-door-open"></i> <span>Acessar conta</span>
                     </a>
                 @else
-                    <a href="{{ route('login.show') }}" data-ripple-light="true"
+                    <a href="{{ route('login') }}" data-ripple-light="true"
                         class="flex items-center text-base gap-2 select-none text-center text-white hover:text-white transition-all py-2 px-5 rounded-xl no-underline bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30"
                         style="transition: all 0.3s; font-weight: 500;">
                         <i class="fas fa-user-plus"></i>
@@ -367,7 +367,7 @@
                                     class="text-2xl font-extrabold text-[#2055d5] leading-none whitespace-nowrap">R$ 20
                                 </div>
                             </div>
-                            <a href="{{ route('login.show') }}"
+                            <a href="{{ route('login') }}"
                                 class="buy-proxy-btn bg-gradient-to-r from-[#4F8BFF] to-[#3AA0FF] text-white font-bold text-sm px-6 py-3 rounded-3xl shadow-[0_4px_16px_rgba(79,139,255,0.3)] hover:shadow-[0_6px_20px_rgba(79,139,255,0.4)] hover:brightness-105 hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-300 whitespace-nowrap w-full lg:w-auto text-center">
                                 Comprar Agora
                             </a>

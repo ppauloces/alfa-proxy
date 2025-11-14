@@ -69,4 +69,28 @@ public function stocks()
     return $this->hasMany(Stock::class, 'user_id');
 }
 
+/**
+ * Verifica se o usuário é admin ou super admin
+ */
+public function isAdmin()
+{
+    return in_array($this->cargo, ['admin', 'super']);
+}
+
+/**
+ * Verifica se o usuário é super admin
+ */
+public function isSuperAdmin()
+{
+    return $this->cargo === 'super';
+}
+
+/**
+ * Verifica se o usuário é apenas usuário comum
+ */
+public function isUser()
+{
+    return $this->cargo === 'usuario';
+}
+
 }

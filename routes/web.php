@@ -7,6 +7,7 @@ use App\Http\Controllers\PostbackController;
 use App\Http\Controllers\RecuperarSenhaController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckUserStatus;
 use App\Models\User;
@@ -79,7 +80,6 @@ Route::middleware(['auth', CheckUserStatus::class])->group(function () {
 
 //Rotas de administradores
 Route::middleware(AdminMiddleware::class)->group(function () {
-
-
-
+    Route::get('/admin/proxies', [AdminController::class, 'proxies'])->name('proxies');
+    Route::post('/admin/vps/cadastrar', [AdminController::class, 'cadastrarVps'])->name('vps.cadastrar');
 });

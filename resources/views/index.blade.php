@@ -254,7 +254,7 @@
                         class="flex items-center text-base gap-2 select-none text-center text-white hover:text-white transition-all py-2 px-5 rounded-xl no-underline bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30"
                         style="transition: all 0.3s; font-weight: 500;">
                         <i class="fas fa-user-plus"></i>
-                        <span>Registre-se</span>
+                        <span>Entrar</span>
                     </a>
                     <button class="md:hidden text-white">
                         <i class="fas fa-bars text-xl"></i>

@@ -24,6 +24,7 @@
             <span class="admin-chip"><i class="fas fa-robot"></i> Farm rodando</span>
         </div>
         <div class="grid md:grid-cols-2 gap-4">
+            @if($vpsFarm)
             @foreach($vpsFarm as $farm)
                 <div class="bg-slate-50 rounded-2xl p-4">
                     <div class="flex items-center justify-between mb-2">
@@ -38,6 +39,11 @@
                     </div>
                 </div>
             @endforeach
+            @else
+            <div class="bg-slate-50 rounded-2xl p-4">
+                <p class="text-sm text-slate-500">Nenhuma VPS cadastrada</p>
+            </div>
+            @endif
         </div>
     </div>
 

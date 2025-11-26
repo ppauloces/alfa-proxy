@@ -47,7 +47,11 @@
     box-shadow: 0 20px 60px rgba(15,23,42,0.08);
 }
 .proxy-table,
-.transactions-table { width: 100%; border-collapse: collapse; }
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
 .proxy-table th,
 .transactions-table th {
     text-align: left;
@@ -57,21 +61,29 @@
     color: #94a3b8;
     padding-bottom: 0.65rem;
 }
+.proxy-table th:nth-child(1) { width: 35%; } /* Endereço / Ações */
+.proxy-table th:nth-child(2) { width: 8%; }  /* País */
+.proxy-table th:nth-child(3) { width: 13%; } /* Compra */
+.proxy-table th:nth-child(4) { width: 14%; } /* Expiração */
+.proxy-table th:nth-child(5) { width: 15%; } /* Período */
+.proxy-table th:nth-child(6) { width: 15%; } /* Auto Renovação */
 .proxy-table td,
 .transactions-table td {
-    padding: 0.85rem 0;
+    padding: 0.85rem 0.5rem;
     border-top: 1px solid rgba(226,232,240,0.85);
     font-size: 0.9rem;
+    vertical-align: middle;
 }
 .address-chip {
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
     background: rgba(148,163,184,0.15);
-    padding: 0.3rem 0.55rem;
+    padding: 0.4rem 0.7rem;
     border-radius: 12px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.8rem;
+    display: inline-block;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    word-break: break-all;
+    max-width: 100%;
 }
 .action-btn {
     border: 1px solid rgba(148,163,184,0.4);
@@ -565,6 +577,17 @@
 @section('content')
 @php
 use App\Models\User;
+use App\Models\Vps;
+
+// Função helper para obter URL da bandeira do país
+function getCountryFlag($countryCode) {
+    if (empty($countryCode)) {
+        return null;
+    }
+    $code = strtolower($countryCode);
+    return "https://flagcdn.com/72x54/{$code}.webp";
+}
+
 $proxyGroups = $proxyGroups ?? [
     'SOCKS5' => [
         [
@@ -622,6 +645,30 @@ if (Auth::user()?->isAdmin()) {
     
     $clientLeads = User::where('cargo', 'usuario')->get();
 
+    // Definir $vpsFarm se não foi passada pelo controller
+    if (!isset($vpsFarm)) {
+        $vpsList = Vps::with('proxies')->orderBy('created_at', 'desc')->get();
+        $vpsFarm = $vpsList->map(function ($vps) {
+            return [
+                'id' => $vps->id,
+                'apelido' => $vps->apelido,
+                'ip' => $vps->ip,
+                'pais' => $vps->pais,
+                'hospedagem' => $vps->hospedagem,
+                'valor' => 'R$ ' . number_format($vps->valor, 2, ',', '.'),
+                'periodo' => $vps->periodo_dias . ' dias',
+                'contratada' => $vps->data_contratacao->format('d/m/Y'),
+                'status' => $vps->status,
+                'proxies' => $vps->proxies->map(function ($proxy) use ($vps) {
+                    return [
+                        'codigo' => '#' . str_pad($proxy->id, 3, '0', STR_PAD_LEFT),
+                        'endpoint' => $vps->ip . ':' . $proxy->porta,
+                        'status' => $proxy->disponibilidade ? 'disponivel' : 'vendida',
+                    ];
+                })->toArray(),
+            ];
+        })->toArray();
+    }
 
     $adminOverview = [
         ['icon' => 'fa-diagram-project', 'label' => 'Proxies geradas', 'value' => '1.284', 'chip' => '+12% esta semana'],
@@ -779,11 +826,11 @@ if (Auth::user()?->isAdmin()) {
                     <thead>
                         <tr>
                             <th>Endereco / acoes</th>
-                            <th>Pais</th>
-                            <th>Compra</th>
-                            <th>Expiracao</th>
-                            <th>Periodo</th>
-                            <th>Auto renovacao</th>
+                            <th class="text-center">Pais</th>
+                            <th class="text-center">Compra</th>
+                            <th class="text-center">Expiracao</th>
+                            <th class="text-center">Periodo</th>
+                            <th class="text-center">Auto renovacao</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -805,27 +852,44 @@ if (Auth::user()?->isAdmin()) {
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xl">{{ $proxy['country_code'] ?? '🌐' }}</span>
-                                        <span class="text-sm font-semibold text-slate-700">{{ $proxy['country'] }}</span>
+                                    <div class="flex items-center justify-center gap-2">
+                                        @php
+                                            $flagUrl = getCountryFlag($proxy['country_code'] ?? null);
+                                        @endphp
+                                        @if($flagUrl)
+                                            <img src="{{ $flagUrl }}"
+                                                 alt="{{ $proxy['country'] ?? 'País' }}"
+                                                 class="w-8 h-8 rounded-md object-cover shadow-sm"
+                                                 style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                                            <span class="text-2xl" style="display:none;">🌐</span>
+                                        @else
+                                            <span class="text-2xl">🌐</span>
+                                        @endif
                                     </div>
                                 </td>
                                 <td>
-                                    <p class="text-sm font-semibold text-slate-700">{{ \Carbon\Carbon::parse($proxy['purchased_at'])->format('d/m/Y') }}</p>
-                                    <p class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($proxy['purchased_at'])->format('H:i') }}</p>
+                                    <div class="text-center">
+                                        <p class="text-sm font-semibold text-slate-700">{{ \Carbon\Carbon::parse($proxy['purchased_at'])->format('d/m/Y') }}</p>
+                                        <p class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($proxy['purchased_at'])->format('H:i') }}</p>
+                                    </div>
                                 </td>
                                 <td>
-                                    <p class="text-sm font-semibold text-slate-700">{{ \Carbon\Carbon::parse($proxy['expires_at'])->format('d/m/Y') }}</p>
-                                    <span class="badge badge-amber">Renovar</span>
+                                    <div class="text-center">
+                                        <p class="text-sm font-semibold text-slate-700 mb-1">{{ \Carbon\Carbon::parse($proxy['expires_at'])->format('d/m/Y') }}</p>
+                                        <span class="badge badge-amber">Renovar</span>
+                                    </div>
                                 </td>
-                                <td>
+                                <td class="text-center">
                                     <span class="badge badge-gray">{{ $proxy['remaining'] }}</span>
                                 </td>
                                 <td>
-                                    <label class="switch">
-                                        <input type="checkbox" {{ $proxy['auto_renew'] ? 'checked' : '' }}>
-                                        <span class="slider"></span>
-                                    </label>
+                                    <div class="flex justify-center">
+                                        <label class="switch">
+                                            <input type="checkbox" {{ $proxy['auto_renew'] ? 'checked' : '' }}>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -879,6 +943,10 @@ if (Auth::user()?->isAdmin()) {
 
 <section class="dash-section {{ $currentSection === 'configuracoes' ? 'active' : 'hidden' }}" data-section="configuracoes">
     @include('dash.partials.configuracoes')
+</section>
+
+<section class="dash-section {{ $currentSection === 'cartoes' ? 'active' : 'hidden' }}" data-section="cartoes">
+    @include('dash.partials.cartoes')
 </section>
 
 @if(Auth::user()->isAdmin())
@@ -1218,5 +1286,110 @@ window.copyToClipboard = function(text) {
         });
     });
 })();
+
+// Modal PIX
+@if(session('pix_modal'))
+(() => {
+    const pixData = @json(session('pix_modal'));
+
+    // Criar modal PIX
+    const modalHTML = `
+        <div id="pixModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="animation: fadeIn 0.3s;">
+            <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4" style="animation: slideUp 0.3s;">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Pagamento PIX</h2>
+                    <p class="text-slate-600">Escaneie o QR Code ou copie o código</p>
+                </div>
+
+                <div class="bg-slate-50 rounded-2xl p-6 mb-6">
+                    <div class="text-center mb-4">
+                        <p class="text-sm text-slate-600 mb-2">Valor a pagar</p>
+                        <p class="text-3xl font-bold text-slate-900">R$ ${pixData.valor.toFixed(2).replace('.', ',')}</p>
+                    </div>
+
+                    <!-- QR Code -->
+                    <div class="bg-white p-4 rounded-xl mb-4 flex items-center justify-center" style="min-height: 200px;">
+                        ${pixData.qr_code_base64
+                            ? `<img src="${pixData.qr_code_base64}" alt="QR Code PIX" class="max-w-full h-auto" style="max-height: 250px;">`
+                            : `<div class="text-center">
+                                <svg class="w-32 h-32 mx-auto mb-2 text-slate-300" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/>
+                                </svg>
+                                <p class="text-xs text-slate-500">QR Code PIX</p>
+                            </div>`
+                        }
+                    </div>
+
+                    <!-- Código Copia e Cola -->
+                    <div class="bg-white rounded-xl p-4 mb-4">
+                        <label class="block text-xs font-semibold text-slate-600 mb-2">PIX Copia e Cola</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="pixCode" value="${pixData.copia_e_cola}" readonly
+                                   class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono">
+                            <button onclick="copiarPixCode()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                Copiar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Temporizador -->
+                    <div class="text-center text-sm text-slate-600 mb-4">
+                        <p>Expira em: <span id="pixTimer" class="font-semibold text-amber-600"></span></p>
+                    </div>
+
+                    <button onclick="fecharModalPix()" class="w-full py-3 bg-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-300 transition-colors">
+                        Fechar
+                    </button>
+                </div>
+
+                <p class="text-xs text-center text-slate-500">
+                    ID da Transação: <span class="font-mono">${pixData.transaction_code}</span>
+                </p>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Funções do modal
+    window.copiarPixCode = () => {
+        const input = document.getElementById('pixCode');
+        input.select();
+        document.execCommand('copy');
+        alert('Código PIX copiado!');
+    };
+
+    window.fecharModalPix = () => {
+        document.getElementById('pixModal').remove();
+    };
+
+    // Temporizador
+    const expiresAt = pixData.expira_timestamp * 1000;
+    const updateTimer = () => {
+        const now = Date.now();
+        const diff = expiresAt - now;
+
+        if (diff <= 0) {
+            document.getElementById('pixTimer').textContent = 'Expirado';
+            return;
+        }
+
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        document.getElementById('pixTimer').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    updateTimer();
+    setInterval(updateTimer, 1000);
+})();
+@endif
 @endsection
 

@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/card/2.5.4/card.min.css">
 @vite(['resources/css/app.css'])
 <style>
 :root {
@@ -262,6 +263,7 @@ header nav a {
                     <button type="button" data-section-link="nova-compra">Nova compra</button>
                     <button type="button" data-section-link="transacoes">Historico</button>
                     <button type="button" data-section-link="saldo">Carteira</button>
+                    <button type="button" data-section-link="cartoes">Meus Cartoes</button>
                     <span class="gap-2 flex items-center justify-between text-slate-400 text-sm">
                         Planos <span class="badge-pill">Em breve</span>
                     </span>
@@ -432,5 +434,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 @yield('scripts')
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/card/2.5.4/card.min.js"></script>
+
 </body>
 </html>

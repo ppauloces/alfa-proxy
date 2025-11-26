@@ -1,61 +1,233 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Alfa Proxy
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema de gerenciamento e venda de proxies SOCKS5 desenvolvido com Laravel 12.
 
-## About Laravel
+## Requisitos
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2+
+- Composer
+- Node.js & NPM
+- MySQL/MariaDB
+- Python 3.8+ (para API de geração de proxies)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Instalação
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. Clone o repositório e instale as dependências:
 
-## Learning Laravel
+```bash
+composer install
+npm install
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+2. Configure o arquivo `.env`:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+3. Configure o banco de dados no `.env` e execute as migrations:
 
-## Laravel Sponsors
+```bash
+php artisan migrate
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+4. Compile os assets:
 
-### Premium Partners
+```bash
+npm run build
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development/)**
-- **[Active Logic](https://activelogic.com)**
+## Executando o Sistema
 
-## Contributing
+### Ambiente de Desenvolvimento
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Use o comando `composer dev` para iniciar todos os serviços necessários:
 
-## Code of Conduct
+```bash
+composer dev
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Este comando inicia automaticamente:
+- **Laravel Server** (http://localhost:8000)
+- **Queue Worker** (para processar jobs em background)
+- **Vite Dev Server** (para hot reload dos assets)
 
-## Security Vulnerabilities
+### Executando Serviços Individualmente
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Se preferir executar cada serviço separadamente:
 
-## License
+```bash
+# Terminal 1: Laravel Server
+php artisan serve
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Terminal 2: Queue Worker
+php artisan queue:work --timeout=0 --tries=3
+
+# Terminal 3: Vite Dev Server
+npm run dev
+```
+
+## Sistema de Geração de Proxies
+
+### Requisitos
+
+1. **API Python FastAPI**: O sistema precisa de uma API Python rodando para gerar as proxies via Dante SOCKS5
+2. Configure a URL da API Python no `.env`:
+
+```env
+PYTHON_API_URL=http://127.0.0.1:8001
+```
+
+**IMPORTANTE**: A API Python deve rodar em uma porta diferente do Laravel (recomendado: 8001)
+
+### Como Funciona
+
+1. **Admin cadastra VPS**: No painel admin, ao cadastrar uma nova VPS, marque a opção "Rodar script de geração"
+2. **Job é enfileirado**: O sistema cria um job em background para não travar a interface
+3. **Processamento assíncrono**: O queue worker processa o job, conecta na VPS via SSH e gera as proxies
+4. **Monitoramento em tempo real**: O admin pode acompanhar o status da geração na tela de proxies
+
+### Rodando o Queue Worker
+
+O queue worker é **ESSENCIAL** para processar os jobs de geração de proxies. Sem ele rodando, as proxies não serão geradas.
+
+**Opção 1: Via composer dev (recomendado)**
+```bash
+composer dev
+```
+
+**Opção 2: Manualmente**
+```bash
+php artisan queue:work --timeout=0 --tries=3
+```
+
+**Opção 3: Via queue:listen (para desenvolvimento)**
+```bash
+php artisan queue:listen --tries=1
+```
+
+### Diferenças entre queue:work e queue:listen
+
+- **`queue:work`**: Mais eficiente, mantém a aplicação em memória. Requer restart após mudanças no código.
+- **`queue:listen`**: Reinicia a cada job, detecta mudanças automaticamente, mas é mais lento.
+
+### Monitoramento de Jobs
+
+**Ver logs em tempo real:**
+```bash
+php artisan pail
+```
+
+**Ver status da fila:**
+```bash
+php artisan queue:monitor
+```
+
+**Limpar jobs falhados:**
+```bash
+php artisan queue:flush
+```
+
+**Retentar jobs falhados:**
+```bash
+php artisan queue:retry all
+```
+
+### Status da Geração
+
+O sistema rastreia o status de cada geração:
+
+- **pending**: Na fila, aguardando processamento
+- **processing**: Gerando proxies (conectando na VPS)
+- **completed**: Proxies geradas com sucesso
+- **failed**: Erro durante a geração
+
+### Troubleshooting
+
+**Job não está processando?**
+1. Verifique se o queue worker está rodando
+2. Verifique os logs: `storage/logs/laravel.log`
+3. Verifique a tabela `jobs` no banco de dados
+
+**Erro 404 ao chamar API Python?**
+1. Verifique se a API Python está rodando
+2. Verifique se a porta está correta no `.env`
+3. Laravel usa porta 8000 por padrão, use 8001 para Python
+
+**Job falha mesmo com Python API rodando?**
+1. Verifique as credenciais SSH da VPS
+2. Verifique se o servidor VPS está acessível
+3. Verifique os logs detalhados com `php artisan pail`
+
+## API Python para Geração de Proxies
+
+A API Python deve implementar o endpoint:
+
+```
+POST /criar
+Content-Type: application/json
+
+{
+  "ip": "72.60.50.149",
+  "user": "root",
+  "senha": "senha_ssh"
+}
+
+Resposta esperada:
+{
+  "proxies": [
+    {
+      "ip": "72.60.50.149",
+      "porta": 1080,
+      "usuario": "user1",
+      "senha": "pass1"
+    }
+  ]
+}
+
+Ou simplesmente um array direto:
+[
+  {
+    "ip": "72.60.50.149",
+    "porta": 1080,
+    "usuario": "user1",
+    "senha": "pass1"
+  }
+]
+```
+
+### Iniciar API Python
+
+```bash
+# Exemplo com uvicorn (FastAPI)
+uvicorn main:app --host 127.0.0.1 --port 8001
+```
+
+## Testing
+
+```bash
+composer test
+```
+
+## Code Quality
+
+```bash
+# Formatar código
+./vendor/bin/pint
+
+# Ver logs em tempo real
+php artisan pail
+```
+
+## Estrutura do Projeto
+
+- **app/Jobs/GerarProxiesJob.php**: Job para geração de proxies em background
+- **app/Http/Controllers/AdminController.php**: Controle do painel admin
+- **app/Models/Vps.php**: Model de VPS
+- **app/Models/Stock.php**: Model de proxies em estoque
+- **routes/api.php**: Rotas da API (inclui endpoint de status de geração)
+
+## Licença
+
+MIT

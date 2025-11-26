@@ -8,6 +8,7 @@ use App\Http\Controllers\RecuperarSenhaController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CartaoController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckUserStatus;
 use App\Models\User;
@@ -66,6 +67,12 @@ Route::middleware(['auth', CheckUserStatus::class])->group(function () {
     // Carteira / Saldo
     Route::get('/saldo', [LogadoController::class, 'saldo'])->name('saldo.show');
     Route::post('/saldo/adicionar', [LogadoController::class, 'adicionarSaldo'])->name('saldo.adicionar');
+
+    // Cartões de Crédito
+    Route::get('/cartoes', [CartaoController::class, 'index'])->name('cartoes.index');
+    Route::post('/cartoes', [CartaoController::class, 'store'])->name('cartoes.store');
+    Route::post('/cartoes/{id}/default', [CartaoController::class, 'setDefault'])->name('cartoes.default');
+    Route::delete('/cartoes/{id}', [CartaoController::class, 'destroy'])->name('cartoes.destroy');
 
     // Outras rotas existentes
     Route::get('/cupons', [LogadoController::class, 'cupons'])->name('cupons.show');

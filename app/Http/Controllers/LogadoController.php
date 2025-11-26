@@ -6,10 +6,14 @@ use App\Models\Coupom;
 use App\Models\Stock;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\Cartao;
+use App\Services\ProxyAllocationService;
+use App\Services\AbacatePayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 
 class LogadoController extends Controller
@@ -69,6 +73,24 @@ class LogadoController extends Controller
         $transacoes = $pagamentos;
         $activeSection = $request->query('section', 'proxies');
 
+        // Buscar cartões salvos do usuário
+        $cartoes = Cartao::where('user_id', Auth::id())
+            ->orderBy('is_default', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $savedCards = $cartoes->map(function ($cartao) {
+            return [
+                'id' => $cartao->id,
+                'brand' => $cartao->bandeira,
+                'last4' => $cartao->ultimos_digitos,
+                'exp_month' => str_pad($cartao->mes_expiracao, 2, '0', STR_PAD_LEFT),
+                'exp_year' => $cartao->ano_expiracao,
+                'is_default' => $cartao->is_default,
+                'nome_titular' => $cartao->nome_titular,
+            ];
+        })->toArray();
+
         return view('dash.index', compact(
             'usuario',
             'proxyGroups',
@@ -78,6 +100,7 @@ class LogadoController extends Controller
             'totalValor',
             'transacoes',
             'activeSection',
+            'savedCards',
         ));
     }
 
@@ -175,13 +198,13 @@ class LogadoController extends Controller
         return redirect()->route('dash.show', ['section' => 'nova-compra']);
     }
 
-    public function processarCompra(Request $request)
+    public function processarCompra(Request $request, ProxyAllocationService $proxyService, AbacatePayService $abacatePay)
     {
         $request->validateWithBag('novaCompra', [
             'pais' => 'required',
             'motivo' => 'required',
             'periodo' => 'required|integer',
-            'quantidade' => 'required|integer|min:1',
+            'quantidade' => 'required|integer|min:1|max:100',
             'metodo_pagamento' => 'required',
         ]);
 
@@ -197,17 +220,122 @@ class LogadoController extends Controller
         $valorUnitario = $precos[$request->periodo] ?? 20.00;
         $valorTotal = $valorUnitario * $request->quantidade;
 
-        // Criar transação
-        $transacao = Transaction::create([
-            'user_id' => Auth::id(),
-            'valor' => $valorTotal,
-            'status' => 0, // Pendente
-            'metodo_pagamento' => $request->metodo_pagamento,
-        ]);
+        // Verificar se há proxies disponíveis no estoque
+        if (!$proxyService->hasAvailableVps($request->pais)) {
+            return back()
+                ->withErrors(['pais' => 'Não há proxies disponíveis para este país no momento.'], 'novaCompra')
+                ->withInput();
+        }
 
-        return redirect()
-            ->route('dash.show', ['section' => 'transacoes'])
-            ->with('transacoes_success', 'Pedido criado! Aguardando pagamento.');
+        try {
+            DB::beginTransaction();
+
+            $usuario = User::find(Auth::id());
+
+            // Criar transação de compra
+            $transacao = Transaction::create([
+                'user_id' => Auth::id(),
+                'email' => $usuario->email,
+                'transacao' => 'TXN-' . strtoupper(uniqid()),
+                'valor' => $valorTotal,
+                'status' => 0, // Pendente
+                'metodo_pagamento' => $request->metodo_pagamento,
+                'tipo' => 'compra_proxy',
+                'metadata' => [
+                    'pais' => $request->pais,
+                    'quantidade' => $request->quantidade,
+                    'periodo' => $request->periodo,
+                    'motivo' => $request->motivo,
+                    'valor_unitario' => $valorUnitario,
+                ],
+            ]);
+
+            // Se for PIX, criar QR Code via AbacatePay
+            if ($request->metodo_pagamento === 'pix') {
+                try {
+                    $pixData = $abacatePay->createPix([
+                        'amount' => (int) ($valorTotal * 100), // Converter para centavos
+                        'expiresIn' => 1800, // 30 minutos em segundos
+                        'description' => sprintf('%d Proxy(s) %s - %d dias', $request->quantidade, $request->pais, $request->periodo),
+                        'customer' => [
+                            'name' => $usuario->name,
+                            'cellphone' => $usuario->phone ?? '(00) 00000-0000',
+                            'email' => $usuario->email,
+                            'taxId' => $usuario->cpf ?? '293.235.470-18',
+                        ],
+                        'metadata' => [
+                            'externalId' => $transacao->transacao,
+                            'user_id' => Auth::id(),
+                            'tipo' => 'compra_proxy',
+                        ],
+                    ]);
+
+                    // Atualizar transação com dados do AbacatePay
+                    $metadata = $transacao->metadata;
+                    $metadata['abacatepay'] = [
+                        'pix_id' => $pixData['id'],
+                        'dev_mode' => $pixData['devMode'] ?? false,
+                        'expires_at' => $pixData['expiresAt'],
+                    ];
+                    $transacao->metadata = $metadata;
+                    $transacao->save();
+
+                    DB::commit();
+
+                    // Calcular timestamp de expiração
+                    $expiresAt = \Carbon\Carbon::parse($pixData['expiresAt']);
+
+                    // Retornar para dashboard com modal PIX
+                    return redirect()
+                        ->route('dash.show', ['section' => 'nova-compra'])
+                        ->with('pix_modal', [
+                            'transaction_id' => $transacao->id,
+                            'transaction_code' => $transacao->transacao,
+                            'pix_id' => $pixData['id'],
+                            'valor' => $valorTotal,
+                            'copia_e_cola' => $pixData['brCode'],
+                            'qr_code_base64' => $pixData['brCodeBase64'],
+                            'expira_em' => $expiresAt->format('d/m/Y H:i'),
+                            'expira_timestamp' => $expiresAt->timestamp,
+                            'dev_mode' => $pixData['devMode'] ?? false,
+                        ]);
+
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    return back()
+                        ->withErrors(['error' => 'Erro ao gerar PIX: ' . $e->getMessage()], 'novaCompra')
+                        ->withInput();
+                }
+            }
+
+            // Para outros métodos de pagamento, manter simulação por enquanto
+            $transacao->status = 1; // Aprovado (simulado)
+            $transacao->save();
+
+            // Alocar proxies de forma randomizada entre diferentes VPS
+            $proxiesAlocados = $proxyService->allocateProxies(Auth::id(), [
+                'pais' => $request->pais,
+                'quantidade' => (int) $request->quantidade,
+                'periodo_dias' => (int) $request->periodo,
+                'motivo' => $request->motivo,
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('dash.show', ['section' => 'proxies'])
+                ->with('proxies_success', sprintf(
+                    'Compra realizada com sucesso! %d proxies foram alocados e já estão disponíveis.',
+                    count($proxiesAlocados)
+                ));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()
+                ->withErrors(['error' => 'Erro ao processar compra: ' . $e->getMessage()], 'novaCompra')
+                ->withInput();
+        }
     }
     public function dashboard()
     {
@@ -283,4 +411,29 @@ class LogadoController extends Controller
         $usuario = User::where('id', Auth::id())->first();
         return view('logado.api', compact('usuario'));
     }
+
+    /**
+     * Gera código PIX Copia e Cola simulado
+     */
+    private function gerarPixCopiaECola(float $valor, string $transacaoId): string
+    {
+        // Formato PIX EMV simplificado (simulado)
+        // Em produção, você usaria uma biblioteca para gerar o código real
+        $chave = 'contato@alfaproxy.com'; // Chave PIX da empresa
+        $cidade = 'SAO PAULO';
+        $nome = 'ALFA PROXY';
+
+        // Gerar código base64 simulado que parece um código PIX real
+        $payload = sprintf(
+            '%s|%s|%s|%s|%.2f',
+            $chave,
+            $nome,
+            $cidade,
+            $transacaoId,
+            $valor
+        );
+
+        return '00020126' . strlen($payload) . $payload . 'BR.GOV.BCB.PIX' . date('YmdHis');
+    }
+
 }

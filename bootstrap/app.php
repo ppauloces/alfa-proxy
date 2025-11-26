@@ -12,7 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        // Excluir webhook da verificação CSRF
+        $middleware->validateCsrfTokens(except: [
+            'api/webhook/abacatepay',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

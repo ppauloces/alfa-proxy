@@ -13,6 +13,14 @@ class Transaction extends Model
         'email',
         'transacao',
         'valor',
-        'status'
+        'status',
+        'metodo_pagamento',
+        'tipo',
+        'metadata'
+    ];
+
+    protected $casts = [
+        'metadata' => 'array',
+        'valor' => 'decimal:2'
     ];
 }

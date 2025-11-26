@@ -8,7 +8,22 @@ class Stock extends Model
 {
     protected $table = 'stocks';
 
-    protected $fillable = ['user_id', 'vps_id', 'tipo', 'ip', 'porta', 'usuario', 'senha', 'pais', 'expiracao', 'disponibilidade'];
+    protected $fillable = [
+        'user_id',
+        'vps_id',
+        'tipo',
+        'ip',
+        'porta',
+        'usuario',
+        'senha',
+        'pais',
+        'codigo_pais',
+        'motivo_uso',
+        'periodo_dias',
+        'expiracao',
+        'disponibilidade',
+        'renovacao_automatica'
+    ];
 
 
 

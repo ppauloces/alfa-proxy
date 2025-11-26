@@ -37,6 +37,33 @@
         real.</p>
 </div>
 
+<!-- Painel de Monitoramento em Tempo Real -->
+<div id="statusPanel" class="mb-6" style="display: none;">
+    <div class="admin-card bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+                    <i class="fas fa-sync-alt text-white animate-spin text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900">Geração de Proxies em Andamento</h3>
+                    <p class="text-sm text-slate-600">Atualizando a cada 5 segundos</p>
+                </div>
+            </div>
+            <span id="lastUpdate" class="text-xs text-slate-500"></span>
+        </div>
+
+        <div id="vpsStatusList" class="space-y-3">
+            <!-- Lista de VPS será preenchida dinamicamente -->
+        </div>
+    </div>
+</div>
+
+<!-- Container de Notificações Toast -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-3" style="max-width: 400px;">
+    <!-- Toasts serão injetados aqui -->
+</div>
+
 <div class="grid mb-10">
     <div class="admin-card lg:col-span-2">
         <h2 class="text-xl font-semibold text-slate-900 mb-4">Cadastrar VPS / Rodar farm</h2>
@@ -389,4 +416,161 @@
             });
         }
     });
+
+    // ============================================
+    // SISTEMA DE MONITORAMENTO EM TEMPO REAL
+    // ============================================
+
+    let pollingInterval = null;
+    let vpsCompletadas = new Set(); // Rastrear VPS já notificadas
+
+    // Função para mostrar toast de notificação
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `transform transition-all duration-300 translate-x-full`;
+
+        const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+        const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+
+        toast.innerHTML = `
+            <div class="${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3">
+                <i class="fas ${icon} text-xl"></i>
+                <span class="font-medium">${message}</span>
+            </div>
+        `;
+
+        document.getElementById('toastContainer').appendChild(toast);
+
+        // Animar entrada
+        setTimeout(() => {
+            toast.className = 'transform transition-all duration-300 translate-x-0';
+        }, 10);
+
+        // Remover após 5 segundos
+        setTimeout(() => {
+            toast.className = 'transform transition-all duration-300 translate-x-full';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+
+    // Função para atualizar status das VPS
+    async function atualizarStatusVPS() {
+        try {
+            const response = await fetch('/api/vps/status-geracao');
+            const data = await response.json();
+
+            if (!data.success) return;
+
+            const statusPanel = document.getElementById('statusPanel');
+            const vpsStatusList = document.getElementById('vpsStatusList');
+            const lastUpdate = document.getElementById('lastUpdate');
+
+            // Se não tem VPS em processamento, esconder painel
+            if (!data.tem_processamento_ativo) {
+                statusPanel.style.display = 'none';
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+                return;
+            }
+
+            // Mostrar painel
+            statusPanel.style.display = 'block';
+
+            // Atualizar timestamp
+            lastUpdate.textContent = 'Atualizado agora';
+
+            // Limpar lista
+            vpsStatusList.innerHTML = '';
+
+            // Renderizar cada VPS
+            data.vps.forEach(vps => {
+                const vpsCard = document.createElement('div');
+                vpsCard.className = 'bg-white rounded-xl p-4 border border-slate-200';
+
+                // Verificar se acabou de completar (notificar)
+                if (vps.status === 'completed' && !vpsCompletadas.has(vps.id)) {
+                    vpsCompletadas.add(vps.id);
+                    showToast(`✅ VPS ${vps.apelido} concluída! ${vps.proxies_geradas} proxies geradas.`, 'success');
+
+                    // Reproduzir som de notificação (opcional)
+                    if ('Audio' in window) {
+                        try {
+                            const audio = new Audio('/sounds/notification.mp3');
+                            audio.volume = 0.3;
+                            audio.play().catch(() => {}); // Ignorar erro se não tiver áudio
+                        } catch(e) {}
+                    }
+                }
+
+                // Verificar se falhou (notificar)
+                if (vps.status === 'failed' && !vpsCompletadas.has(vps.id)) {
+                    vpsCompletadas.add(vps.id);
+                    showToast(`❌ Erro na VPS ${vps.apelido}: ${vps.erro}`, 'error');
+                }
+
+                //Barra de progresso (simulada para "processing")
+                let progressHTML = '';
+                if (vps.status === 'processing') {
+                    progressHTML = `
+                        <div class="mt-3">
+                            <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                                <div class="bg-blue-500 h-2 rounded-full animate-pulse" style="width: 100%; animation: progress 2s ease-in-out infinite;"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                vpsCard.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="font-bold text-slate-900">${vps.apelido}</span>
+                                <span class="text-xs px-2 py-1 rounded-full ${vps.badge_class}">${vps.badge_text}</span>
+                            </div>
+                            <p class="text-sm text-slate-600">${vps.ip}</p>
+                            ${vps.proxies_geradas > 0 ? `<p class="text-xs text-green-600 mt-1"><i class="fas fa-check"></i> ${vps.proxies_geradas} proxies geradas</p>` : ''}
+                            ${vps.erro ? `<p class="text-xs text-red-600 mt-1"><i class="fas fa-exclamation-triangle"></i> ${vps.erro}</p>` : ''}
+                            <p class="text-xs text-slate-400 mt-1">${vps.ultima_atualizacao}</p>
+                        </div>
+                        ${vps.status === 'processing' ? '<i class="fas fa-cog fa-spin text-2xl text-blue-500"></i>' : ''}
+                        ${vps.status === 'completed' ? '<i class="fas fa-check-circle text-2xl text-green-500"></i>' : ''}
+                        ${vps.status === 'failed' ? '<i class="fas fa-times-circle text-2xl text-red-500"></i>' : ''}
+                        ${vps.status === 'pending' ? '<i class="fas fa-clock text-2xl text-yellow-500"></i>' : ''}
+                    </div>
+                    ${progressHTML}
+                `;
+
+                vpsStatusList.appendChild(vpsCard);
+            });
+
+        } catch (error) {
+            console.error('Erro ao atualizar status:', error);
+        }
+    }
+
+    // Iniciar polling quando carregar a página
+    document.addEventListener('DOMContentLoaded', function() {
+        // Primeira verificação imediata
+        atualizarStatusVPS();
+
+        // Polling a cada 5 segundos
+        pollingInterval = setInterval(atualizarStatusVPS, 5000);
+    });
+
+    // Parar polling quando sair da página
+    window.addEventListener('beforeunload', function() {
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+        }
+    });
 </script>
+
+<style>
+    @keyframes progress {
+        0% { transform: translateX(-100%); }
+        50% { transform: translateX(0); }
+        100% { transform: translateX(100%); }
+    }
+</style>

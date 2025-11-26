@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Vps;
 use App\Models\Stock;
 use App\Models\User;
+use App\Models\Cartao;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 
 class AdminController extends Controller
 {
@@ -14,6 +17,7 @@ class AdminController extends Controller
     {
         // Buscar usuário autenticado
         $usuario = User::where('id', Auth::id())->first();
+      
 
         // Buscar todas as VPS cadastradas
         $vpsList = Vps::with('proxies')->orderBy('created_at', 'desc')->get();
@@ -109,86 +113,26 @@ class AdminController extends Controller
             'status' => 'Operacional',
         ]);
 
-        // Se o checkbox estiver marcado, chamar a API Python
+        // Se o checkbox estiver marcado, despachar Job para gerar proxies em background
         if ($request->has('rodar_script') && $request->rodar_script) {
-            try {
-                $porta_inicial = 1080;
-                $quantidade = $validated['quantidade_proxies'] ?? 50;
-                $apiUrl = env('PYTHON_API_URL', 'http://localhost:8000');
+            // Atualizar status da VPS para 'pending' (aguardando processamento)
+            $vps->update(['status_geracao' => 'pending']);
 
-                $response = \Illuminate\Support\Facades\Http::timeout(300)->post("{$apiUrl}/fake", [
-                    'ip' => $validated['ip'],
-                    'user' => $validated['usuario_ssh'],
-                    'senha' => $validated['senha_ssh'],
-                    'quantidade' => $quantidade,
-                    'porta_inicial' => $porta_inicial,
+            // Despachar Job para a fila (processamento em background)
+            \App\Jobs\GerarProxiesJob::dispatch($vps, intval($validated['periodo_dias']), Auth::id());
+
+            // Resposta imediata ao admin
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'VPS cadastrada! A geração de proxies está sendo processada em background. Você será notificado quando concluir.',
+                    'redirect' => route('proxies.show'),
                 ]);
-
-                if ($response->successful()) {
-                    $data = $response->json();
-                    $proxies = is_array($data) && !isset($data['proxies']) ? $data : ($data['proxies'] ?? []);
-                    $proxiesCriadas = 0;
-
-                    // Cadastrar cada proxy na tabela stocks
-                    foreach ($proxies as $proxy) {
-                        Stock::create([
-                            'user_id' => Auth::id(),
-                            'vps_id' => $vps->id,
-                            'tipo' => 'SOCKS5',
-                            'ip' => $proxy['ip'],
-                            'porta' => $proxy['porta'],
-                            'usuario' => $proxy['usuario'],
-                            'senha' => $proxy['senha'],
-                            'pais' => $validated['pais'],
-                            'expiracao' => now()->addDays(intval($validated['periodo_dias'])),
-                            'disponibilidade' => true,
-                        ]);
-                        $proxiesCriadas++;
-                    }
-
-                    // Se for requisição AJAX, retornar JSON
-                    if ($request->ajax() || $request->wantsJson()) {
-                        return response()->json([
-                            'success' => true,
-                            'message' => "VPS cadastrada e {$proxiesCriadas} proxies geradas com sucesso!",
-                            'redirect' => route('proxies.show'),
-                            'proxies_criadas' => $proxiesCriadas,
-                        ]);
-                    }
-
-                    return redirect()
-                        ->route('proxies.show')
-                        ->with('success', "VPS cadastrada e {$proxiesCriadas} proxies geradas com sucesso!");
-                } else {
-                    $errorMessage = $response->json()['detail'] ?? 'Erro ao gerar proxies';
-
-                    if ($request->ajax() || $request->wantsJson()) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => "VPS cadastrada, mas houve erro ao gerar proxies: {$errorMessage}",
-                            'redirect' => route('proxies.show'),
-                        ], 400);
-                    }
-
-                    return redirect()
-                        ->route('admin.proxies')
-                        ->with('warning', "VPS cadastrada, mas houve erro ao gerar proxies: {$errorMessage}");
-                }
-            } catch (\Exception $e) {
-                \Log::error('Erro ao chamar API Python: ' . $e->getMessage());
-
-                if ($request->ajax() || $request->wantsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => "VPS cadastrada, mas não foi possível gerar proxies. Erro: {$e->getMessage()}",
-                        'redirect' => route('proxies.show'),
-                    ], 500);
-                }
-
-                return redirect()
-                    ->route('proxies.show')
-                    ->with('warning', "VPS cadastrada, mas não foi possível gerar proxies. Erro: {$e->getMessage()}");
             }
+
+            return redirect()
+                ->route('proxies.show')
+                ->with('success', 'VPS cadastrada! A geração de proxies está sendo processada em background.');
         }
 
         // Se for requisição AJAX sem script, retornar JSON
@@ -203,6 +147,66 @@ class AdminController extends Controller
         return redirect()
             ->route('proxies.show')
             ->with('success', 'VPS cadastrada com sucesso!');
+    }
+
+    /**
+     * Retorna status em tempo real da geração de proxies
+     * Endpoint: GET /api/vps/status-geracao
+     */
+    public function statusGeracao(Request $request)
+    {
+        // Buscar apenas VPS que estão em processo de geração (não null)
+        $vpsEmGeracao = Vps::whereNotNull('status_geracao')
+            ->select('id', 'apelido', 'ip', 'status_geracao', 'proxies_geradas', 'erro_geracao', 'updated_at')
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(function ($vps) {
+                return [
+                    'id' => $vps->id,
+                    'apelido' => $vps->apelido,
+                    'ip' => $vps->ip,
+                    'status' => $vps->status_geracao,
+                    'proxies_geradas' => $vps->proxies_geradas,
+                    'erro' => $vps->erro_geracao,
+                    'ultima_atualizacao' => $vps->updated_at->diffForHumans(),
+                    'badge_class' => $this->getBadgeClass($vps->status_geracao),
+                    'badge_text' => $this->getBadgeText($vps->status_geracao),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'vps' => $vpsEmGeracao,
+            'tem_processamento_ativo' => $vpsEmGeracao->whereIn('status', ['pending', 'processing'])->count() > 0,
+        ]);
+    }
+
+    /**
+     * Retorna classe CSS para badge baseado no status
+     */
+    private function getBadgeClass($status)
+    {
+        return match($status) {
+            'pending' => 'bg-yellow-100 text-yellow-800',
+            'processing' => 'bg-blue-100 text-blue-800 animate-pulse',
+            'completed' => 'bg-green-100 text-green-800',
+            'failed' => 'bg-red-100 text-red-800',
+            default => 'bg-gray-100 text-gray-800',
+        };
+    }
+
+    /**
+     * Retorna texto para badge baseado no status
+     */
+    private function getBadgeText($status)
+    {
+        return match($status) {
+            'pending' => 'Na fila',
+            'processing' => 'Gerando...',
+            'completed' => 'Concluído',
+            'failed' => 'Erro',
+            default => 'Desconhecido',
+        };
     }
 
     private function gerarApelido($pais, $hospedagem)
@@ -220,8 +224,4 @@ class AdminController extends Controller
 
         return "{$prefixo}-{$hospedagemShort} " . str_pad($numero, 2, '0', STR_PAD_LEFT);
     }
-
-
-
-
 }

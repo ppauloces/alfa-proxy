@@ -70,6 +70,22 @@ public function stocks()
 }
 
 /**
+ * Relacionamento com cartões de crédito
+ */
+public function cartoes()
+{
+    return $this->hasMany(Cartao::class, 'user_id');
+}
+
+/**
+ * Retorna o cartão padrão do usuário
+ */
+public function cartaoPadrao()
+{
+    return $this->hasOne(Cartao::class, 'user_id')->where('is_default', true);
+}
+
+/**
  * Verifica se o usuário é admin ou super admin
  */
 public function isAdmin()

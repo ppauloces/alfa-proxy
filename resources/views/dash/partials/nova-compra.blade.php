@@ -20,20 +20,13 @@
         <div class="lg:col-span-2 space-y-6">
             <!-- Configuração do Proxy -->
             <div class="order-card">
-                <h2 class="text-xl font-semibold text-slate-900 mb-4">Configuracao do Proxy</h2>
+                <h2 class="text-xl font-semibold text-slate-900 mb-4">Configuração do Proxy</h2>
 
                 <div class="form-group">
                     <label class="form-label">Pais</label>
                                         <select name="pais" class="form-select" required>
                         <option value="">Selecione o pais</option>
                         <option value="BR" {{ old('pais') === 'BR' ? 'selected' : '' }}>Brasil</option>
-                        <option value="US" {{ old('pais') === 'US' ? 'selected' : '' }}>Estados Unidos</option>
-                        <option value="GB" {{ old('pais') === 'GB' ? 'selected' : '' }}>Reino Unido</option>
-                        <option value="DE" {{ old('pais') === 'DE' ? 'selected' : '' }}>Alemanha</option>
-                        <option value="FR" {{ old('pais') === 'FR' ? 'selected' : '' }}>Franca</option>
-                        <option value="CA" {{ old('pais') === 'CA' ? 'selected' : '' }}>Canada</option>
-                        <option value="JP" {{ old('pais') === 'JP' ? 'selected' : '' }}>Japao</option>
-                        <option value="AU" {{ old('pais') === 'AU' ? 'selected' : '' }}>Australia</option>
                     </select>
 
                 </div>

@@ -231,7 +231,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($generatedProxies as $proxy)
+                @forelse($generatedProxies as $proxy)
                     <tr>
                         <td>{{ $proxy['numero'] }}</td>
                         <td class="font-mono text-xs">{{ $proxy['endereco'] }}</td>
@@ -242,7 +242,14 @@
                                 data-status="{{ \Illuminate\Support\Str::slug(strtolower($proxy['status'])) }}">{{ $proxy['status'] }}</span>
                         </td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-slate-500">
+                            <i class="fas fa-inbox text-4xl mb-3 text-slate-300"></i>
+                            <p>Nenhuma proxy gerada ainda</p>
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
@@ -256,46 +263,69 @@
 </div>
 
 <div class="space-y-4">
+    @if($vpsFarm->count() === 0)
+        <div class="admin-card bg-slate-50">
+            <div class="text-center py-12">
+                <i class="fas fa-server text-slate-300 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-slate-700 mb-2">Nenhuma VPS cadastrada</h3>
+                <p class="text-slate-500 mb-6">Cadastre sua primeira VPS acima para começar a gerar proxies.</p>
+            </div>
+        </div>
+    @endif
+
     @foreach($vpsFarm as $idx => $farm)
         <div class="vps-card">
             <button type="button" class="w-full text-left" data-admin-accordion="vps-{{ $idx }}">
                 <div class="vps-header">
                     <div>
-                        <p class="text-lg font-semibold text-slate-900">{{ $farm['apelido'] }}</p>
-                        <p class="text-sm text-slate-500">{{ $farm['ip'] }} • {{ $farm['pais'] }} •
-                            {{ $farm['hospedagem'] }}
+                        <p class="text-lg font-semibold text-slate-900">{{ $farm->apelido }}</p>
+                        <p class="text-sm text-slate-500">{{ $farm->ip }} • {{ $farm->pais }} •
+                            {{ $farm->hospedagem }}
                         </p>
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="badge-status"
-                            data-status="{{ \Illuminate\Support\Str::slug($farm['status'], '-') }}">{{ $farm['status'] }}</span>
+                            data-status="{{ \Illuminate\Support\Str::slug($farm->status, '-') }}">{{ $farm->status }}</span>
                         <i class="fas fa-chevron-down text-slate-400 text-sm"></i>
                     </div>
                 </div>
                 <div class="vps-meta mt-3">
-                    <span><i class="fas fa-wallet"></i> {{ $farm['valor'] }}</span>
-                    <span><i class="fas fa-calendar-alt"></i> {{ $farm['periodo'] }}</span>
-                    <span><i class="fas fa-clock"></i> Contratada em {{ $farm['contratada'] }}</span>
+                    <span><i class="fas fa-wallet"></i> {{ $farm->valor }}</span>
+                    <span><i class="fas fa-calendar-alt"></i> {{ $farm->periodo }}</span>
+                    <span><i class="fas fa-clock"></i> Contratada em {{ $farm->contratada }}</span>
                 </div>
             </button>
             <div id="vps-{{ $idx }}" class="vps-body hidden">
                 <div class="grid md:grid-cols-2 gap-3">
-                    @foreach($farm['proxies'] as $pIdx => $proxy)
-                        @php $statusId = "proxy-status-{$idx}-{$pIdx}"; @endphp
+                    @foreach($farm->proxies as $pIdx => $proxy)
+                        @php
+                            $statusId = "proxy-status-{$idx}-{$pIdx}";
+                            // Determinar status baseado no campo bloqueada do banco de dados
+                            if ($proxy->bloqueada) {
+                                $proxyStatus = 'bloqueada';
+                            } elseif ($proxy->disponibilidade) {
+                                $proxyStatus = 'disponivel';
+                            } else {
+                                $proxyStatus = 'vendida';
+                            }
+                            $proxyEndpoint = $farm->ip . ':' . $proxy->porta;
+                            $proxyCodigo = '#' . str_pad($proxy->id, 3, '0', STR_PAD_LEFT);
+                        @endphp
                         <div class="proxy-pill">
                             <div>
-                                <p class="font-semibold text-slate-900">{{ $proxy['codigo'] }} • {{ $proxy['endpoint'] }}</p>
+                                <p class="font-semibold text-slate-900">{{ $proxyCodigo }} • {{ $proxyEndpoint }}</p>
                                 <span id="{{ $statusId }}" class="badge-status"
-                                    data-status="{{ $proxy['status'] }}">{{ ucfirst($proxy['status']) }}</span>
+                                    data-status="{{ $proxyStatus }}">{{ ucfirst($proxyStatus) }}</span>
                             </div>
                             <div class="flex flex-col gap-2 text-xs text-center">
                                 <button type="button" class="btn-secondary text-xs px-3 py-2" data-action="test-proxy"><i
                                         class="fas fa-vial"></i> Testar</button>
                                 <button type="button" class="btn-secondary text-xs px-3 py-2" data-toggle-port
+                                    data-stock-id="{{ $proxy->id }}"
                                     data-target="#{{ $statusId }}"
-                                    data-state="{{ $proxy['status'] === 'bloqueada' ? 'blocked' : 'open' }}">
-                                    <i class="fas fa-ban"></i>
-                                    {{ $proxy['status'] === 'bloqueada' ? 'Desbloquear' : 'Bloquear' }}
+                                    data-state="{{ $proxy->bloqueada ? 'blocked' : 'open' }}">
+                                    <i class="fas {{ $proxy->bloqueada ? 'fa-unlock' : 'fa-ban' }}"></i>
+                                    {{ $proxy->bloqueada ? 'Desbloquear' : 'Bloquear' }}
                                 </button>
                             </div>
                         </div>
@@ -563,6 +593,81 @@
     window.addEventListener('beforeunload', function() {
         if (pollingInterval) {
             clearInterval(pollingInterval);
+        }
+    });
+
+    // ============================================
+    // BLOQUEIO/DESBLOQUEIO DE PORTAS
+    // ============================================
+
+    document.addEventListener('click', async function(e) {
+        const toggleButton = e.target.closest('[data-toggle-port]');
+        if (!toggleButton) return;
+
+        e.preventDefault();
+
+        const stockId = toggleButton.dataset.stockId;
+        const targetStatus = toggleButton.querySelector('.badge-status') || document.querySelector(toggleButton.dataset.target);
+        const currentState = toggleButton.dataset.state; // 'blocked' or 'open'
+        const icon = toggleButton.querySelector('i');
+        const btnText = toggleButton.childNodes[toggleButton.childNodes.length - 1];
+
+        // Determinar ação (se está bloqueada, desbloquear; se está aberta, bloquear)
+        const action = currentState === 'blocked' ? 'bloquear' : 'desbloquear';
+        const endpoint = action === 'desbloquear' ? '/admin/proxy/bloquear' : '/admin/proxy/bloquear';
+       
+        console.log(action, endpoint);
+        // Desabilitar botão durante requisição
+        toggleButton.disabled = true;
+        icon.className = 'fas fa-spinner fa-spin';
+        btnText.textContent = ' Processando...';
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify({ stock_id: stockId })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Atualizar estado visual
+                if (action === 'bloquear') {
+                    if (targetStatus) {
+                        targetStatus.dataset.status = 'bloqueada';
+                        targetStatus.textContent = 'Bloqueada';
+                    }
+                    toggleButton.dataset.state = 'blocked';
+                    icon.className = 'fas fa-unlock';
+                    btnText.textContent = ' Desbloquear';
+                } else {
+                    if (targetStatus) {
+                        targetStatus.dataset.status = 'disponivel';
+                        targetStatus.textContent = 'Disponivel';
+                    }
+                    toggleButton.dataset.state = 'open';
+                    icon.className = 'fas fa-ban';
+                    btnText.textContent = ' Bloquear';
+                }
+
+                // Mostrar notificação de sucesso
+                showToast(data.message || `Porta ${action === 'bloquear' ? 'bloqueada' : 'desbloqueada'} com sucesso!`, 'success');
+            } else {
+                showToast(data.error || 'Erro ao processar requisição', 'error');
+                icon.className = 'fas fa-ban';
+                btnText.textContent = action === 'bloquear' ? ' Bloquear' : ' Desbloquear';
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            showToast('Erro ao conectar com o servidor', 'error');
+            icon.className = 'fas fa-ban';
+            btnText.textContent = action === 'bloquear' ? ' Bloquear' : ' Desbloquear';
+        } finally {
+            toggleButton.disabled = false;
         }
     });
 </script>

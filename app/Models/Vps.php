@@ -19,6 +19,9 @@ class Vps extends Model
         'periodo_dias',
         'data_contratacao',
         'status',
+        'status_geracao',
+        'erro_geracao',
+        'proxies_geradas',
     ];
 
     protected $casts = [

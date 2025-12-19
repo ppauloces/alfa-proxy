@@ -22,7 +22,8 @@ class Stock extends Model
         'periodo_dias',
         'expiracao',
         'disponibilidade',
-        'renovacao_automatica'
+        'renovacao_automatica',
+        'bloqueada'
     ];
 
 
@@ -41,6 +42,7 @@ class Stock extends Model
 
     protected $casts = [
         'expiracao' => 'datetime',
+        'bloqueada' => 'boolean',
     ];
 
 }

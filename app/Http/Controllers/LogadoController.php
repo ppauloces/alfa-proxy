@@ -54,7 +54,7 @@ class LogadoController extends Controller
         }
 
         // Remover grupos vazios
-        $proxyGroups = array_filter($proxyGroups, function($proxies) {
+        $proxyGroups = array_filter($proxyGroups, function ($proxies) {
             return count($proxies) > 0;
         });
 
@@ -80,16 +80,20 @@ class LogadoController extends Controller
             ->get();
 
         $savedCards = $cartoes->map(function ($cartao) {
-            return [
+            return (object) [
                 'id' => $cartao->id,
+                'bandeira' => $cartao->bandeira,
+                'ultimos_digitos' => $cartao->ultimos_digitos,
                 'brand' => $cartao->bandeira,
                 'last4' => $cartao->ultimos_digitos,
                 'exp_month' => str_pad($cartao->mes_expiracao, 2, '0', STR_PAD_LEFT),
                 'exp_year' => $cartao->ano_expiracao,
+                'mes_expiracao' => str_pad($cartao->mes_expiracao, 2, '0', STR_PAD_LEFT), // Adicionar
+                'ano_expiracao' => $cartao->ano_expiracao, // Adicionar
                 'is_default' => $cartao->is_default,
                 'nome_titular' => $cartao->nome_titular,
             ];
-        })->toArray();
+        });
 
         return view('dash.index', compact(
             'usuario',
@@ -206,6 +210,8 @@ class LogadoController extends Controller
             'periodo' => 'required|integer',
             'quantidade' => 'required|integer|min:1|max:100',
             'metodo_pagamento' => 'required',
+            'card_id' => 'required_if:metodo_pagamento,credit_card|exists:cartaos,id',
+            'installments' => 'nullable|integer|min:1|max:12',
         ]);
 
         // Calcular valor baseado no período
@@ -249,6 +255,101 @@ class LogadoController extends Controller
                     'valor_unitario' => $valorUnitario,
                 ],
             ]);
+
+            // Se for Cartão de Crédito, processar via Aprovei
+            if ($request->metodo_pagamento === 'credit_card') {
+                $aproveiService = app(\App\Services\AproveiService::class);
+
+                // Buscar o cartão
+                $cartao = Cartao::where('id', $request->card_id)
+                    ->where('user_id', Auth::id())
+                    ->first();
+
+                if (!$cartao) {
+                    DB::rollBack();
+                    return back()
+                        ->withErrors(['card_id' => 'Cartão não encontrado'], 'novaCompra')
+                        ->withInput();
+                }
+
+                // Atualizar transação com card_id
+                $transacao->card_id = $cartao->id;
+                $transacao->payment_method = 'credit_card';
+                $transacao->save();
+
+                try {
+                    $valorEmCentavos = app()->environment('local')
+                        ? 100
+                        : (int) ($valorTotal * 100);
+                    $quantidade = (int) $request->quantidade;
+                    $quantidade = $quantidade > 0 ? $quantidade : 1;
+                    $unitPriceEmCentavos = (int) floor($valorEmCentavos / $quantidade);
+
+                    // Montar payload para Aprovei
+                    $payload = $aproveiService->buildCreditCardPayload(
+                        amountInCents: $valorEmCentavos,
+                        cardToken: $cartao->token_gateway1,
+                        installments: $request->installments ?? 1,
+                        customer: $aproveiService->formatCustomer($usuario),
+                        items: [$aproveiService->formatProxyItem($quantidade, $unitPriceEmCentavos, $request->periodo, $request->pais)],
+                        externalRef: $transacao->transacao,
+                        postbackUrl: route('postback.transacao'),
+                        ip: $request->ip()
+                    );
+
+                    // Criar transação no Aprovei
+                    $result = $aproveiService->createCreditCardTransaction($payload);
+
+                    if (!$result['success']) {
+                        DB::rollBack();
+                        return back()
+                            ->withErrors(['pagamento' => $result['error']], 'novaCompra')
+                            ->withInput();
+                    }
+
+                    $aproveiData = $result['data'];
+
+                    // Atualizar transação com ID do gateway
+                    $transacao->update([
+                        'gateway_transaction_id' => $aproveiData['id'],
+                    ]);
+
+                    // Verificar se já foi aprovado
+                    if (in_array($aproveiData['status'], ['paid', 'approved'])) {
+                        $transacao->update(['status' => 1]);
+
+                        // Alocar proxies imediatamente
+                        $proxiesAlocados = $proxyService->allocateProxies(Auth::id(), [
+                            'pais' => $request->pais,
+                            'quantidade' => (int) $request->quantidade,
+                            'periodo_dias' => (int) $request->periodo,
+                            'motivo' => $request->motivo,
+                        ]);
+
+                        DB::commit();
+
+                        return redirect()
+                            ->route('dash.show', ['section' => 'proxies'])
+                            ->with('proxies_success', sprintf(
+                                'Pagamento aprovado! %d proxies foram alocados e já estão disponíveis.',
+                                count($proxiesAlocados)
+                            ));
+                    }
+
+                    // Se pendente, retornar com mensagem de aguardando
+                    DB::commit();
+
+                    return redirect()
+                        ->route('dash.show', ['section' => 'transacoes'])
+                        ->with('success', 'Pagamento processado! Aguardando confirmação do gateway.');
+
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    return back()
+                        ->withErrors(['error' => 'Erro ao processar pagamento: ' . $e->getMessage()], 'novaCompra')
+                        ->withInput();
+                }
+            }
 
             // Se for PIX, criar QR Code via AbacatePay
             if ($request->metodo_pagamento === 'pix') {
@@ -343,7 +444,7 @@ class LogadoController extends Controller
 
         $expiracao = $usuario->expiracao;
 
-        if($usuario->plano == "Grátis") {
+        if ($usuario->plano == "Grátis") {
             $expiracao = "Nunca";
         } else {
             $expiracao = Carbon::parse($expiracao)->format('d/m/Y');
@@ -362,14 +463,93 @@ class LogadoController extends Controller
     {
         $request->validateWithBag('saldo', [
             'valor' => 'required|numeric|min:1',
-            'metodo_pagamento' => 'required',
+            'metodo_pagamento' => 'required|in:pix,credit_card,boleto',
+            'card_id' => 'required_if:metodo_pagamento,credit_card|exists:cartaos,id',
+            'installments' => 'nullable|integer|min:1|max:12',
         ]);
 
+        $user = User::find(Auth::id());
+        $valorEmCentavos = (int) ($request->valor * 100);
+
+        // Se for cartão de crédito, processar pelo Aprovei
+        if ($request->metodo_pagamento === 'credit_card') {
+            $aproveiService = app(\App\Services\AproveiService::class);
+
+            // Buscar o cartão
+            $cartao = \App\Models\Cartao::where('id', $request->card_id)
+                ->where('user_id', Auth::id())
+                ->first();
+
+            if (!$cartao) {
+                return redirect()->route('saldo.show')
+                    ->withErrors(['card_id' => 'Cartão não encontrado']);
+            }
+
+            // Criar transação no banco primeiro
+            $externalRef = 'balance-' . time() . '-' . Auth::id();
+            $transacao = Transaction::create([
+                'user_id' => Auth::id(),
+                'email' => $user->email,
+                'transacao' => $externalRef,
+                'valor' => $request->valor,
+                'status' => 0, // Pendente
+                'metodo_pagamento' => 'credit_card',
+                'payment_method' => 'credit_card',
+                'card_id' => $cartao->id,
+                'tipo' => 'recarga',
+            ]);
+
+            // Montar payload para Aprovei
+            $payload = $aproveiService->buildCreditCardPayload(
+                amountInCents: $valorEmCentavos,
+                cardToken: $cartao->token_gateway1,
+                installments: $request->installments ?? 1,
+                customer: $aproveiService->formatCustomer($user),
+                items: [$aproveiService->formatBalanceItem($valorEmCentavos)],
+                externalRef: $externalRef,
+                postbackUrl: route('postback.transacao'),
+                ip: $request->ip()
+            );
+
+            // Criar transação no Aprovei
+            $result = $aproveiService->createCreditCardTransaction($payload);
+
+            if ($result['success']) {
+                $aproveiData = $result['data'];
+
+                // Atualizar transação com ID do gateway
+                $transacao->update([
+                    'gateway_transaction_id' => $aproveiData['id'],
+                ]);
+
+                // Verificar se já foi aprovado
+                if (in_array($aproveiData['status'], ['paid', 'approved'])) {
+                    $transacao->update(['status' => 1]);
+                    $user->saldo += $request->valor;
+                    $user->save();
+
+                    return redirect()->route('saldo.show')
+                        ->with('success', 'Pagamento aprovado! Saldo adicionado com sucesso.');
+                }
+
+                return redirect()->route('saldo.show')
+                    ->with('success', 'Pagamento processado! Aguardando confirmação.');
+            } else {
+                $transacao->delete();
+
+                return redirect()->route('saldo.show')
+                    ->withErrors(['pagamento' => $result['error']]);
+            }
+        }
+
+        // PIX ou Boleto - manter lógica antiga
         $transacao = Transaction::create([
             'user_id' => Auth::id(),
             'valor' => $request->valor,
             'status' => 0, // Pendente
             'metodo_pagamento' => $request->metodo_pagamento,
+            'payment_method' => $request->metodo_pagamento,
+            'tipo' => 'recarga',
         ]);
 
         return redirect()->route('saldo.show')->with('success', 'Solicitação de recarga criada! Aguardando pagamento.');
@@ -434,6 +614,42 @@ class LogadoController extends Controller
         );
 
         return '00020126' . strlen($payload) . $payload . 'BR.GOV.BCB.PIX' . date('YmdHis');
+    }
+
+    public function testarProxy(Request $request)
+    {
+        $request->validate([
+            'ip' => 'required|string',
+            'porta' => 'required|integer',
+            'usuario' => 'required|string',
+            'senha' => 'required|string',
+        ]);
+
+        try {
+            $apiUrl = config('services.python_api.url', env('PYTHON_API_URL', 'http://127.0.0.1:8001'));
+
+            $response = \Illuminate\Support\Facades\Http::timeout(15)->post("{$apiUrl}/testar", [
+                'ip' => $request->ip,
+                'porta' => (int) $request->porta,
+                'usuario' => $request->usuario,
+                'senha' => $request->senha,
+                'timeout' => 10,
+            ]);
+
+            if ($response->successful()) {
+                return response()->json($response->json());
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'error' => $response->json()['detail'] ?? 'Erro ao testar proxy',
+                ], $response->status());
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'error' => 'Erro ao conectar com servidor de testes: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
 }

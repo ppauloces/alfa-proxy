@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'aprovei' => [
+        'public_key' => env('APROVEI_PUBLIC_KEY'),
+        'secret_key' => env('APROVEI_SECRET_KEY'),
+    ],
+
 ];

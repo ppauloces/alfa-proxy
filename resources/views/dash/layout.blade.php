@@ -294,14 +294,6 @@ header nav a {
         @if(Auth::user()->isAdmin())
         <div class="space-y-2 mt-6 pt-6 border-t border-slate-200">
             <p class="sidebar-title text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Administracao</p>
-            <button type="button" class="nav-pill" data-section-link="admin-dashboard">
-                <span class="flex items-center gap-3">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                    <span class="nav-text">Dashboard Admin</span>
-                </span>
-            </button>
             <div>
                 <button type="button" class="nav-pill" data-toggle="submenu" data-target="adminSubmenu" aria-expanded="false">
                     <span class="flex items-center gap-3">

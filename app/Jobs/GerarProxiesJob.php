@@ -55,17 +55,8 @@ class GerarProxiesJob implements ShouldQueue
             $this->vps->update(['status_geracao' => 'processing']);
 
             // Chamar API Python
-            $apiUrl = env('PYTHON_API_URL', 'http://127.0.0.1:8001');
+            $apiUrl = env('PYTHON_API_URL', 'http://127.0.0.1:8000');
 
-            Log::info('Enviando requisição para Python API', [
-                'vps_id' => $this->vps->id,
-                'url' => "{$apiUrl}/criar",
-                'payload' => [
-                    'ip' => $this->vps->ip,
-                    'user' => $this->vps->usuario_ssh,
-                    // senha omitida por segurança
-                ]
-            ]);
 
             $response = Http::timeout(300)->post("{$apiUrl}/criar", [
                 'ip' => $this->vps->ip,
@@ -73,26 +64,11 @@ class GerarProxiesJob implements ShouldQueue
                 'senha' => $this->vps->senha_ssh,
             ]);
 
-            // LOG: Ver resposta completa
-            Log::info('Resposta HTTP completa', [
-                'vps_id' => $this->vps->id,
-                'status_code' => $response->status(),
-                'successful' => $response->successful(),
-                'failed' => $response->failed(),
-                'headers' => $response->headers(),
-                'body' => $response->body(),
-                'body_length' => strlen($response->body()),
-            ]);
 
             // Tentar decodificar JSON
             try {
                 $jsonData = $response->json();
-                Log::info('JSON decodificado', [
-                    'vps_id' => $this->vps->id,
-                    'json' => $jsonData,
-                    'is_null' => is_null($jsonData),
-                    'type' => gettype($jsonData),
-                ]);
+                
             } catch (\Exception $jsonException) {
                 Log::error('Erro ao decodificar JSON', [
                     'vps_id' => $this->vps->id,
@@ -104,31 +80,20 @@ class GerarProxiesJob implements ShouldQueue
             if ($response->successful()) {
                 $data = $response->json();
 
-                // LOG: Ver o que a API retornou
-                Log::info('Resposta da API Python', [
-                    'vps_id' => $this->vps->id,
-                    'data' => $data,
-                    'data_type' => gettype($data),
-                ]);
-
+                
                 // A API pode retornar array direto ou {'proxies': [...]}
                 $proxies = is_array($data) && !isset($data['proxies'])
                     ? $data
                     : ($data['proxies'] ?? []);
 
-                // LOG: Ver o que foi extraído
-                Log::info('Proxies extraídas', [
-                    'vps_id' => $this->vps->id,
-                    'count' => count($proxies),
-                    'proxies' => $proxies,
-                ]);
+                
 
                 $proxiesCriadas = 0;
 
                 // Cadastrar cada proxy na tabela stocks
                 foreach ($proxies as $proxy) {
                     Stock::create([
-                        'user_id' => $this->userId,
+                        'user_id' => null, // Proxies gerados ficam disponíveis no estoque
                         'vps_id' => $this->vps->id,
                         'tipo' => 'SOCKS5',
                         'ip' => $proxy['ip'],
@@ -136,7 +101,7 @@ class GerarProxiesJob implements ShouldQueue
                         'usuario' => $proxy['usuario'],
                         'senha' => $proxy['senha'],
                         'pais' => $this->vps->pais,
-                        'expiracao' => now()->addDays($this->perioDias),
+                        'expiracao' => null, // Expiração definida quando for vendido
                         'disponibilidade' => true,
                     ]);
                     $proxiesCriadas++;
@@ -149,11 +114,7 @@ class GerarProxiesJob implements ShouldQueue
                     'erro_geracao' => null,
                 ]);
 
-                Log::info('Proxies geradas com sucesso', [
-                    'vps_id' => $this->vps->id,
-                    'quantidade' => $proxiesCriadas,
-                ]);
-
+              
             } else {
                 // API retornou erro ou status HTTP não-sucesso
                 $statusCode = $response->status();

@@ -12,6 +12,9 @@ class Transaction extends Model
         'user_id',
         'email',
         'transacao',
+        'gateway_transaction_id',
+        'payment_method',
+        'card_id',
         'valor',
         'status',
         'metodo_pagamento',
@@ -23,4 +26,20 @@ class Transaction extends Model
         'metadata' => 'array',
         'valor' => 'decimal:2'
     ];
+
+    /**
+     * Relacionamento com o cartão usado na transação
+     */
+    public function card()
+    {
+        return $this->belongsTo(Cartao::class, 'card_id');
+    }
+
+    /**
+     * Relacionamento com o usuário
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

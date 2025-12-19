@@ -15,8 +15,10 @@ class CartaoController extends Controller
      */
     public function index()
     {
+        $cartoesUser = Cartao::where('user_id', Auth::id())->count();
+   
         // Redirecionar para o dashboard com a seção de cartões ativa
-        return redirect()->route('dash.show', ['section' => 'cartoes']);
+        return redirect()->route('dash.show', ['section' => 'cartoes'])->with('cartoesUser', $cartoesUser);
     }
 
     /**
@@ -27,65 +29,43 @@ class CartaoController extends Controller
         // Debug: Log dos dados recebidos
         Log::info('Tentativa de salvar cartão', [
             'user_id' => Auth::id(),
-            'request_data' => $request->except(['number', 'cvc']), // Não logar dados sensíveis completos
-            'has_number' => $request->has('number'),
-            'has_cvc' => $request->has('cvc'),
+            'has_token' => $request->has('card_token'),
         ]);
 
         $request->validate([
-            'number' => 'required|string|min:13|max:19',
-            'name' => 'required|string|max:255',
-            'expiry' => 'required|string',
-            'cvc' => 'required|string|min:3|max:4',
+            'card_token' => 'required|string',
+            'last4' => 'required|string|size:4',
+            'brand' => 'required|string',
+            'exp_month' => 'required|integer|min:1|max:12',
+            'exp_year' => 'required|integer',
+            'holder_name' => 'required|string|max:255',
+            'is_default' => 'nullable|boolean',
         ]);
 
         try {
             DB::beginTransaction();
 
-            // Processar dados do cartão
-            $numeroLimpo = preg_replace('/\s+/', '', $request->number);
-            $ultimosDigitos = substr($numeroLimpo, -4);
-
-            // Identificar bandeira
-            $bandeira = $this->identificarBandeira($numeroLimpo);
-
-            // Processar validade - remover espaços e normalizar
-            $expiryLimpo = preg_replace('/\s+/', '', $request->expiry);
-
-            // Validar formato da validade
-            if (!preg_match('/^(\d{2})\/(\d{2}|\d{4})$/', $expiryLimpo, $matches)) {
-                return redirect()
-                    ->back()
-                    ->with('cartoes_error', 'Formato de validade inválido. Use MM/AA ou MM/AAAA.');
-            }
-
-            $mes = $matches[1];
-            $ano = $matches[2];
-
-            // Se ano tem 4 dígitos, usar diretamente. Se tem 2, converter para 20XX
-            if (strlen($ano) == 2) {
-                $ano = '20' . $ano;
-            }
-
-            // Validar se o cartão não está expirado
-            $expiracaoData = \Carbon\Carbon::createFromDate($ano, $mes, 1)->endOfMonth();
-            if (now()->greaterThan($expiracaoData)) {
-                return redirect()
-                    ->back()
-                    ->with('cartoes_error', 'Cartão expirado. Verifique a data de validade.');
+            // Validar limite de cartões (máximo 3)
+            $totalCartoes = Cartao::where('user_id', Auth::id())->count();
+            if ($totalCartoes >= 3) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Você atingiu o limite de 3 cartões salvos.',
+                ], 400);
             }
 
             // Verificar se já existe cartão com esses dados
             $cartaoExistente = Cartao::where('user_id', Auth::id())
-                ->where('ultimos_digitos', $ultimosDigitos)
-                ->where('mes_expiracao', (int) $mes)
-                ->where('ano_expiracao', (int) $ano)
+                ->where('ultimos_digitos', $request->last4)
+                ->where('mes_expiracao', $request->exp_month)
+                ->where('ano_expiracao', $request->exp_year)
                 ->first();
 
             if ($cartaoExistente) {
-                return redirect()
-                    ->back()
-                    ->with('cartoes_error', 'Este cartão já está cadastrado.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este cartão já está cadastrado.',
+                ], 400);
             }
 
             // Se for marcado como padrão, desmarcar outros
@@ -94,34 +74,36 @@ class CartaoController extends Controller
             }
 
             // Se for o primeiro cartão, torná-lo padrão automaticamente
-            $totalCartoes = Cartao::where('user_id', Auth::id())->count();
             $isPrimeiro = $totalCartoes === 0;
 
-            // Criar cartão
+            // Criar cartão com o token do Aprovei
             $cartao = Cartao::create([
                 'user_id' => Auth::id(),
-                'bandeira' => $bandeira,
-                'ultimos_digitos' => $ultimosDigitos,
-                'mes_expiracao' => (int) $mes,
-                'ano_expiracao' => (int) $ano,
-                'nome_titular' => strtoupper($request->name),
-                'gateway' => null, // Será definido quando o gateway tokenizar
-                'token_gateway1' => null, // Será preenchido pelo gateway
-                'token_gateway2' => null, // Será preenchido pelo gateway 2
+                'bandeira' => strtolower($request->brand),
+                'ultimos_digitos' => $request->last4,
+                'mes_expiracao' => $request->exp_month,
+                'ano_expiracao' => $request->exp_year,
+                'nome_titular' => strtoupper($request->holder_name),
+                'gateway' => 'aprovei',
+                'token_gateway1' => $request->card_token, // Token do Aprovei
+                'token_gateway2' => null,
                 'is_default' => $request->is_default || $isPrimeiro,
             ]);
 
             DB::commit();
 
-            Log::info('Cartão adicionado com sucesso', [
+            Log::info('Cartão tokenizado e salvo com sucesso', [
                 'user_id' => Auth::id(),
                 'cartao_id' => $cartao->id,
-                'bandeira' => $bandeira,
+                'bandeira' => $request->brand,
+                'gateway' => 'aprovei',
             ]);
 
-            return redirect()
-                ->route('dash.show', ['section' => 'cartoes'])
-                ->with('cartoes_success', 'Cartão adicionado com sucesso!');
+            return response()->json([
+                'success' => true,
+                'message' => 'Cartão adicionado com sucesso!',
+                'redirect' => route('dash.show', ['section' => 'cartoes']),
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -132,9 +114,10 @@ class CartaoController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return redirect()
-                ->back()
-                ->with('cartoes_error', 'Erro ao salvar cartão. Tente novamente.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao salvar cartão. Tente novamente.',
+            ], 500);
         }
     }
 

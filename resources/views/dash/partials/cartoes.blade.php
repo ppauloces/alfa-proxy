@@ -38,32 +38,32 @@
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4">
                         <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
-                            @if($card['brand'] === 'visa')
+                            @if($card->bandeira === 'visa')
                                 <i class="fab fa-cc-visa text-white text-2xl"></i>
-                            @elseif($card['brand'] === 'mastercard')
+                            @elseif($card->bandeira === 'mastercard')
                                 <i class="fab fa-cc-mastercard text-white text-2xl"></i>
-                            @elseif($card['brand'] === 'amex')
+                            @elseif($card->bandeira === 'amex')
                                 <i class="fab fa-cc-amex text-white text-2xl"></i>
                             @else
                                 <i class="fas fa-credit-card text-white text-xl"></i>
                             @endif
                         </div>
                         <div>
-                            <p class="font-semibold text-slate-900">•••• •••• •••• {{ $card['last4'] }}</p>
-                            <p class="text-sm text-slate-500">Expira em {{ $card['exp_month'] }}/{{ $card['exp_year'] }}</p>
-                            @if($card['is_default'])
+                            <p class="font-semibold text-slate-900">•••• •••• •••• {{ $card->ultimos_digitos }}</p>
+                            <p class="text-sm text-slate-500">Expira em {{ $card->mes_expiracao }}/{{ $card->ano_expiracao }}</p>
+                            @if($card->is_default)
                                 <span class="badge badge-success mt-1">Padrão</span>
                             @endif
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        @if(!$card['is_default'])
-                            <button type="button" class="action-btn" onclick="setDefaultCard({{ $card['id'] }})">
+                        @if(!$card->is_default)
+                            <button type="button" class="action-btn" onclick="setDefaultCard({{ $card->id }})">
                                 <i class="fas fa-star text-xs"></i>
                                 Tornar padrão
                             </button>
                         @endif
-                        <button type="button" class="action-btn text-red-600 border-red-300 hover:border-red-500" onclick="deleteCard({{ $card['id'] }})">
+                        <button type="button" class="action-btn text-red-600 border-red-300 hover:border-red-500" onclick="deleteCard({{ $card->id }})">
                             <i class="fas fa-trash text-xs"></i>
                             Remover
                         </button>
@@ -93,7 +93,7 @@
         </button>
     </div>
 
-    <form id="cardForm" method="POST" action="{{ route('cartoes.store') }}">
+    <form id="cardForm">
         @csrf
 
         <!-- Card Preview -->
@@ -107,10 +107,11 @@
                 <label for="card-number" class="form-label">Número do Cartão</label>
                 <input type="text"
                        id="card-number"
-                       name="number"
+                       name="card-number"
                        class="form-input"
                        placeholder="0000 0000 0000 0000"
-                       autocomplete="cc-number"
+                       autocomplete="off"
+                       maxlength="19"
                        required>
             </div>
 
@@ -118,10 +119,10 @@
                 <label for="card-name" class="form-label">Nome no Cartão</label>
                 <input type="text"
                        id="card-name"
-                       name="name"
+                       name="card-name"
                        class="form-input"
                        placeholder="NOME SOBRENOME"
-                       autocomplete="cc-name"
+                       autocomplete="off"
                        required>
             </div>
 
@@ -130,10 +131,10 @@
                     <label for="card-expiry" class="form-label">Validade (MM/AA)</label>
                     <input type="text"
                            id="card-expiry"
-                           name="expiry"
+                           name="card-expiry"
                            class="form-input"
                            placeholder="MM/AA"
-                           autocomplete="cc-exp"
+                           autocomplete="off"
                            required>
                 </div>
 
@@ -141,17 +142,18 @@
                     <label for="card-cvc" class="form-label">CVV</label>
                     <input type="text"
                            id="card-cvc"
-                           name="cvc"
+                           name="card-cvc"
                            class="form-input"
                            placeholder="123"
-                           autocomplete="cc-csc"
+                           autocomplete="off"
+                           maxlength="4"
                            required>
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="is_default" id="is_default" class="w-4 h-4 text-blue-600 rounded">
+                    <input type="checkbox" name="is_default" id="is_default" class="w-4 h-4 text-blue-600 rounded" @if(count($savedCards) == 0) checked @endif>
                     <span class="text-sm font-semibold text-slate-700">Tornar este cartão padrão</span>
                 </label>
             </div>
@@ -161,7 +163,7 @@
             <button type="button" class="btn-secondary flex-1" id="cancelCardBtn">
                 Cancelar
             </button>
-            <button type="submit" class="btn-primary flex-1">
+            <button type="submit" class="btn-primary flex-1" id="submitCardBtn">
                 <i class="fas fa-save"></i> Salvar Cartão
             </button>
         </div>
@@ -181,12 +183,15 @@
             </p>
             <ul class="text-sm text-slate-600 space-y-1">
                 <li><i class="fas fa-check-circle text-green-600 mr-2"></i>Criptografia SSL/TLS 256-bit</li>
-                <li><i class="fas fa-check-circle text-green-600 mr-2"></i>Tokenização de dados do cartão</li>
+                <li><i class="fas fa-check-circle text-green-600 mr-2"></i>Tokenização de dados do cartão via Aprovei</li>
                 <li><i class="fas fa-check-circle text-green-600 mr-2"></i>Conformidade PCI-DSS Level 1</li>
             </ul>
         </div>
     </div>
 </div>
+
+<!-- Aprovei SDK -->
+<script src="https://api.aproveipay.com.br/v1/js"></script>
 
 <style>
 #card-wrapper {
@@ -216,9 +221,20 @@
 <script>
 // Inicializar Card.js quando o modal abrir
 let cardInstance = null;
+let aproveiInitialized = false;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const addBtn = document.getElementById('addCardBtn');
+    const cardForm = document.getElementById('cardForm');
+
+    // Inicializar Aprovei SDK
+    try {
+        await Aprovei.setPublicKey("{{ config('services.aprovei.public_key') }}");
+        aproveiInitialized = true;
+    } catch (error) {
+        console.error('Erro ao inicializar Aprovei SDK:', error);
+        alert('Erro ao inicializar sistema de pagamento. Tente novamente mais tarde.');
+    }
 
     addBtn?.addEventListener('click', function() {
         // Aguardar o modal aparecer
@@ -249,12 +265,126 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 100);
     });
+
+    // Submissão do formulário com tokenização
+    cardForm?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        if (!aproveiInitialized) {
+            alert('Sistema de pagamento não está pronto. Tente novamente.');
+            return;
+        }
+
+        const submitBtn = document.getElementById('submitCardBtn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+
+        try {
+            // Obter dados do formulário
+            const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
+            const holderName = document.getElementById('card-name').value;
+            const expiry = document.getElementById('card-expiry').value;
+            const cvv = document.getElementById('card-cvc').value;
+            const isDefault = document.getElementById('is_default').checked;
+
+            // Processar validade
+            const [expMonth, expYear] = expiry.split('/');
+            const fullYear = expYear.length === 2 ? `20${expYear}` : expYear;
+
+            // Validação básica
+            if (!cardNumber || cardNumber.length < 13) {
+                throw new Error('Número do cartão inválido');
+            }
+
+            if (!expMonth || !expYear || parseInt(expMonth) < 1 || parseInt(expMonth) > 12) {
+                throw new Error('Data de validade inválida');
+            }
+
+            if (!cvv || cvv.length < 3) {
+                throw new Error('CVV inválido');
+            }
+
+            // Tokenizar com Aprovei
+            const cardData = {
+                number: cardNumber,
+                holderName: holderName,
+                expMonth: parseInt(expMonth),
+                expYear: parseInt(fullYear),
+                cvv: cvv
+            };
+
+            console.log('Tokenizando cartão...', { holderName, expMonth, expYear: fullYear });
+            const token = await Aprovei.encrypt(cardData);
+            console.log('Token gerado com sucesso');
+
+            // Identificar bandeira
+            const brand = identifyCardBrand(cardNumber);
+            const last4 = cardNumber.slice(-4);
+
+            // Enviar ao servidor
+            const response = await fetch('{{ route("cartoes.store") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    card_token: token,
+                    last4: last4,
+                    brand: brand,
+                    exp_month: parseInt(expMonth),
+                    exp_year: parseInt(fullYear),
+                    holder_name: holderName,
+                    is_default: isDefault
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Redirecionar ou recarregar
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    location.reload();
+                }
+            } else {
+                alert(data.message || 'Erro ao salvar cartão');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+
+        } catch (error) {
+            console.error('Erro ao processar cartão:', error);
+            alert(error.message || 'Erro ao processar cartão. Verifique os dados e tente novamente.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
 });
+
+// Identificar bandeira do cartão
+function identifyCardBrand(number) {
+    const digit1 = number[0];
+    const digit2 = number.substring(0, 2);
+    const digit4 = number.substring(0, 4);
+
+    if (digit1 === '4') return 'visa';
+    if (['51', '52', '53', '54', '55'].includes(digit2) || (digit4 >= '2221' && digit4 <= '2720')) return 'mastercard';
+    if (['34', '37'].includes(digit2)) return 'amex';
+    if (['6011', '6221', '6222', '6223', '6224', '6225', '6226', '6227', '6228', '6229'].includes(digit4) || digit2 === '65') return 'discover';
+    if (['4011', '4312', '4389', '4514', '4573', '5041', '5066', '5067'].includes(digit4)) return 'elo';
+    if (digit4 === '6062' || digit4 === '3841') return 'hipercard';
+    if (['36', '38'].includes(digit2)) return 'diners';
+
+    return 'unknown';
+}
 
 // Funções de gerenciamento de cartões
 window.setDefaultCard = function(cardId) {
     if (confirm('Deseja tornar este cartão o padrão para pagamentos?')) {
-        // Aqui você implementaria a chamada AJAX para definir como padrão
         fetch(`/cartoes/${cardId}/default`, {
             method: 'POST',
             headers: {
@@ -317,6 +447,8 @@ window.deleteCard = function(cardId) {
     const closeModal = () => {
         overlay.classList.remove('active');
         modal.classList.remove('active');
+        // Resetar formulário
+        document.getElementById('cardForm').reset();
     };
 
     addBtn?.addEventListener('click', openModal);

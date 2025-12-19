@@ -11,7 +11,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 //Postbacks
-Route::post('/postback/transacao', [PostbackController::class, 'handle']);
+Route::post('/postback/transacao', [PostbackController::class, 'handle'])->name('postback.transacao');
 
 //Webhooks
 Route::post('/webhook/abacatepay', [WebhookController::class, 'abacatepay']);

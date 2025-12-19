@@ -9,6 +9,8 @@ use App\Models\Cartao;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
 
 class AdminController extends Controller
@@ -21,10 +23,11 @@ class AdminController extends Controller
 
         // Buscar todas as VPS cadastradas
         $vpsList = Vps::with('proxies')->orderBy('created_at', 'desc')->get();
+       
 
         // Formatar dados para a view
         $vpsFarm = $vpsList->map(function ($vps) {
-            return [
+            $vpsData = [
                 'id' => $vps->id,
                 'apelido' => $vps->apelido,
                 'ip' => $vps->ip,
@@ -34,15 +37,11 @@ class AdminController extends Controller
                 'periodo' => $vps->periodo_dias . ' dias',
                 'contratada' => $vps->data_contratacao->format('d/m/Y'),
                 'status' => $vps->status,
-                'proxies' => $vps->proxies->map(function ($proxy) use ($vps) {
-                    return [
-                        'codigo' => '#' . str_pad($proxy->id, 3, '0', STR_PAD_LEFT),
-                        'endpoint' => $vps->ip . ':' . $proxy->porta,
-                        'status' => $proxy->disponibilidade ? 'disponivel' : 'vendida',
-                    ];
-                })->toArray(),
+                'proxies' => $vps->proxies, // Manter como coleção de objetos
             ];
-        })->toArray();
+            return (object) $vpsData;
+        });
+
 
         // Buscar proxies geradas recentemente
         $generatedProxies = Stock::with('vps')
@@ -62,8 +61,9 @@ class AdminController extends Controller
             })->toArray();
 
         $activeSection = 'admin-proxies';
+        $currentSection = $activeSection; // A view usa $currentSection
 
-        return view('dash.index', compact('usuario', 'vpsFarm', 'generatedProxies', 'activeSection'));
+        return view('dash.index', compact('usuario', 'vpsFarm', 'generatedProxies', 'activeSection', 'currentSection'));
     }
     public function cadastrarVps(Request $request)
     {
@@ -111,6 +111,7 @@ class AdminController extends Controller
             'periodo_dias' => $validated['periodo_dias'],
             'data_contratacao' => $validated['data_contratacao'],
             'status' => 'Operacional',
+            'status_geracao' => 'pending',
         ]);
 
         // Se o checkbox estiver marcado, despachar Job para gerar proxies em background
@@ -126,12 +127,12 @@ class AdminController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'VPS cadastrada! A geração de proxies está sendo processada em background. Você será notificado quando concluir.',
-                    'redirect' => route('proxies.show'),
+                    'redirect' => route('admin.proxies'),
                 ]);
             }
 
             return redirect()
-                ->route('proxies.show')
+                ->route('admin.proxies')
                 ->with('success', 'VPS cadastrada! A geração de proxies está sendo processada em background.');
         }
 
@@ -140,12 +141,12 @@ class AdminController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'VPS cadastrada com sucesso!',
-                'redirect' => route('proxies.show'),
+                'redirect' => route('admin.proxies'),
             ]);
         }
 
         return redirect()
-            ->route('proxies.show')
+            ->route('admin.proxies')
             ->with('success', 'VPS cadastrada com sucesso!');
     }
 
@@ -223,5 +224,157 @@ class AdminController extends Controller
         $numero = Vps::where('pais', $pais)->count() + 1;
 
         return "{$prefixo}-{$hospedagemShort} " . str_pad($numero, 2, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Bloquear porta do proxy via UFW (Python API)
+     */
+    public function bloquearProxy(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'stock_id' => 'required|exists:stocks,id',
+            ]);
+
+            // Buscar o proxy e sua VPS
+            $stock = Stock::with('vps')->findOrFail($validated['stock_id']);
+
+            if (!$stock->vps) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'VPS não encontrada para este proxy.',
+                ], 404);
+            }
+
+            $vps = $stock->vps;
+
+            // Preparar payload para a API Python
+            $payload = [
+                'ip_vps' => $vps->ip,
+                'user_ssh' => $vps->usuario_ssh,
+                'senha_ssh' => $vps->senha_ssh,
+                'porta' => $stock->porta,
+            ];
+
+            // Chamar API Python para bloquear a porta
+            $pythonApiUrl = config('services.python_api.url', 'http://127.0.0.1:8001');
+            $response = Http::timeout(30)->post("{$pythonApiUrl}/bloquear", $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                // Atualizar status no banco de dados
+                $stock->update(['bloqueada' => true]);
+
+                Log::info('Porta bloqueada com sucesso', [
+                    'stock_id' => $stock->id,
+                    'porta' => $stock->porta,
+                    'vps_ip' => $vps->ip,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => $data['mensagem'] ?? 'Porta bloqueada com sucesso!',
+                    'data' => $data,
+                ]);
+            }
+
+            Log::error('Erro ao bloquear porta', [
+                'status' => $response->status(),
+                'response' => $response->body(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao bloquear porta no servidor.',
+            ], 500);
+
+        } catch (\Exception $e) {
+            Log::error('Exceção ao bloquear porta', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao conectar com o servidor: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Desbloquear porta do proxy via UFW (Python API)
+     */
+    public function desbloquearProxy(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'stock_id' => 'required|exists:stocks,id',
+            ]);
+
+            // Buscar o proxy e sua VPS
+            $stock = Stock::with('vps')->findOrFail($validated['stock_id']);
+
+            if (!$stock->vps) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'VPS não encontrada para este proxy.',
+                ], 404);
+            }
+
+            $vps = $stock->vps;
+
+            // Preparar payload para a API Python
+            $payload = [
+                'ip_vps' => $vps->ip,
+                'user_ssh' => $vps->usuario_ssh,
+                'senha_ssh' => $vps->senha_ssh,
+                'porta' => $stock->porta,
+            ];
+
+            // Chamar API Python para desbloquear a porta
+            $pythonApiUrl = config('services.python_api.url', 'http://127.0.0.1:8001');
+            $response = Http::timeout(30)->post("{$pythonApiUrl}/desbloquear", $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                // Atualizar status no banco de dados
+                $stock->update(['bloqueada' => false]);
+
+                Log::info('Porta desbloqueada com sucesso', [
+                    'stock_id' => $stock->id,
+                    'porta' => $stock->porta,
+                    'vps_ip' => $vps->ip,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => $data['mensagem'] ?? 'Porta desbloqueada com sucesso!',
+                    'data' => $data,
+                ]);
+            }
+
+            Log::error('Erro ao desbloquear porta', [
+                'status' => $response->status(),
+                'response' => $response->body(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao desbloquear porta no servidor.',
+            ], 500);
+
+        } catch (\Exception $e) {
+            Log::error('Exceção ao desbloquear porta', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao conectar com o servidor: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

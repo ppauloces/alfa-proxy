@@ -116,12 +116,12 @@
                         </div>
                     </div>
 
-                    <div class="payment-method { old('metodo_pagamento') === 'cartao' ? 'selected' : '' }" data-method="cartao">
+                    <div class="payment-method {{ old('metodo_pagamento') === 'credit_card' ? 'selected' : '' }}" data-method="credit_card">
                         <div class="flex items-center gap-3">
                             <i class="fas fa-credit-card text-2xl text-[#4F8BFF]"></i>
                             <div>
-                                <p class="font-semibold">Cartao</p>
-                                <p class="text-xs text-slate-500">Credito/Debito</p>
+                                <p class="font-semibold">Cartão de Crédito</p>
+                                <p class="text-xs text-slate-500">Até 12x</p>
                             </div>
                         </div>
                     </div>
@@ -167,6 +167,51 @@
                     </div>
                 </div>
                 <input type="hidden" name="metodo_pagamento" id="orderPaymentMethod" value="{{ old('metodo_pagamento') }}" required>
+
+                <!-- Campos de Cartão de Crédito (aparecem apenas quando credit_card selecionado) -->
+                <div id="creditCardFields" class="mt-6" style="display: {{ old('metodo_pagamento') === 'credit_card' ? 'block' : 'none' }};">
+                    <div class="space-y-4">
+                        <div class="form-group">
+                            <label class="form-label">Selecione o Cartão</label>
+                            @if(isset($savedCards) && count($savedCards) > 0)
+                                <select name="card_id" id="cardSelect" class="form-select">
+                                    <option value="">Selecione um cartão</option>
+                                    @foreach($savedCards as $card)
+                                        <option value="{{ $card->id }}" {{ old('card_id') == $card->id ? 'selected' : '' }}>
+                                            {{ ucfirst($card->bandeira) }} •••• {{ $card->ultimos_digitos }} - {{ $card->nome_titular }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <p class="text-sm text-yellow-800">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                                        Você ainda não possui cartões cadastrados.
+                                        <a href="{{ route('dash.show', ['section' => 'cartoes']) }}" class="underline font-semibold">Cadastre um cartão</a> para continuar.
+                                    </p>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Parcelas</label>
+                            <select name="installments" id="installmentsSelect" class="form-select">
+                                <option value="1" {{ old('installments', 1) == 1 ? 'selected' : '' }}>1x sem juros</option>
+                                <option value="2" {{ old('installments') == 2 ? 'selected' : '' }}>2x sem juros</option>
+                                <option value="3" {{ old('installments') == 3 ? 'selected' : '' }}>3x sem juros</option>
+                                <option value="4" {{ old('installments') == 4 ? 'selected' : '' }}>4x sem juros</option>
+                                <option value="5" {{ old('installments') == 5 ? 'selected' : '' }}>5x sem juros</option>
+                                <option value="6" {{ old('installments') == 6 ? 'selected' : '' }}>6x sem juros</option>
+                                <option value="7" {{ old('installments') == 7 ? 'selected' : '' }}>7x sem juros</option>
+                                <option value="8" {{ old('installments') == 8 ? 'selected' : '' }}>8x sem juros</option>
+                                <option value="9" {{ old('installments') == 9 ? 'selected' : '' }}>9x sem juros</option>
+                                <option value="10" {{ old('installments') == 10 ? 'selected' : '' }}>10x sem juros</option>
+                                <option value="11" {{ old('installments') == 11 ? 'selected' : '' }}>11x sem juros</option>
+                                <option value="12" {{ old('installments') == 12 ? 'selected' : '' }}>12x sem juros</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -74,6 +74,9 @@ Route::middleware(['auth', CheckUserStatus::class])->group(function () {
     Route::post('/cartoes/{id}/default', [CartaoController::class, 'setDefault'])->name('cartoes.default');
     Route::delete('/cartoes/{id}', [CartaoController::class, 'destroy'])->name('cartoes.destroy');
 
+    // Testar Proxy
+    Route::post('/proxies/testar', [LogadoController::class, 'testarProxy'])->name('proxies.testar');
+
     // Outras rotas existentes
     Route::get('/cupons', [LogadoController::class, 'cupons'])->name('cupons.show');
     Route::get('/duvidas', [LogadoController::class, 'duvidas'])->name('duvidas.show');
@@ -87,7 +90,11 @@ Route::middleware(['auth', CheckUserStatus::class])->group(function () {
 
 //Rotas de administradores
 Route::middleware(AdminMiddleware::class)->group(function () {
-    Route::get('/admin/proxies', [AdminController::class, 'proxies'])->name('proxies.show');
+    Route::get('/admin/proxies', [AdminController::class, 'proxies'])->name('admin.proxies');
     Route::post('/admin/vps/cadastrar', [AdminController::class, 'cadastrarVps'])->name('vps.cadastrar');
     Route::get('/admin/usuarios', [AdminController::class, 'usuarios'])->name('usuarios.show');
+
+    // Gerenciamento de portas (bloqueio/desbloqueio)
+    Route::post('/admin/proxy/bloquear', [AdminController::class, 'bloquearProxy'])->name('proxy.bloquear');
+    Route::post('/admin/proxy/desbloquear', [AdminController::class, 'desbloquearProxy'])->name('proxy.desbloquear');
 });

@@ -93,250 +93,151 @@
 @endsection
 
 @section('content')
-<div class="flex flex-col gap-2 mb-8">
-    <p class="text-sm uppercase tracking-[0.35em] text-slate-500">Preferências</p>
-    <h1 class="text-3xl font-bold text-slate-900">Configurações</h1>
-    <p class="text-slate-500">Personalize sua experiência e gerencie suas preferências.</p>
-</div>
-
-<!-- Notificações -->
-<div class="settings-card">
-    <h2 class="text-xl font-semibold text-slate-900 mb-4">Notificações</h2>
-    <p class="text-sm text-slate-500 mb-6">Escolha como e quando você deseja receber notificações.</p>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">E-mail de Transações</p>
-            <p class="text-sm text-slate-500">Receba confirmações de pagamento por e-mail</p>
-        </div>
-        <label class="switch">
-            <input type="checkbox" checked>
-            <span class="slider"></span>
-        </label>
+<div class="flex flex-col gap-6">
+    {{-- Header da Seção --}}
+    <div class="space-y-1">
+        <p class="text-[10px] font-bold text-[#448ccb] uppercase tracking-[0.3em]">Preferências</p>
+        <h1 class="text-4xl font-black text-slate-900 tracking-tight">Configurações do <span class="text-[#23366f]">Sistema</span></h1>
+        <p class="text-slate-500 font-medium max-w-xl">Personalize sua experiência e gerencie suas preferências de conta.</p>
     </div>
 
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Alertas de Expiração</p>
-            <p class="text-sm text-slate-500">Ser notificado quando proxies estiverem próximos do vencimento</p>
+    <div class="grid lg:grid-cols-2 gap-8">
+        <!-- Notificações -->
+        <div class="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+            <h2 class="text-2xl font-black text-slate-900 mb-2">Notificações</h2>
+            <p class="text-sm text-slate-400 font-medium mb-10">Escolha como e quando você deseja receber alertas.</p>
+
+            <div class="space-y-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-slate-700">E-mail de Transações</p>
+                        <p class="text-[11px] text-slate-400 font-medium">Receba confirmações por e-mail</p>
+                    </div>
+                    <label class="switch scale-90">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-slate-700">Alertas de Expiração</p>
+                        <p class="text-[11px] text-slate-400 font-medium">Aviso prévio antes do vencimento</p>
+                    </div>
+                    <label class="switch scale-90">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-slate-700">Informativos & Novidades</p>
+                        <p class="text-[11px] text-slate-400 font-medium">Receba promoções exclusivas</p>
+                    </div>
+                    <label class="switch scale-90">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
         </div>
-        <label class="switch">
-            <input type="checkbox" checked>
-            <span class="slider"></span>
-        </label>
-    </div>
 
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Newsletter</p>
-            <p class="text-sm text-slate-500">Receber novidades e promoções por e-mail</p>
+        <!-- Segurança -->
+        <div class="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+            <h2 class="text-2xl font-black text-slate-900 mb-2">Segurança</h2>
+            <p class="text-sm text-slate-400 font-medium mb-10">Proteção avançada para sua conta.</p>
+
+            <div class="space-y-6">
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#23366f] shadow-sm">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-700">Verificação em 2 Etapas</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Desativado</p>
+                        </div>
+                    </div>
+                    <button class="px-4 py-2 rounded-xl text-[10px] font-black uppercase bg-[#23366f] text-white transition-all">Configurar</button>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#23366f] shadow-sm">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-700">Sessões Ativas</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">1 dispositivo online</p>
+                        </div>
+                    </div>
+                    <button class="px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-slate-200 text-slate-400 transition-all">Gerenciar</button>
+                </div>
+            </div>
         </div>
-        <label class="switch">
-            <input type="checkbox">
-            <span class="slider"></span>
-        </label>
-    </div>
 
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Notificações Push</p>
-            <p class="text-sm text-slate-500">Receber notificações no navegador</p>
+        <!-- Preferências -->
+        <div class="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+            <h2 class="text-2xl font-black text-slate-900 mb-2">Preferências</h2>
+            <p class="text-sm text-slate-400 font-medium mb-10">Ajuste como o AlfaProxy funciona para você.</p>
+
+            <div class="space-y-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-slate-700">Renovação Automática Padrão</p>
+                        <p class="text-[11px] text-slate-400 font-medium">Sempre ativar ao comprar novos IPs</p>
+                    </div>
+                    <label class="switch scale-90">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-slate-700">Teste Automático de Proxies</p>
+                        <p class="text-[11px] text-slate-400 font-medium">Verificar saúde das rotas a cada 1h</p>
+                    </div>
+                    <label class="switch scale-90">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
         </div>
-        <label class="switch">
-            <input type="checkbox">
-            <span class="slider"></span>
-        </label>
-    </div>
-</div>
 
-<!-- Segurança -->
-<div class="settings-card">
-    <h2 class="text-xl font-semibold text-slate-900 mb-4">Segurança</h2>
-    <p class="text-sm text-slate-500 mb-6">Proteja sua conta com opções de segurança avançadas.</p>
+        <!-- Perigo -->
+        <div class="bg-red-50 p-10 rounded-[2.5rem] border border-red-100 shadow-sm shadow-red-900/5">
+            <h2 class="text-2xl font-black text-red-600 mb-2">Zona de Perigo</h2>
+            <p class="text-sm text-red-400 font-medium mb-10">Ações críticas e irreversíveis.</p>
 
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Autenticação de Dois Fatores (2FA)</p>
-            <p class="text-sm text-slate-500">Adicione uma camada extra de segurança à sua conta</p>
-        </div>
-        <button class="btn-secondary">
-            <i class="fas fa-shield-alt"></i> Configurar
-        </button>
-    </div>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Sessões Ativas</p>
-            <p class="text-sm text-slate-500">Gerencie dispositivos conectados à sua conta</p>
-        </div>
-        <button class="btn-secondary">
-            <i class="fas fa-desktop"></i> Ver Sessões
-        </button>
-    </div>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Histórico de Login</p>
-            <p class="text-sm text-slate-500">Visualize acessos recentes à sua conta</p>
-        </div>
-        <button class="btn-secondary">
-            <i class="fas fa-history"></i> Ver Histórico
-        </button>
-    </div>
-</div>
-
-<!-- Preferências de Proxy -->
-<div class="settings-card">
-    <h2 class="text-xl font-semibold text-slate-900 mb-4">Preferências de Proxy</h2>
-    <p class="text-sm text-slate-500 mb-6">Configure o comportamento padrão dos seus proxies.</p>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Renovação Automática</p>
-            <p class="text-sm text-slate-500">Renovar proxies automaticamente antes do vencimento</p>
-        </div>
-        <label class="switch">
-            <input type="checkbox" checked>
-            <span class="slider"></span>
-        </label>
-    </div>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Formato de Exportação Padrão</p>
-            <p class="text-sm text-slate-500">ip:porta:usuario:senha</p>
-        </div>
-        <button class="btn-secondary">
-            <i class="fas fa-edit"></i> Alterar
-        </button>
-    </div>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Teste Automático de Proxies</p>
-            <p class="text-sm text-slate-500">Verificar status dos proxies automaticamente</p>
-        </div>
-        <label class="switch">
-            <input type="checkbox">
-            <span class="slider"></span>
-        </label>
-    </div>
-</div>
-
-<!-- Aparência -->
-<div class="settings-card">
-    <h2 class="text-xl font-semibold text-slate-900 mb-4">Aparência</h2>
-    <p class="text-sm text-slate-500 mb-6">Personalize a interface do dashboard.</p>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Tema Escuro</p>
-            <p class="text-sm text-slate-500">Ativar modo escuro na interface</p>
-        </div>
-        <label class="switch">
-            <input type="checkbox">
-            <span class="slider"></span>
-        </label>
-    </div>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Idioma</p>
-            <p class="text-sm text-slate-500">Português (Brasil)</p>
-        </div>
-        <button class="btn-secondary">
-            <i class="fas fa-globe"></i> Alterar
-        </button>
-    </div>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Compactar Sidebar</p>
-            <p class="text-sm text-slate-500">Iniciar com sidebar recolhida por padrão</p>
-        </div>
-        <label class="switch">
-            <input type="checkbox">
-            <span class="slider"></span>
-        </label>
-    </div>
-</div>
-
-<!-- API -->
-<div class="settings-card">
-    <h2 class="text-xl font-semibold text-slate-900 mb-4">API & Integrações</h2>
-    <p class="text-sm text-slate-500 mb-6">Gerencie chaves de API e integrações com terceiros.</p>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Chave de API</p>
-            <p class="text-sm text-slate-500 font-mono">••••••••••••••••••••</p>
-        </div>
-        <div class="flex gap-2">
-            <button class="btn-secondary">
-                <i class="fas fa-eye"></i> Mostrar
-            </button>
-            <button class="btn-secondary">
-                <i class="fas fa-sync-alt"></i> Regenerar
-            </button>
+            <div class="space-y-4">
+                <button class="w-full p-5 rounded-2xl bg-white border border-red-100 flex items-center justify-between group hover:bg-red-600 transition-all">
+                    <div class="flex items-center gap-4 text-left">
+                        <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-all">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-black text-slate-900 group-hover:text-white">Excluir Minha Conta</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase group-hover:text-red-200">Apagar todos os dados e proxies</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-red-200 group-hover:text-white group-hover:translate-x-1 transition-all"></i>
+                </button>
+            </div>
         </div>
     </div>
 
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Webhooks</p>
-            <p class="text-sm text-slate-500">Receber notificações em tempo real via webhook</p>
-        </div>
-        <button class="btn-secondary">
-            <i class="fas fa-cog"></i> Configurar
+    {{-- Botões de Ação Final --}}
+    <div class="flex items-center justify-end gap-4 mt-6">
+        <button class="px-8 py-4 rounded-2xl text-sm font-black text-slate-400 hover:text-slate-600 transition-all uppercase tracking-widest">Descartar</button>
+        <button class="px-12 py-4 rounded-2xl bg-[#23366f] text-white font-black hover:scale-[1.02] transition-all shadow-xl shadow-blue-900/20" onclick="alert('Configurações salvas!')">
+            Salvar Preferências
         </button>
     </div>
 </div>
-
-<!-- Zona de Perigo -->
-<div class="settings-card danger-zone">
-    <h2 class="text-xl font-semibold text-red-600 mb-4">Zona de Perigo</h2>
-    <p class="text-sm text-slate-500 mb-6">Ações irreversíveis que afetam permanentemente sua conta.</p>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Exportar Dados</p>
-            <p class="text-sm text-slate-500">Baixar uma cópia de todos os seus dados</p>
-        </div>
-        <button class="btn-secondary">
-            <i class="fas fa-download"></i> Exportar
-        </button>
-    </div>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Desativar Conta</p>
-            <p class="text-sm text-slate-500">Desativar temporariamente sua conta</p>
-        </div>
-        <button class="btn-danger" onclick="confirm('Tem certeza que deseja desativar sua conta?')">
-            <i class="fas fa-ban"></i> Desativar
-        </button>
-    </div>
-
-    <div class="setting-item">
-        <div>
-            <p class="font-semibold text-slate-900">Excluir Conta</p>
-            <p class="text-sm text-slate-500">Excluir permanentemente sua conta e todos os dados</p>
-        </div>
-        <button class="btn-danger" onclick="confirm('ATENÇÃO: Esta ação é IRREVERSÍVEL! Tem certeza?')">
-            <i class="fas fa-trash"></i> Excluir
-        </button>
-    </div>
-</div>
-
-<!-- Botões de Ação -->
-<div class="flex gap-4 justify-end">
-    <button class="btn-secondary">
-        <i class="fas fa-times"></i> Cancelar
-    </button>
-    <button class="btn-primary" style="width: auto; padding: 0.75rem 2rem;">
-        <i class="fas fa-save"></i> Salvar Configurações
-    </button>
-</div>
+@endsection
 @endsection
 
 @section('scripts')

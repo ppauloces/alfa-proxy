@@ -94,168 +94,129 @@
 @endsection
 
 @section('content')
-<div class="flex flex-col gap-2 mb-8">
-    <p class="text-sm uppercase tracking-[0.35em] text-slate-500">Central de ajuda</p>
-    <h1 class="text-3xl font-bold text-slate-900">Suporte & Tickets</h1>
-    <p class="text-slate-500">Estamos aqui para ajudar! Entre em contato ou consulte nossas perguntas frequentes.</p>
-</div>
+<div class="flex flex-col gap-6">
+    {{-- Header da Seção --}}
+    <div class="space-y-1">
+        <p class="text-[10px] font-bold text-[#448ccb] uppercase tracking-[0.3em]">Central de ajuda</p>
+        <h1 class="text-4xl font-black text-slate-900 tracking-tight">Suporte & <span class="text-[#23366f]">Tickets</span></h1>
+        <p class="text-slate-500 font-medium max-w-xl">Estamos aqui para ajudar! Entre em contato ou consulte nossas perguntas frequentes.</p>
+    </div>
 
-<!-- Métodos de Contato -->
-<div class="grid md:grid-cols-3 gap-6 mb-8">
-    <div class="contact-method">
-        <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#4F8BFF] to-[#2055dd] flex items-center justify-center">
-                <i class="fas fa-envelope text-white text-xl"></i>
+    <!-- Métodos de Contato -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="mailto:suporte@alfaproxy.com" class="group bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:border-[#23366f] transition-all">
+            <div class="w-14 h-14 rounded-2xl bg-blue-50 text-[#23366f] flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                <i class="fas fa-envelope"></i>
             </div>
-            <div>
-                <p class="font-semibold text-slate-900">E-mail</p>
-                <p class="text-xs text-slate-500">Resposta em até 24h</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">E-mail</p>
+            <p class="text-lg font-black text-slate-900 mb-2">suporte@alfaproxy.com</p>
+            <p class="text-xs text-slate-400 font-medium">Resposta em até 24 horas úteis.</p>
+        </a>
+
+        <a href="https://wa.me/5511999999999" target="_blank" class="group bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:border-green-500 transition-all">
+            <div class="w-14 h-14 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                <i class="fab fa-whatsapp"></i>
             </div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">WhatsApp</p>
+            <p class="text-lg font-black text-slate-900 mb-2">+55 11 99999-9999</p>
+            <p class="text-xs text-slate-400 font-medium">Atendimento em tempo real.</p>
+        </a>
+
+        <a href="https://discord.gg/alfaproxy" target="_blank" class="group bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:border-[#5865F2] transition-all">
+            <div class="w-14 h-14 rounded-2xl bg-[#5865F2]/10 text-[#5865F2] flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                <i class="fab fa-discord"></i>
+            </div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Discord</p>
+            <p class="text-lg font-black text-slate-900 mb-2">Comunidade Alfa</p>
+            <p class="text-xs text-slate-400 font-medium">Interaja com outros usuários.</p>
+        </a>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-8">
+        <!-- Formulário de Ticket -->
+        <div class="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+            <h2 class="text-2xl font-black text-slate-900 mb-2">Abrir Novo Ticket</h2>
+            <p class="text-sm text-slate-400 font-medium mb-10">Descreva sua solicitação e nossa equipe analisará o mais rápido possível.</p>
+
+            <form action="#" method="POST" class="space-y-6">
+                @csrf
+                <div class="form-group">
+                    <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Assunto do Ticket</label>
+                    <input type="text" name="assunto" class="form-input bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] h-14 rounded-xl font-bold" placeholder="Ex: Dúvida sobre renovação" required>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Categoria</label>
+                        <select name="categoria" class="form-select bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] h-14 rounded-xl font-bold" required>
+                            <option value="">Selecione</option>
+                            <option value="pagamento">Pagamento</option>
+                            <option value="proxy">Proxies</option>
+                            <option value="tecnico">Técnico</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Prioridade</label>
+                        <select name="prioridade" class="form-select bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] h-14 rounded-xl font-bold" required>
+                            <option value="baixa">Baixa</option>
+                            <option value="media" selected>Média</option>
+                            <option value="alta">Alta</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Descrição Detalhada</label>
+                    <textarea name="descricao" class="form-textarea bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] rounded-2xl p-5 font-bold min-h-[150px]" placeholder="Conte-nos o que está acontecendo..." required></textarea>
+                </div>
+
+                <button type="submit" class="w-full py-4 rounded-2xl bg-[#23366f] text-white font-black hover:scale-[1.02] transition-all shadow-xl shadow-blue-900/20">
+                    Enviar Solicitação
+                </button>
+            </form>
         </div>
-        <a href="mailto:suporte@alfaproxy.com" class="text-[#4F8BFF] font-semibold text-sm">suporte@alfaproxy.com</a>
-    </div>
 
-    <div class="contact-method">
-        <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#25D366] to-[#128C7E] flex items-center justify-center">
-                <i class="fab fa-whatsapp text-white text-xl"></i>
-            </div>
-            <div>
-                <p class="font-semibold text-slate-900">WhatsApp</p>
-                <p class="text-xs text-slate-500">Atendimento rápido</p>
-            </div>
-        </div>
-        <a href="https://wa.me/5511999999999" target="_blank" class="text-[#25D366] font-semibold text-sm">+55 11 99999-9999</a>
-    </div>
+        <!-- FAQ -->
+        <div class="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+            <h2 class="text-2xl font-black text-slate-900 mb-2">Perguntas Frequentes</h2>
+            <p class="text-sm text-slate-400 font-medium mb-10">Respostas rápidas para as dúvidas mais comuns dos nossos clientes.</p>
 
-    <div class="contact-method">
-        <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7289DA] to-[#5865F2] flex items-center justify-center">
-                <i class="fab fa-discord text-white text-xl"></i>
-            </div>
-            <div>
-                <p class="font-semibold text-slate-900">Discord</p>
-                <p class="text-xs text-slate-500">Comunidade ativa</p>
-            </div>
-        </div>
-        <a href="https://discord.gg/alfaproxy" target="_blank" class="text-[#7289DA] font-semibold text-sm">discord.gg/alfaproxy</a>
-    </div>
-</div>
+            <div class="space-y-4">
+                @php
+                    $faqs = [
+                        ['q' => 'Como funciona o proxy SOCKS5?', 'a' => 'O SOCKS5 é um protocolo que permite rotear tráfego com alta segurança e suporte a diversos protocolos.'],
+                        ['q' => 'Quanto tempo leva para ativar?', 'a' => 'A ativação é automática e ocorre em até 5 minutos após a confirmação do pagamento.'],
+                        ['q' => 'Posso trocar o país do IP?', 'a' => 'Sim, basta abrir um ticket e nossa equipe fará a alteração conforme disponibilidade.'],
+                        ['q' => 'O que é renovação automática?', 'a' => 'É um sistema que garante que seus proxies não expirem, cobrando o valor do seu saldo no dia do vencimento.'],
+                    ];
+                @endphp
 
-<div class="grid lg:grid-cols-2 gap-8">
-    <!-- Formulário de Ticket -->
-    <div class="support-card">
-        <h2 class="text-xl font-semibold text-slate-900 mb-4">Abrir Novo Ticket</h2>
-        <p class="text-sm text-slate-500 mb-6">Descreva seu problema ou dúvida e entraremos em contato em breve.</p>
-
-        <form action="#" method="POST">
-            @csrf
-            <div class="mb-4">
-                <label class="form-label">Assunto</label>
-                <input type="text" name="assunto" class="form-input" placeholder="Ex: Problema com pagamento" required>
+                @foreach($faqs as $faq)
+                    <div class="faq-item group p-6 rounded-2xl border border-slate-50 hover:border-[#23366f] transition-all cursor-pointer">
+                        <div class="flex items-center justify-between">
+                            <p class="font-bold text-slate-700 group-hover:text-[#23366f] transition-colors">{{ $faq['q'] }}</p>
+                            <i class="fas fa-chevron-down faq-icon text-slate-300 group-hover:text-[#23366f] transition-all"></i>
+                        </div>
+                        <div class="faq-answer hidden mt-4 pt-4 border-t border-slate-50 text-sm text-slate-500 font-medium leading-relaxed">
+                            {{ $faq['a'] }}
+                        </div>
+                    </div>
+                @endforeach
             </div>
 
-            <div class="mb-4">
-                <label class="form-label">Categoria</label>
-                <select name="categoria" class="form-input" required>
-                    <option value="">Selecione uma categoria</option>
-                    <option value="pagamento">Pagamento</option>
-                    <option value="proxy">Problemas com Proxy</option>
-                    <option value="conta">Conta e Perfil</option>
-                    <option value="tecnico">Suporte Técnico</option>
-                    <option value="outros">Outros</option>
-                </select>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label">Prioridade</label>
-                <select name="prioridade" class="form-input" required>
-                    <option value="baixa">Baixa</option>
-                    <option value="media" selected>Média</option>
-                    <option value="alta">Alta</option>
-                    <option value="urgente">Urgente</option>
-                </select>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label">Descrição</label>
-                <textarea name="descricao" class="form-textarea" placeholder="Descreva seu problema em detalhes..." required></textarea>
-            </div>
-
-            <button type="submit" class="btn-primary">
-                <i class="fas fa-paper-plane"></i> Enviar Ticket
-            </button>
-        </form>
-    </div>
-
-    <!-- FAQ -->
-    <div class="support-card">
-        <h2 class="text-xl font-semibold text-slate-900 mb-4">Perguntas Frequentes</h2>
-        <p class="text-sm text-slate-500 mb-6">Respostas rápidas para dúvidas comuns.</p>
-
-        <div class="space-y-3">
-            <div class="faq-item">
-                <div class="flex items-center justify-between">
-                    <p class="font-semibold text-slate-900">Como funciona o proxy SOCKS5?</p>
-                    <i class="fas fa-chevron-down faq-icon text-slate-400"></i>
+            <div class="mt-10 p-6 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-[#23366f] shadow-sm">
+                    <i class="fas fa-lightbulb"></i>
                 </div>
-                <div class="faq-answer">
-                    <p>O SOCKS5 é um protocolo de proxy que permite rotear qualquer tipo de tráfego através de um servidor intermediário, oferecendo maior privacidade e segurança. Ele suporta autenticação e pode lidar com diversos protocolos, incluindo HTTP, HTTPS e FTP.</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="flex items-center justify-between">
-                    <p class="font-semibold text-slate-900">Quanto tempo leva para ativar meu proxy?</p>
-                    <i class="fas fa-chevron-down faq-icon text-slate-400"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>Após a confirmação do pagamento, seus proxies são ativados automaticamente em até 5 minutos. Você receberá um e-mail com as credenciais de acesso.</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="flex items-center justify-between">
-                    <p class="font-semibold text-slate-900">Posso trocar o país do meu proxy?</p>
-                    <i class="fas fa-chevron-down faq-icon text-slate-400"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>Sim! Entre em contato com nosso suporte e faremos a troca sem custo adicional, sujeito à disponibilidade de IPs no país desejado.</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="flex items-center justify-between">
-                    <p class="font-semibold text-slate-900">O que é renovação automática?</p>
-                    <i class="fas fa-chevron-down faq-icon text-slate-400"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>A renovação automática garante que seu proxy seja renovado automaticamente antes do vencimento, evitando interrupções no serviço. Você pode ativar/desativar essa opção a qualquer momento.</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="flex items-center justify-between">
-                    <p class="font-semibold text-slate-900">Quais formas de pagamento são aceitas?</p>
-                    <i class="fas fa-chevron-down faq-icon text-slate-400"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>Aceitamos PIX, cartão de crédito/débito e criptomoedas (Bitcoin, USDT, Litecoin e BNB). Todas as transações são processadas de forma segura.</p>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="flex items-center justify-between">
-                    <p class="font-semibold text-slate-900">Posso solicitar reembolso?</p>
-                    <i class="fas fa-chevron-down faq-icon text-slate-400"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>Sim, oferecemos garantia de reembolso de 7 dias para novos clientes. Se não estiver satisfeito com nosso serviço, entre em contato e processaremos o reembolso.</p>
+                <div>
+                    <p class="text-xs font-black text-slate-900 uppercase">Dica Alfa</p>
+                    <p class="text-[11px] text-slate-400 font-medium">Nossa documentação completa está disponível na seção API.</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+@endsection
 @endsection
 
 @section('scripts')

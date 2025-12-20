@@ -1,261 +1,213 @@
-<div class="flex flex-col gap-2 mb-8">
-    <p class="text-sm uppercase tracking-[0.35em] text-slate-500">Adquirir proxies</p>
-    <h1 class="text-3xl font-bold text-slate-900">Nova Compra</h1>
-    <p class="text-slate-500">Configure e adquira novos proxies para suas necessidades.</p>
-</div>
-
-@if($errors->novaCompra->any())
-    <div class="alert alert-error">
-        <i class="fas fa-exclamation-circle"></i>
-        @foreach($errors->novaCompra->all() as $error)
-            {{ $error }}
-        @endforeach
+<div class="flex flex-col gap-6">
+    {{-- Header da Seção --}}
+    <div class="space-y-1">
+        <p class="text-[10px] font-bold text-[#448ccb] uppercase tracking-[0.3em]">Adquirir proxies</p>
+        <h1 class="text-4xl font-black text-slate-900 tracking-tight">Nova <span class="text-[#23366f]">Compra</span></h1>
+        <p class="text-slate-500 font-medium max-w-xl">Configure e adquira novos proxies para suas necessidades.</p>
     </div>
-@endif
 
-<form action="{{ route('compra.processar') }}" method="POST" id="orderForm">
-    @csrf
-    <div class="grid lg:grid-cols-3 gap-6">
-        <!-- Formulário Principal -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Configuração do Proxy -->
-            <div class="order-card">
-                <h2 class="text-xl font-semibold text-slate-900 mb-4">Configuração do Proxy</h2>
-
-                <div class="form-group">
-                    <label class="form-label">Pais</label>
-                                        <select name="pais" class="form-select" required>
-                        <option value="">Selecione o pais</option>
-                        <option value="BR" {{ old('pais') === 'BR' ? 'selected' : '' }}>Brasil</option>
-                    </select>
-
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Motivo do Uso</label>
-                                        <select name="motivo" class="form-select" required>
-                        <option value="">Selecione o motivo</option>
-                        @foreach(['Facebook','Google','TikTok','Bet','Kwai','Instagram','Outros'] as $motivo)
-                            <option value="{{ strtolower($motivo) }}" {{ old('motivo') === strtolower($motivo) ? 'selected' : '' }}>{{ $motivo }}</option>
-                        @endforeach
-                    </select>
-
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Quantidade de Proxies</label>
-                    <input type="number" name="quantidade" value="{{ old('quantidade', 1) }}" id="quantidade" min="1" max="100" class="form-input" required>
-                </div>
+    @if($errors->novaCompra->any())
+        <div class="alert alert-error bg-red-50 text-red-700 border-red-100 rounded-2xl p-4 font-semibold flex items-center gap-3">
+            <i class="fas fa-exclamation-circle"></i>
+            <div>
+                @foreach($errors->novaCompra->all() as $error)
+                    <p class="text-sm">{{ $error }}</p>
+                @endforeach
             </div>
+        </div>
+    @endif
 
-            <!-- Período de Contratação -->
-            <div class="order-card">
-                <h2 class="text-xl font-semibold text-slate-900 mb-4">Periodo de Contratacao</h2>
-                <p class="text-sm text-slate-500 mb-4">Quanto maior o periodo, melhor o preco por proxy!</p>
+    <form action="{{ route('compra.processar') }}" method="POST" id="orderForm">
+        @csrf
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Formulário Principal -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Configuração do Proxy -->
+                <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 text-sm">01</span>
+                        Configuração do Proxy
+                    </h2>
 
-                <div class="grid md:grid-cols-3 gap-4">
-                    <div class="price-card { old('periodo') == 30 ? 'selected' : '' }" data-period="30" data-price="20.00">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-sm font-semibold">30 dias</p>
-                        </div>
-                        <p class="text-2xl font-bold">R$ 20,00</p>
-                        <p class="text-sm opacity-80 mt-1">por proxy</p>
-                    </div>
-
-                    <div class="price-card { old('periodo') == 60 ? 'selected' : '' }" data-period="60" data-price="35.00">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-sm font-semibold">60 dias</p>
-                            <span class="price-badge">-12%</span>
-                        </div>
-                        <p class="text-2xl font-bold">R$ 35,00</p>
-                        <p class="text-sm opacity-80 mt-1">por proxy</p>
-                    </div>
-
-                    <div class="price-card { old('periodo') == 90 ? 'selected' : '' }" data-period="90" data-price="45.00">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-sm font-semibold">90 dias</p>
-                            <span class="price-badge">-25%</span>
-                        </div>
-                        <p class="text-2xl font-bold">R$ 45,00</p>
-                        <p class="text-sm opacity-80 mt-1">por proxy</p>
-                    </div>
-
-                    <div class="price-card { old('periodo') == 180 ? 'selected' : '' }" data-period="180" data-price="80.00">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-sm font-semibold">180 dias</p>
-                            <span class="price-badge">-33%</span>
-                        </div>
-                        <p class="text-2xl font-bold">R$ 80,00</p>
-                        <p class="text-sm opacity-80 mt-1">por proxy</p>
-                    </div>
-
-                    <div class="price-card { old('periodo') == 360 ? 'selected' : '' }" data-period="360" data-price="120.00">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-sm font-semibold">360 dias</p>
-                            <span class="price-badge">Melhor</span>
-                        </div>
-                        <p class="text-2xl font-bold">R$ 120,00</p>
-                        <p class="text-sm opacity-80 mt-1">por proxy</p>
-                    </div>
-                </div>
-                <input type="hidden" name="periodo" id="periodo" value="{{ old('periodo') }}" required>
-            </div>
-
-            <!-- Forma de Pagamento -->
-            <div class="order-card">
-                <h2 class="text-xl font-semibold text-slate-900 mb-4">Forma de Pagamento</h2>
-
-                <div class="grid md:grid-cols-3 gap-4">
-                    <div class="payment-method { old('metodo_pagamento') === 'pix' ? 'selected' : '' }" data-method="pix">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-qrcode text-2xl text-[#4F8BFF]"></i>
-                            <div>
-                                <p class="font-semibold">PIX</p>
-                                <p class="text-xs text-slate-500">Instantaneo</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="payment-method {{ old('metodo_pagamento') === 'credit_card' ? 'selected' : '' }}" data-method="credit_card">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-credit-card text-2xl text-[#4F8BFF]"></i>
-                            <div>
-                                <p class="font-semibold">Cartão de Crédito</p>
-                                <p class="text-xs text-slate-500">Até 12x</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="payment-method { old('metodo_pagamento') === 'usdt' ? 'selected' : '' }" data-method="usdt">
-                        <div class="flex items-center gap-3">
-                            <i class="fab fa-bitcoin text-2xl text-[#4F8BFF]"></i>
-                            <div>
-                                <p class="font-semibold">USDT</p>
-                                <p class="text-xs text-slate-500">Tether</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="payment-method { old('metodo_pagamento') === 'btc' ? 'selected' : '' }" data-method="btc">
-                        <div class="flex items-center gap-3">
-                            <i class="fab fa-btc text-2xl text-[#4F8BFF]"></i>
-                            <div>
-                                <p class="font-semibold">Bitcoin</p>
-                                <p class="text-xs text-slate-500">BTC</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="payment-method { old('metodo_pagamento') === 'ltc' ? 'selected' : '' }" data-method="ltc">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-coins text-2xl text-[#4F8BFF]"></i>
-                            <div>
-                                <p class="font-semibold">Litecoin</p>
-                                <p class="text-xs text-slate-500">LTC</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="payment-method { old('metodo_pagamento') === 'bnb' ? 'selected' : '' }" data-method="bnb">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-coins text-2xl text-[#4F8BFF]"></i>
-                            <div>
-                                <p class="font-semibold">Binance</p>
-                                <p class="text-xs text-slate-500">BNB</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <input type="hidden" name="metodo_pagamento" id="orderPaymentMethod" value="{{ old('metodo_pagamento') }}" required>
-
-                <!-- Campos de Cartão de Crédito (aparecem apenas quando credit_card selecionado) -->
-                <div id="creditCardFields" class="mt-6" style="display: {{ old('metodo_pagamento') === 'credit_card' ? 'block' : 'none' }};">
-                    <div class="space-y-4">
+                    <div class="grid md:grid-cols-2 gap-6">
                         <div class="form-group">
-                            <label class="form-label">Selecione o Cartão</label>
-                            @if(isset($savedCards) && count($savedCards) > 0)
-                                <select name="card_id" id="cardSelect" class="form-select">
-                                    <option value="">Selecione um cartão</option>
-                                    @foreach($savedCards as $card)
-                                        <option value="{{ $card->id }}" {{ old('card_id') == $card->id ? 'selected' : '' }}>
-                                            {{ ucfirst($card->bandeira) }} •••• {{ $card->ultimos_digitos }} - {{ $card->nome_titular }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            @else
-                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                    <p class="text-sm text-yellow-800">
-                                        <i class="fas fa-exclamation-triangle mr-2"></i>
-                                        Você ainda não possui cartões cadastrados.
-                                        <a href="{{ route('dash.show', ['section' => 'cartoes']) }}" class="underline font-semibold">Cadastre um cartão</a> para continuar.
-                                    </p>
-                                </div>
-                            @endif
+                            <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">País</label>
+                            <select name="pais" class="form-select bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] transition-all" required>
+                                <option value="">Selecione o pais</option>
+                                <option value="BR" {{ old('pais') === 'BR' ? 'selected' : '' }}>Brasil</option>
+                            </select>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Parcelas</label>
-                            <select name="installments" id="installmentsSelect" class="form-select">
-                                <option value="1" {{ old('installments', 1) == 1 ? 'selected' : '' }}>1x sem juros</option>
-                                <option value="2" {{ old('installments') == 2 ? 'selected' : '' }}>2x sem juros</option>
-                                <option value="3" {{ old('installments') == 3 ? 'selected' : '' }}>3x sem juros</option>
-                                <option value="4" {{ old('installments') == 4 ? 'selected' : '' }}>4x sem juros</option>
-                                <option value="5" {{ old('installments') == 5 ? 'selected' : '' }}>5x sem juros</option>
-                                <option value="6" {{ old('installments') == 6 ? 'selected' : '' }}>6x sem juros</option>
-                                <option value="7" {{ old('installments') == 7 ? 'selected' : '' }}>7x sem juros</option>
-                                <option value="8" {{ old('installments') == 8 ? 'selected' : '' }}>8x sem juros</option>
-                                <option value="9" {{ old('installments') == 9 ? 'selected' : '' }}>9x sem juros</option>
-                                <option value="10" {{ old('installments') == 10 ? 'selected' : '' }}>10x sem juros</option>
-                                <option value="11" {{ old('installments') == 11 ? 'selected' : '' }}>11x sem juros</option>
-                                <option value="12" {{ old('installments') == 12 ? 'selected' : '' }}>12x sem juros</option>
+                            <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Motivo do Uso</label>
+                            <select name="motivo" class="form-select bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] transition-all" required>
+                                <option value="">Selecione o motivo</option>
+                                @foreach(['Facebook','Google','TikTok','Bet','Kwai','Instagram','Outros'] as $motivo)
+                                    <option value="{{ strtolower($motivo) }}" {{ old('motivo') === strtolower($motivo) ? 'selected' : '' }}>{{ $motivo }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Resumo do Pedido -->
-        <div class="lg:col-span-1">
-            <div class="order-card sticky top-24">
-                <h2 class="text-xl font-semibold text-slate-900 mb-4">Resumo do Pedido</h2>
-
-                <div class="summary-card mb-4">
-                    <div class="space-y-3">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-slate-600">Quantidade:</span>
-                            <span class="font-semibold" id="summary-qty">1 proxy</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-slate-600">Periodo:</span>
-                            <span class="font-semibold" id="summary-period">Selecione</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-slate-600">Valor Unitario:</span>
-                            <span class="font-semibold" id="summary-unit">R$ 0,00</span>
-                        </div>
-                        <div class="border-t border-slate-200 pt-3 mt-3">
-                            <div class="flex justify-between">
-                                <span class="font-semibold">Total:</span>
-                                <span class="text-2xl font-bold text-[#2055dd]" id="summary-total">R$ 0,00</span>
-                            </div>
+                    <div class="form-group mt-6">
+                        <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Quantidade de Proxies</label>
+                        <div class="flex items-center gap-4">
+                            <input type="number" name="quantidade" value="{{ old('quantidade', 1) }}" id="quantidade" min="1" max="100" 
+                                class="form-input bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] transition-all max-w-[120px]" required>
+                            <p class="text-xs text-slate-400 font-medium">Você pode contratar até 100 proxies por vez.</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Seu E-mail</label>
-                    <input type="email" value="{{ $usuario->email ?? '' }}" class="form-input" disabled>
+                <!-- Período de Contratação -->
+                <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 mb-2 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 text-sm">02</span>
+                        Período de Contratação
+                    </h2>
+                    <p class="text-sm text-slate-500 mb-8 ml-11">Quanto maior o período, melhor o preço por proxy!</p>
+
+                    <div class="grid md:grid-cols-3 gap-4">
+                        @php
+                            $periods = [
+                                ['days' => 30, 'price' => 20.00, 'badge' => null],
+                                ['days' => 60, 'price' => 35.00, 'badge' => '-12%'],
+                                ['days' => 90, 'price' => 45.00, 'badge' => '-25%'],
+                                ['days' => 180, 'price' => 80.00, 'badge' => '-33%'],
+                                ['days' => 360, 'price' => 120.00, 'badge' => 'Melhor'],
+                            ];
+                        @endphp
+
+                        @foreach($periods as $period)
+                            <div class="price-card group relative p-6 rounded-[1.5rem] border-2 {{ old('periodo') == $period['days'] ? 'border-[#23366f] bg-blue-50/30' : 'border-slate-50 hover:border-slate-200' }} transition-all cursor-pointer" 
+                                data-period="{{ $period['days'] }}" data-price="{{ $period['price'] }}">
+                                @if($period['badge'])
+                                    <span class="absolute -top-3 -right-2 px-3 py-1 bg-[#448ccb] text-white text-[10px] font-black rounded-lg shadow-lg">
+                                        {{ $period['badge'] }}
+                                    </span>
+                                @endif
+                                <p class="text-xs font-bold text-slate-400 uppercase mb-4">{{ $period['days'] }} dias</p>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-sm font-bold text-slate-900">R$</span>
+                                    <span class="text-3xl font-black text-slate-900">{{ number_format($period['price'], 0, ',', '.') }}</span>
+                                </div>
+                                <div class="mt-4 flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                    <i class="fas fa-check-circle text-green-500"></i> Ativação imediata
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <input type="hidden" name="periodo" id="periodo" value="{{ old('periodo') }}" required>
                 </div>
 
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-shopping-cart"></i> Finalizar Pedido
-                </button>
+                <!-- Forma de Pagamento -->
+                <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 text-sm">03</span>
+                        Forma de Pagamento
+                    </h2>
 
-                <p class="text-xs text-slate-500 text-center mt-4">
-                    Ao finalizar, voce concorda com nossos termos de servico.
-                </p>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        @php
+                            $methods = [
+                                ['id' => 'pix', 'name' => 'PIX', 'icon' => 'fas fa-qrcode', 'desc' => 'Instantâneo', 'enabled' => true],
+                                ['id' => 'credit_card', 'name' => 'Cartão', 'icon' => 'fas fa-credit-card', 'desc' => 'Em breve', 'enabled' => false],
+                                ['id' => 'usdt', 'name' => 'USDT', 'icon' => 'fab fa-bitcoin', 'desc' => 'Em breve', 'enabled' => false],
+                                ['id' => 'btc', 'name' => 'Bitcoin', 'icon' => 'fab fa-btc', 'desc' => 'Em breve', 'enabled' => false],
+                                ['id' => 'ltc', 'name' => 'Litecoin', 'icon' => 'fas fa-coins', 'desc' => 'Em breve', 'enabled' => false],
+                                ['id' => 'bnb', 'name' => 'Binance', 'icon' => 'fas fa-coins', 'desc' => 'Em breve', 'enabled' => false],
+                            ];
+                        @endphp
+
+                        @foreach($methods as $method)
+                            <div class="payment-method p-5 rounded-2xl border-2 {{ $method['enabled'] ? (old('metodo_pagamento') === $method['id'] ? 'border-[#23366f] bg-blue-50/30' : 'border-slate-50 hover:border-slate-200') : 'border-slate-100 bg-slate-50' }} transition-all {{ $method['enabled'] ? 'cursor-pointer' : 'cursor-not-allowed opacity-60' }}"
+                                {{ $method['enabled'] ? 'data-method=' . $method['id'] : '' }}>
+                                <div class="flex flex-col gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center {{ $method['enabled'] ? 'text-slate-400 group-hover:text-[#23366f]' : 'text-slate-300' }}">
+                                        <i class="{{ $method['icon'] }} text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold {{ $method['enabled'] ? 'text-slate-900' : 'text-slate-400' }} text-sm">{{ $method['name'] }}</p>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{{ $method['desc'] }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <input type="hidden" name="metodo_pagamento" id="orderPaymentMethod" value="{{ old('metodo_pagamento') }}" required>
+
+                    <!-- Campos de Cartão de Crédito -->
+                    <div id="creditCardFields" class="mt-8 p-6 bg-slate-50 rounded-2xl" style="display: {{ old('metodo_pagamento') === 'credit_card' ? 'block' : 'none' }};">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="form-group">
+                                <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Selecione o Cartão</label>
+                                @if(isset($savedCards) && count($savedCards) > 0)
+                                    <select name="card_id" id="cardSelect" class="form-select bg-white border-slate-200">
+                                        <option value="">Selecione um cartão</option>
+                                        @foreach($savedCards as $card)
+                                            <option value="{{ $card->id }}" {{ old('card_id') == $card->id ? 'selected' : '' }}>
+                                                {{ ucfirst($card->brand) }} •••• {{ $card->last4 }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-start gap-3">
+                                        <i class="fas fa-exclamation-triangle text-amber-500 mt-1"></i>
+                                        <div>
+                                            <p class="text-xs text-amber-800 font-bold mb-1">Nenhum cartão salvo</p>
+                                            <a href="{{ route('dash.show', ['section' => 'cartoes']) }}" class="text-[10px] text-amber-600 underline font-black uppercase">Cadastrar agora</a>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Parcelas</label>
+                                <select name="installments" id="installmentsSelect" class="form-select bg-white border-slate-200">
+                                    @for($i = 1; $i <= 12; $i++)
+                                        <option value="{{ $i }}" {{ old('installments', 1) == $i ? 'selected' : '' }}>{{ $i }}x sem juros</option>
+                                    @endfor
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumo do Pedido -->
+            <div class="lg:col-span-1">
+                <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-blue-900/5 sticky top-28">
+                    <h2 class="text-xl font-bold text-slate-900 mb-6">Resumo</h2>
+
+                    <div class="space-y-4 mb-8">
+                        <div class="flex justify-between items-center py-3 border-b border-slate-50">
+                            <span class="text-sm font-medium text-slate-500">Quantidade:</span>
+                            <span class="text-sm font-bold text-slate-900" id="summary-qty">1 proxy</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-slate-50">
+                            <span class="text-sm font-medium text-slate-500">Período:</span>
+                            <span class="text-sm font-bold text-slate-900" id="summary-period">Selecione</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-slate-50">
+                            <span class="text-sm font-medium text-slate-500">Valor Unitário:</span>
+                            <span class="text-sm font-bold text-slate-900" id="summary-unit">R$ 0,00</span>
+                        </div>
+                        <div class="pt-4 flex flex-col gap-1">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total a pagar</span>
+                            <span class="text-4xl font-black text-[#23366f]" id="summary-total">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 rounded-2xl bg-[#23366f] text-white font-bold hover:scale-[1.02] transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-3">
+                        <i class="fas fa-shopping-cart"></i> Finalizar Pedido
+                    </button>
+
+                    <div class="mt-6 flex items-center justify-center gap-2 text-slate-400">
+                        <i class="fas fa-shield-alt text-xs"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest">Pagamento 100% Seguro</span>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</form>
+    </form>
+</div>

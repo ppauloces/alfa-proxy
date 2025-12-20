@@ -39,6 +39,7 @@ class CartaoController extends Controller
             'exp_month' => 'required|integer|min:1|max:12',
             'exp_year' => 'required|integer',
             'holder_name' => 'required|string|max:255',
+            'cpf' => 'required|string|size:11',
             'is_default' => 'nullable|boolean',
         ]);
 
@@ -84,6 +85,7 @@ class CartaoController extends Controller
                 'mes_expiracao' => $request->exp_month,
                 'ano_expiracao' => $request->exp_year,
                 'nome_titular' => strtoupper($request->holder_name),
+                'cpf' => $request->cpf,
                 'gateway' => 'aprovei',
                 'token_gateway1' => $request->card_token, // Token do Aprovei
                 'token_gateway2' => null,

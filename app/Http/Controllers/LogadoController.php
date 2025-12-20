@@ -210,7 +210,7 @@ class LogadoController extends Controller
             'periodo' => 'required|integer',
             'quantidade' => 'required|integer|min:1|max:100',
             'metodo_pagamento' => 'required',
-            'card_id' => 'required_if:metodo_pagamento,credit_card|exists:cartaos,id',
+            'card_id' => 'required_if:metodo_pagamento,credit_card|nullable|exists:cartaos,id',
             'installments' => 'nullable|integer|min:1|max:12',
         ]);
 

@@ -8,9 +8,13 @@
                     <img src="{!! asset('images/logoproxy.webp') !!}" alt="Logo" height="150" width="200">
                 </div>
             </div>
-            <nav class="hidden md:flex space-x-6">
+            <nav class="hidden md:flex space-x-6 items-center">
                 <a href="{{ route('dashboard.show') }}" class="text-gray-600 hover:text-blue-500 font-medium">Dashboard</a>
                 <a href="{{ route('socks5.show') }}" class="text-gray-600 hover:text-blue-500 font-medium">Proxies</a>
+                <div class="flex items-center space-x-2 text-gray-400 cursor-not-allowed opacity-60">
+                    <span class="font-medium">Saldo</span>
+                    <span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">Em breve</span>
+                </div>
                 <a href="{{ route('api.show') }}" class="text-gray-600 hover:text-blue-500 font-medium">API</a>
                 <a href="{{ route('faq') }}" class="text-gray-600 hover:text-blue-500 font-medium">Suporte</a>
             </nav>

@@ -87,121 +87,154 @@
 @endsection
 
 @section('content')
-<div class="flex flex-col gap-2 mb-8">
-    <p class="text-sm uppercase tracking-[0.35em] text-slate-500">Configuracoes de conta</p>
-    <h1 class="text-3xl font-bold text-slate-900">Meu Perfil</h1>
-    <p class="text-slate-500">Gerencie suas informacoes pessoais e configuracoes de seguranca.</p>
-</div>
+<div class="flex flex-col gap-6">
+    {{-- Header da Seção --}}
+    <div class="space-y-1">
+        <p class="text-[10px] font-bold text-[#448ccb] uppercase tracking-[0.3em]">Configuracoes de conta</p>
+        <h1 class="text-4xl font-black text-slate-900 tracking-tight">Meu <span class="text-[#23366f]">Perfil</span></h1>
+        <p class="text-slate-500 font-medium max-w-xl">Gerencie suas informacoes pessoais e configuracoes de seguranca.</p>
+    </div>
 
-<div class="grid gap-6">
-    <!-- Informações do Perfil -->
-    <div class="profile-card">
-        <div class="flex items-center gap-4 mb-6">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#4F8BFF] to-[#2055dd] flex items-center justify-center text-white font-semibold text-2xl">
-                {{ strtoupper(substr($usuario->name ?? 'U', 0, 2)) }}
-            </div>
-            <div>
-                <h2 class="text-xl font-semibold text-slate-900">{{ $usuario->name ?? 'Usuario' }}</h2>
-                <p class="text-sm text-slate-500">{{ $usuario->email ?? 'email@exemplo.com' }}</p>
-            </div>
+    @if(session('success'))
+        <div class="alert alert-success bg-green-50 text-green-700 border-green-100 rounded-2xl p-4 font-semibold flex items-center gap-3">
+            <i class="fas fa-check-circle"></i> {{ session('success') }}
         </div>
+    @endif
 
-        @if(session('success'))
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> {{ session('success') }}
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div class="alert alert-error">
-                <i class="fas fa-exclamation-circle"></i>
+    @if($errors->any())
+        <div class="alert alert-error bg-red-50 text-red-700 border-red-100 rounded-2xl p-4 font-semibold flex items-center gap-3">
+            <i class="fas fa-exclamation-circle"></i>
+            <div>
                 @foreach($errors->all() as $error)
-                    {{ $error }}
+                    <p class="text-sm">{{ $error }}</p>
                 @endforeach
             </div>
-        @endif
+        </div>
+    @endif
 
-        <form action="{{ route('perfil.atualizar') }}" method="POST">
-            @csrf
-            <div class="form-group">
-                <label class="form-label">Nome Completo</label>
-                <input type="text" name="name" value="{{ old('name', $usuario->name ?? '') }}" class="form-input" required>
-            </div>
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Coluna da Esquerda: Info Principal -->
+        <div class="lg:col-span-2 space-y-8">
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                <div class="flex items-center gap-6 mb-10 pb-10 border-b border-slate-50">
+                    <div class="relative">
+                        <div class="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-[#448ccb] to-[#23366f] flex items-center justify-center text-white text-3xl font-black shadow-xl shadow-blue-900/20">
+                            {{ strtoupper(substr($usuario->name ?? 'U', 0, 1)) }}{{ strtoupper(substr(explode(' ', $usuario->name ?? 'U')[1] ?? '', 0, 1)) }}
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-4 border-white rounded-full"></div>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-900 tracking-tight">{{ $usuario->name ?? 'Usuario' }}</h2>
+                        <p class="text-slate-400 font-bold text-xs uppercase tracking-widest">{{ $usuario->email ?? 'email@exemplo.com' }}</p>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label class="form-label">E-mail</label>
-                <input type="email" value="{{ $usuario->email ?? '' }}" class="form-input" disabled>
-                <p class="text-xs text-slate-500 mt-2">O e-mail não pode ser alterado. Entre em contato com o suporte se necessário.</p>
-            </div>
+                <form action="{{ route('perfil.atualizar') }}" method="POST" class="space-y-6">
+                    @csrf
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="form-group">
+                            <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Nome Completo</label>
+                            <input type="text" name="name" value="{{ old('name', $usuario->name ?? '') }}" class="form-input bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] h-14 rounded-xl font-bold" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Username</label>
+                            <input type="text" value="{{ $usuario->username ?? '' }}" class="form-input bg-slate-50 border-transparent opacity-60 h-14 rounded-xl font-bold" disabled>
+                        </div>
+                    </div>
 
-            <div class="form-group">
-                <label class="form-label">Username</label>
-                <input type="text" value="{{ $usuario->username ?? '' }}" class="form-input" disabled>
-            </div>
+                    <div class="form-group">
+                        <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">E-mail (Não alterável)</label>
+                        <input type="email" value="{{ $usuario->email ?? '' }}" class="form-input bg-slate-50 border-transparent opacity-60 h-14 rounded-xl font-bold" disabled>
+                    </div>
 
-            <div class="flex gap-3">
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-save"></i> Salvar Alteracoes
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Alterar Senha -->
-    <div class="profile-card">
-        <h2 class="text-xl font-semibold text-slate-900 mb-4">Alterar Senha</h2>
-        <p class="text-sm text-slate-500 mb-6">Atualize sua senha para manter sua conta segura.</p>
-
-        <form action="{{ route('perfil.senha') }}" method="POST">
-            @csrf
-            <div class="form-group">
-                <label class="form-label">Senha Atual</label>
-                <input type="password" name="senha_atual" class="form-input" required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Nova Senha</label>
-                <input type="password" name="nova_senha" class="form-input" minlength="6" required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Confirmar Nova Senha</label>
-                <input type="password" name="nova_senha_confirmation" class="form-input" minlength="6" required>
+                    <div class="pt-4">
+                        <button type="submit" class="px-10 py-4 rounded-2xl bg-[#23366f] text-white font-black hover:scale-[1.02] transition-all shadow-xl shadow-blue-900/20">
+                            Salvar Alterações
+                        </button>
+                    </div>
+                </form>
             </div>
 
-            <div class="flex gap-3">
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-key"></i> Alterar Senha
-                </button>
-            </div>
-        </form>
-    </div>
+            <!-- Alterar Senha -->
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                <h2 class="text-xl font-black text-slate-900 mb-2">Segurança da Conta</h2>
+                <p class="text-sm text-slate-400 font-medium mb-10">Atualize sua senha para manter sua conta protegida.</p>
 
-    <!-- Informações da Conta -->
-    <div class="profile-card">
-        <h2 class="text-xl font-semibold text-slate-900 mb-4">Informacoes da Conta</h2>
-        <div class="grid md:grid-cols-2 gap-4">
-            <div>
-                <p class="text-sm text-slate-500">Plano Atual</p>
-                <p class="text-lg font-semibold text-slate-900">{{ $usuario->plano ?? 'Grátis' }}</p>
+                <form action="{{ route('perfil.senha') }}" method="POST" class="space-y-6">
+                    @csrf
+                    <div class="form-group">
+                        <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Senha Atual</label>
+                        <input type="password" name="senha_atual" class="form-input bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] h-14 rounded-xl font-bold" required>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="form-group">
+                            <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Nova Senha</label>
+                            <input type="password" name="nova_senha" class="form-input bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] h-14 rounded-xl font-bold" minlength="6" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Confirmar Nova Senha</label>
+                            <input type="password" name="nova_senha_confirmation" class="form-input bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] h-14 rounded-xl font-bold" minlength="6" required>
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" class="px-10 py-4 rounded-2xl border-2 border-[#23366f] text-[#23366f] font-black hover:bg-[#23366f] hover:text-white transition-all">
+                            Alterar Senha
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div>
-                <p class="text-sm text-slate-500">Cargo</p>
-                <p class="text-lg font-semibold text-slate-900">{{ ucfirst($usuario->cargo ?? 'usuario') }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-slate-500">Saldo Disponivel</p>
-                <p class="text-lg font-semibold text-slate-900">R$ {{ number_format($usuario->saldo ?? 0, 2, ',', '.') }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-slate-500">Status da Conta</p>
-                <p class="text-lg font-semibold {{ $usuario->status ? 'text-green-600' : 'text-red-600' }}">
-                    {{ $usuario->status ? 'Ativa' : 'Inativa' }}
-                </p>
+        </div>
+
+        <!-- Coluna da Direita: Status -->
+        <div class="lg:col-span-1 space-y-8">
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                <h2 class="text-xl font-black text-slate-900 mb-8">Status da Conta</h2>
+                
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#23366f] shadow-sm">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Plano Atual</span>
+                        </div>
+                        <span class="font-black text-[#23366f] text-sm">{{ $usuario->plano ?? 'Premium' }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#23366f] shadow-sm">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Nível</span>
+                        </div>
+                        <span class="font-black text-slate-700 text-sm">{{ ucfirst($usuario->cargo ?? 'Usuário') }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#23366f] shadow-sm">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</span>
+                        </div>
+                        <span class="px-3 py-1 rounded-lg {{ $usuario->status ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' }} text-[10px] font-black uppercase">
+                            {{ $usuario->status ? 'Verificada' : 'Pendente' }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-10 p-6 rounded-2xl bg-[#23366f] text-white">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60 mb-2">Membro desde</p>
+                    <p class="text-lg font-black">{{ \Carbon\Carbon::parse($usuario->created_at)->format('F, Y') }}</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
+@endsection
 @endsection
 
 @section('scripts')

@@ -190,6 +190,15 @@
                                 Entrar com Google
                             </button>
                         </form>
+
+                        <div class="pt-4 text-center">
+                            <p class="text-sm text-white/60">
+                                Não tem uma conta?
+                                <a href="{{ route('register.show') }}" class="text-[#60a5fa] hover:text-white font-semibold transition">
+                                    Criar conta grátis
+                                </a>
+                            </p>
+                        </div>
                     </div>
                 </div>
 

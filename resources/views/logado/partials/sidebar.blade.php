@@ -31,10 +31,11 @@
                         </div>
                     </li>
                     <li>
-                        <a href="{{ route('saldo.show') }}" class="sidebar-link {{ request()->routeIs('saldo.show') ? 'active' : '' }} flex items-center space-x-3 p-3 rounded-lg text-gray-700">
-                            <i class="fas fa-wallet text-blue-500 w-5"></i>
+                        <div class="sidebar-link flex items-center space-x-3 p-3 rounded-lg text-gray-400 cursor-not-allowed opacity-60">
+                            <i class="fas fa-wallet w-5"></i>
                             <span>Saldo</span>
-                        </a>
+                            <span class="ml-auto text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">Em breve</span>
+                        </div>
                     </li>
                     <li>
                         <a href="{{ route('comprar.show') }}" class="sidebar-link {{ request()->routeIs('comprar.show') ? 'active' : '' }} flex items-center space-x-3 p-3 rounded-lg text-gray-700">

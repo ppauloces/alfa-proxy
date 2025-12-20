@@ -1020,154 +1020,180 @@
 
     <div class="space-y-10" data-sections-wrapper>
         <section class="dash-section {{ $currentSection === 'proxies' ? 'active' : 'hidden' }}" data-section="proxies">
-            <div class="flex flex-col gap-2">
-                <p class="text-sm uppercase tracking-[0.35em] text-slate-500">Proxies ativos</p>
-                <div class="flex flex-wrap items-center gap-4 justify-between">
-                    <h1 class="text-3xl font-bold text-slate-900">Gerencie seus IPs</h1>
-                    <div class="flex flex-wrap gap-3">
+            <div class="flex flex-col gap-6">
+                {{-- Header da Seção --}}
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 text-[#23366f] font-bold text-xs uppercase tracking-widest">
+                            <span class="w-2 h-2 rounded-full bg-[#448ccb] animate-pulse"></span>
+                            Monitoramento em Tempo Real
+                        </div>
+                        <h1 class="text-4xl font-black text-slate-900 tracking-tight">Gerencie seus <span class="text-[#23366f]">IPs</span></h1>
+                        <p class="text-slate-500 font-medium max-w-xl">Veja o que falta para cada contratação expirar, teste as rotas e controle a renovação automática.</p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
                         <button type="button" data-section-link="nova-compra"
-                            class="px-5 py-2 rounded-2xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors">
-                            Comprar novos proxies
+                            class="group relative px-6 py-3 rounded-2xl bg-[#23366f] text-white text-sm font-bold overflow-hidden transition-all hover:pr-10">
+                            <span class="relative z-10">Comprar novos proxies</span>
+                            <i class="fas fa-arrow-right absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all"></i>
                         </button>
                     </div>
                 </div>
-                <p class="text-slate-500 max-w-2xl">Veja o que falta para cada contratacao expirar, teste as rotas e
-                    controle a renovacao automatica.</p>
+
+                {{-- Status Geral --}}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total de Proxies</p>
+                        <p class="text-3xl font-black text-slate-900">{{ collect($proxyGroups)->flatten(1)->count() }}</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Proxies SOCKS5</p>
+                        <p class="text-3xl font-black text-slate-900">{{ count($proxyGroups['SOCKS5'] ?? []) }}</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Próximo Vencimento</p>
+                        @php
+                            $allProxies = collect($proxyGroups)->flatten(1);
+                            $nextExp = $allProxies->sortBy('expires_at')->first();
+                        @endphp
+                        <p class="text-3xl font-black text-slate-900">
+                            {{ $nextExp ? \Carbon\Carbon::parse($nextExp['expires_at'])->diffForHumans() : 'N/A' }}
+                        </p>
+                    </div>
+                </div>
+
                 @if(session('proxies_success'))
-                    <div class="alert alert-success">
+                    <div class="alert alert-success bg-green-50 text-green-700 border-green-100 rounded-2xl p-4 font-semibold flex items-center gap-3">
                         <i class="fas fa-check-circle"></i> {{ session('proxies_success') }}
                     </div>
                 @endif
                 @if($errors->getBag('default')->has('error'))
-                    <div class="alert alert-error">
+                    <div class="alert alert-error bg-red-50 text-red-700 border-red-100 rounded-2xl p-4 font-semibold flex items-center gap-3">
                         <i class="fas fa-exclamation-circle"></i> {{ $errors->getBag('default')->first('error') }}
                     </div>
                 @endif
-            </div>
 
-            <div class="flex flex-wrap gap-3 mb-4 max-w-2xl">
+                {{-- Filtros e Tabs --}}
+                <div class="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm inline-flex items-center gap-1 w-fit">
+                    @foreach ($proxyGroups as $group => $proxies)
+                        <button type="button" 
+                            class="tab-btn px-6 py-2.5 rounded-xl font-bold text-sm transition-all {{ $loop->first ? 'active bg-[#23366f] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:bg-slate-50' }}" 
+                            data-tab="{{ $group }}">
+                            {{ \Illuminate\Support\Str::headline($group) }}
+                            <span class="ml-1 opacity-60 font-medium">({{ count($proxies) }})</span>
+                        </button>
+                    @endforeach
+                </div>
+
                 @foreach ($proxyGroups as $group => $proxies)
-                    <button type="button" class="tab-btn {{ $loop->first ? 'active' : '' }}" data-tab="{{ $group }}">
-                        {{ \Illuminate\Support\Str::headline($group) }}
-                        <span class="text-xs font-normal opacity-70">({{ count($proxies) }})</span>
-                    </button>
+                    <div class="proxy-card {{ $loop->first ? '' : 'hidden' }}" data-tab-panel="{{ $group }}">
+                        @if(count($proxies))
+                            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                                <table class="proxy-table w-full">
+                                    <thead>
+                                        <tr class="bg-slate-50/50 border-b border-slate-100">
+                                            <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-left">Endereço / Ações</th>
+                                            <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">País</th>
+                                            <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Contratação</th>
+                                            <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Expiração</th>
+                                            <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Status</th>
+                                            <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Renovação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-50">
+                                        @foreach ($proxies as $proxy)
+                                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                                <td class="px-8 py-6">
+                                                    <div class="flex flex-col gap-3">
+                                                        <div class="address-chip group relative bg-slate-100 hover:bg-[#23366f] hover:text-white transition-all cursor-pointer">
+                                                            {{ $proxy['ip'] }}:{{ $proxy['port'] }} | {{ $proxy['user'] }} | {{ $proxy['password'] }}
+                                                            <div class="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-[#448ccb] text-white rounded-full scale-0 group-hover:scale-100 transition-transform">
+                                                                <i class="fas fa-lock text-[8px]"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <button class="action-btn px-4 py-2 rounded-xl border border-slate-200 text-[11px] font-bold hover:bg-[#23366f] hover:text-white hover:border-[#23366f] transition-all"
+                                                                onclick="testarProxy('{{ $proxy['ip'] }}', '{{ $proxy['port'] }}', '{{ $proxy['user'] }}', '{{ $proxy['password'] }}', this)">
+                                                                <i class="fas fa-bolt mr-1.5"></i> Testar Rota
+                                                            </button>
+                                                            <button class="action-btn px-4 py-2 rounded-xl border border-slate-200 text-[11px] font-bold hover:bg-[#23366f] hover:text-white hover:border-[#23366f] transition-all"
+                                                                onclick="copyToClipboard('{{ $proxy['ip'] }}:{{ $proxy['port'] }}:{{ $proxy['user'] }}:{{ $proxy['password'] }}')">
+                                                                <i class="fas fa-copy mr-1.5"></i> Copiar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-6">
+                                                    <div class="flex flex-col items-center gap-2">
+                                                        @php $flagUrl = getCountryFlag($proxy['country_code'] ?? null); @endphp
+                                                        @if($flagUrl)
+                                                            <img src="{{ $flagUrl }}" class="w-8 h-6 rounded-md shadow-sm object-cover border border-slate-100">
+                                                        @else
+                                                            <span class="text-xl">🌐</span>
+                                                        @endif
+                                                        <span class="text-[10px] font-bold text-slate-500 uppercase">{{ $proxy['country'] ?? 'BR' }}</span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-6 text-center">
+                                                    <p class="text-sm font-bold text-slate-700">{{ \Carbon\Carbon::parse($proxy['purchased_at'])->format('d/m/Y') }}</p>
+                                                    <p class="text-[10px] font-medium text-slate-400">{{ \Carbon\Carbon::parse($proxy['purchased_at'])->format('H:i') }}</p>
+                                                </td>
+                                                <td class="px-6 py-6 text-center">
+                                                    <p class="text-sm font-bold text-slate-700">{{ \Carbon\Carbon::parse($proxy['expires_at'])->format('d/m/Y') }}</p>
+                                                    @php
+                                                        $expiresAt = \Carbon\Carbon::parse($proxy['expires_at']);
+                                                        $now = now();
+
+                                                        if ($expiresAt->isPast()) {
+                                                            $days = 0;
+                                                            $colorClass = 'text-red-500 bg-red-50';
+                                                            $label = 'Expirado';
+                                                        } else {
+                                                            $days = (int) $now->diffInDays($expiresAt);
+                                                            $colorClass = $days < 3 ? 'text-red-500 bg-red-50' : ($days < 7 ? 'text-amber-500 bg-amber-50' : 'text-slate-500 bg-slate-50');
+                                                            $label = $days . ' dias restantes';
+                                                        }
+                                                    @endphp
+                                                    <span class="inline-block mt-1 px-3 py-1 rounded-lg text-[10px] font-bold {{ $colorClass }}">
+                                                        {{ $label }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-6 text-center">
+                                                    <span class="px-4 py-1.5 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-widest border border-green-100">
+                                                        Ativo
+                                                    </span>
+                                                </td>
+                                                <td class="px-8 py-6">
+                                                    <div class="flex justify-center">
+                                                        <label class="switch scale-90">
+                                                            <input type="checkbox" {{ $proxy['auto_renew'] ? 'checked' : '' }}>
+                                                            <span class="slider"></span>
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="bg-white rounded-[2rem] border-2 border-dashed border-slate-200 p-16 text-center">
+                                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <i class="fas fa-server text-3xl text-slate-300"></i>
+                                </div>
+                                <h3 class="text-xl font-black text-slate-900 mb-2">Nenhum proxy {{ $group }} ativo</h3>
+                                <p class="text-slate-500 mb-8 max-w-sm mx-auto">Você ainda não possui proxies ativos neste grupo. Comece agora mesmo!</p>
+                                <button type="button" data-section-link="nova-compra"
+                                    class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-[#23366f] text-white font-bold hover:scale-105 transition-all">
+                                    Comprar novos proxies
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        @endif
+                    </div>
                 @endforeach
             </div>
-
-            @foreach ($proxyGroups as $group => $proxies)
-                <div class="proxy-card {{ $loop->first ? '' : 'hidden' }}" data-tab-panel="{{ $group }}">
-                    <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
-                        <div>
-                            <h2 class="text-xl font-semibold text-slate-900">{{ \Illuminate\Support\Str::headline($group) }}
-                            </h2>
-                            <p class="text-sm text-slate-500">
-                                @if(count($proxies))
-                                    {{ count($proxies) }} proxies listados abaixo.
-                                @else
-                                    Nenhum proxy neste tipo ainda.
-                                @endif
-                            </p>
-                        </div>
-                        <div class="flex items-center gap-2 text-sm text-slate-500">
-                            <i class="fas fa-shield-alt text-[#4F8BFF]"></i>
-                            Monitoramento ativo
-                        </div>
-                    </div>
-                    @if(count($proxies))
-                        <div class="overflow-x-auto">
-                            <table class="proxy-table">
-                                <thead>
-                                    <tr>
-                                        <th>Endereco / acoes</th>
-                                        <th class="text-center">Pais</th>
-                                        <th class="text-center">Compra</th>
-                                        <th class="text-center">Expiracao</th>
-                                        <th class="text-center">Periodo</th>
-                                        <th class="text-center">Auto renovacao</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($proxies as $proxy)
-                                        <tr>
-                                            <td class="space-y-2">
-                                                <div class="address-chip">
-                                                    {{ $proxy['ip'] }}:{{ $proxy['port'] }} | {{ $proxy['user'] }} |
-                                                    {{ $proxy['password'] }}
-                                                </div>
-                                                <div class="flex flex-wrap gap-2">
-                                                    <button class="action-btn"
-                                                        onclick="testarProxy('{{ $proxy['ip'] }}', '{{ $proxy['port'] }}', '{{ $proxy['user'] }}', '{{ $proxy['password'] }}', this)">
-                                                        <i class="fas fa-vial text-xs"></i>
-                                                        Testar proxy
-                                                    </button>
-                                                    <button class="action-btn"
-                                                        onclick="copyToClipboard('{{ $proxy['ip'] }}:{{ $proxy['port'] }}:{{ $proxy['user'] }}:{{ $proxy['password'] }}')">
-                                                        <i class="fas fa-copy text-xs"></i>
-                                                        Copiar
-                                                    </button>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="flex items-center justify-center gap-2">
-                                                    @php
-                                                        $flagUrl = getCountryFlag($proxy['country_code'] ?? null);
-                                                    @endphp
-                                                    @if($flagUrl)
-                                                        <img src="{{ $flagUrl }}" alt="{{ $proxy['country'] ?? 'País' }}"
-                                                            class="w-8 h-8 rounded-md object-cover shadow-sm"
-                                                            style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;"
-                                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                                                        <span class="text-2xl" style="display:none;">🌐</span>
-                                                    @else
-                                                        <span class="text-2xl">🌐</span>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="text-center">
-                                                    <p class="text-sm font-semibold text-slate-700">
-                                                        {{ \Carbon\Carbon::parse($proxy['purchased_at'])->format('d/m/Y') }}</p>
-                                                    <p class="text-xs text-slate-500">
-                                                        {{ \Carbon\Carbon::parse($proxy['purchased_at'])->format('H:i') }}</p>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="text-center">
-                                                    <p class="text-sm font-semibold text-slate-700 mb-1">
-                                                        {{ \Carbon\Carbon::parse($proxy['expires_at'])->format('d/m/Y') }}</p>
-                                                    <span class="badge badge-amber">Renovar</span>
-                                                </div>
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="badge badge-gray">{{ $proxy['remaining'] }}</span>
-                                            </td>
-                                            <td>
-                                                <div class="flex justify-center">
-                                                    <label class="switch">
-                                                        <input type="checkbox" {{ $proxy['auto_renew'] ? 'checked' : '' }}>
-                                                        <span class="slider"></span>
-                                                    </label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="border border-dashed border-slate-200 rounded-2xl p-10 text-center">
-                            <p class="text-lg font-semibold text-slate-700 mb-2">Nenhum proxy cadastrado neste tipo.</p>
-                            <p class="text-sm text-slate-500 mb-4">Contrate um novo proxy para visualizar aqui.</p>
-                            <button type="button" data-section-link="nova-compra"
-                                class="inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors">
-                                Comprar novos proxies
-                                <i class="fas fa-arrow-right text-xs"></i>
-                            </button>
-                        </div>
-                    @endif
-                </div>
-            @endforeach
-
         </section>
 
         <section class="dash-section {{ $currentSection === 'perfil' ? 'active' : 'hidden' }}" data-section="perfil">
@@ -1286,9 +1312,13 @@
     tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
     const target = btn.dataset.tab;
-    tabBtns.forEach(b => b.classList.remove('active'));
+    tabBtns.forEach(b => {
+        b.classList.remove('active', 'bg-[#23366f]', 'text-white', 'shadow-lg', 'shadow-blue-900/20');
+        b.classList.add('text-slate-500', 'hover:bg-slate-50');
+    });
     tabPanels.forEach(panel => panel.classList.toggle('hidden', panel.dataset.tabPanel !== target));
-    btn.classList.add('active');
+    btn.classList.add('active', 'bg-[#23366f]', 'text-white', 'shadow-lg', 'shadow-blue-900/20');
+    btn.classList.remove('text-slate-500', 'hover:bg-slate-50');
     });
     });
     })();
@@ -1415,6 +1445,34 @@
     const paymentInput = document.getElementById('walletPaymentMethod');
     const customAmount = document.getElementById('customAmount');
 
+    // Máscara de dinheiro para o input customAmount
+    if (customAmount) {
+        customAmount.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value === '') {
+                e.target.value = '';
+                return;
+            }
+
+            // Converter para centavos e formatar
+            value = (parseInt(value) / 100).toFixed(2);
+            value = value.replace('.', ',');
+            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+            e.target.value = value;
+        });
+
+        // Ao clicar nos botões de valor, aplicar a máscara também
+        customAmount.addEventListener('blur', function(e) {
+            if (e.target.value && !e.target.value.includes(',')) {
+                let value = parseFloat(e.target.value).toFixed(2);
+                value = value.replace('.', ',');
+                value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                e.target.value = value;
+            }
+        });
+    }
+
     switchTabs.forEach(tab => {
     tab.addEventListener('click', () => {
     switchTabs.forEach(t => t.classList.remove('active'));
@@ -1429,7 +1487,11 @@
     btn.addEventListener('click', () => {
     amountButtons.forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
-    customAmount.value = btn.dataset.amount;
+    // Aplicar máscara ao valor do botão
+    let value = parseFloat(btn.dataset.amount).toFixed(2);
+    value = value.replace('.', ',');
+    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    customAmount.value = value;
     });
     });
 
@@ -1444,13 +1506,33 @@
     });
 
     rechargeForm.addEventListener('submit', (event) => {
-    const amount = parseFloat(customAmount.value || '0');
+    // Converter o valor formatado (1.234,56) para número (1234.56)
+    let amountStr = customAmount.value.replace(/\./g, '').replace(',', '.');
+    const amount = parseFloat(amountStr || '0');
+
     if (!paymentInput.value) {
     event.preventDefault();
     alert('Selecione um metodo de pagamento.');
     return;
     }
-    if (!amount || amount < 1) { event.preventDefault(); alert('Informe um valor valido.'); } }); })(); (()=> {
+    if (!amount || amount < 1) {
+        event.preventDefault();
+        alert('Informe um valor valido (mínimo R$ 1,00).');
+        return;
+    }
+
+    // Criar um input hidden com o valor numérico para enviar ao servidor
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'valor';
+    hiddenInput.value = amount;
+
+    // Remover o atributo name do input visível para não enviar o valor formatado
+    customAmount.removeAttribute('name');
+
+    // Adicionar o input hidden ao formulário
+    rechargeForm.appendChild(hiddenInput);
+    }); })(); (()=> {
         document.querySelectorAll('.faq-item').forEach(item => {
         item.addEventListener('click', () => {
         item.classList.toggle('open');

@@ -14,6 +14,7 @@ class Cartao extends Model
         'mes_expiracao',
         'ano_expiracao',
         'nome_titular',
+        'cpf',
         'gateway',
         'token_gateway1',
         'token_gateway2',
@@ -59,5 +60,21 @@ class Cartao extends Model
     public function getMaskedNumberAttribute(): string
     {
         return '•••• •••• •••• ' . $this->ultimos_digitos;
+    }
+
+    /**
+     * Retorna o CPF mascarado
+     */
+    public function getMaskedCpfAttribute(): string
+    {
+        if (!$this->cpf) {
+            return '';
+        }
+
+        // Remove caracteres não numéricos
+        $cpf = preg_replace('/\D/', '', $this->cpf);
+
+        // Mascara: ***.123.456-**
+        return '•••.' . substr($cpf, 3, 3) . '.' . substr($cpf, 6, 3) . '-••';
     }
 }

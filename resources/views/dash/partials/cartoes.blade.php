@@ -1,82 +1,125 @@
-<div class="flex flex-col gap-2 mb-8">
-    <p class="text-sm uppercase tracking-[0.35em] text-slate-500">Formas de Pagamento</p>
-    <h1 class="text-3xl font-bold text-slate-900">Meus Cartões</h1>
-    <p class="text-slate-500">Gerencie seus cartões de crédito e débito para pagamentos rápidos.</p>
-</div>
-
-@if(session('cartoes_success'))
-    <div class="alert alert-success">
-        <i class="fas fa-check-circle"></i> {{ session('cartoes_success') }}
-    </div>
-@endif
-
-@if(session('cartoes_error'))
-    <div class="alert alert-error">
-        <i class="fas fa-exclamation-circle"></i> {{ session('cartoes_error') }}
-    </div>
-@endif
-
-<!-- Lista de Cartões -->
-<div class="settings-card mb-6">
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h2 class="text-xl font-semibold text-slate-900">Cartões Salvos</h2>
-            <p class="text-sm text-slate-500">Você pode salvar até 3 cartões</p>
+<div class="flex flex-col gap-6">
+    {{-- Header da Seção --}}
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="space-y-1">
+            <p class="text-[10px] font-bold text-[#448ccb] uppercase tracking-[0.3em]">Formas de Pagamento</p>
+            <h1 class="text-4xl font-black text-slate-900 tracking-tight">Meus <span class="text-[#23366f]">Cartões</span></h1>
+            <p class="text-slate-500 font-medium max-w-xl">Gerencie seus cartões de crédito e débito para pagamentos rápidos.</p>
         </div>
-        <button type="button" id="addCardBtn" class="btn-primary" style="width: auto; padding: 0.75rem 1.5rem;">
+
+        <button type="button" id="addCardBtn" class="px-6 py-3 rounded-2xl bg-[#23366f] text-white text-sm font-bold shadow-lg shadow-blue-900/20 hover:scale-[1.02] transition-all flex items-center gap-2">
             <i class="fas fa-plus"></i> Adicionar Cartão
         </button>
     </div>
 
-    <div id="savedCardsList" class="grid gap-4">
+    @if(session('cartoes_success'))
+        <div class="alert alert-success bg-green-50 text-green-700 border-green-100 rounded-2xl p-4 font-semibold flex items-center gap-3">
+            <i class="fas fa-check-circle"></i> {{ session('cartoes_success') }}
+        </div>
+    @endif
+
+    @if(session('cartoes_error'))
+        <div class="alert alert-error bg-red-50 text-red-700 border-red-100 rounded-2xl p-4 font-semibold flex items-center gap-3">
+            <i class="fas fa-exclamation-circle"></i> {{ session('cartoes_error') }}
+        </div>
+    @endif
+
+    <!-- Lista de Cartões -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         @php
             $savedCards = $savedCards ?? [];
         @endphp
 
         @forelse($savedCards as $card)
-            <div class="border border-slate-200 rounded-2xl p-4 hover:border-blue-300 transition-colors">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
+            <div class="group relative bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all overflow-hidden">
+                <div class="relative z-10 flex flex-col h-full">
+                    <div class="flex justify-between items-start mb-10">
+                        <div class="w-14 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl">
                             @if($card->bandeira === 'visa')
-                                <i class="fab fa-cc-visa text-white text-2xl"></i>
+                                <i class="fab fa-cc-visa text-[#1a1f71]"></i>
                             @elseif($card->bandeira === 'mastercard')
-                                <i class="fab fa-cc-mastercard text-white text-2xl"></i>
+                                <i class="fab fa-cc-mastercard text-[#eb001b]"></i>
                             @elseif($card->bandeira === 'amex')
-                                <i class="fab fa-cc-amex text-white text-2xl"></i>
+                                <i class="fab fa-cc-amex text-[#2e77bb]"></i>
                             @else
-                                <i class="fas fa-credit-card text-white text-xl"></i>
+                                <i class="fas fa-credit-card text-slate-400"></i>
                             @endif
                         </div>
-                        <div>
-                            <p class="font-semibold text-slate-900">•••• •••• •••• {{ $card->ultimos_digitos }}</p>
-                            <p class="text-sm text-slate-500">Expira em {{ $card->mes_expiracao }}/{{ $card->ano_expiracao }}</p>
-                            @if($card->is_default)
-                                <span class="badge badge-success mt-1">Padrão</span>
+                        @if($card->is_default)
+                            <span class="px-3 py-1 rounded-lg bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-widest">Padrão</span>
+                        @endif
+                    </div>
+
+                    <div class="space-y-4 mb-8">
+                        <p class="text-xl font-black text-slate-900 tracking-[0.15em]">•••• •••• •••• {{ $card->ultimos_digitos }}</p>
+                        <div class="flex items-center gap-6">
+                            <div>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Expiração</p>
+                                <p class="text-sm font-bold text-slate-700">{{ str_pad($card->mes_expiracao, 2, '0', STR_PAD_LEFT) }}/{{ substr($card->ano_expiracao, -2) }}</p>
+                            </div>
+                            @if(isset($card->cpf) && $card->cpf)
+                                <div>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Documento</p>
+                                    <p class="text-sm font-bold text-slate-700">{{ $card->masked_cpf ?? '***.***.***-**' }}</p>
+                                </div>
                             @endif
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
+
+                    <div class="mt-auto flex items-center gap-2 pt-6 border-t border-slate-50">
                         @if(!$card->is_default)
-                            <button type="button" class="action-btn" onclick="setDefaultCard({{ $card->id }})">
-                                <i class="fas fa-star text-xs"></i>
-                                Tornar padrão
+                            <button type="button" class="flex-1 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#23366f] hover:bg-blue-50 transition-all" onclick="setDefaultCard({{ $card->id }})">
+                                <i class="fas fa-star mr-1"></i> Padrão
                             </button>
                         @endif
-                        <button type="button" class="action-btn text-red-600 border-red-300 hover:border-red-500" onclick="deleteCard({{ $card->id }})">
-                            <i class="fas fa-trash text-xs"></i>
-                            Remover
+                        <button type="button" class="flex-1 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all" onclick="deleteCard({{ $card->id }})">
+                            <i class="fas fa-trash mr-1"></i> Remover
                         </button>
                     </div>
                 </div>
+
+                {{-- Elemento decorativo --}}
+                <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-slate-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
             </div>
         @empty
-            <div class="border border-dashed border-slate-200 rounded-2xl p-10 text-center">
-                <i class="fas fa-credit-card text-4xl text-slate-300 mb-4"></i>
-                <p class="text-lg font-semibold text-slate-700 mb-2">Nenhum cartão cadastrado</p>
-                <p class="text-sm text-slate-500">Adicione um cartão para pagamentos mais rápidos</p>
+            <div class="md:col-span-2 xl:col-span-3 bg-white border-2 border-dashed border-slate-100 rounded-[3rem] p-20 text-center">
+                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-credit-card text-3xl text-slate-200"></i>
+                </div>
+                <h3 class="text-xl font-black text-slate-900 mb-2">Nenhum cartão cadastrado</h3>
+                <p class="text-slate-400 text-sm font-medium mb-8">Adicione um cartão para realizar suas compras com um clique.</p>
+                <button type="button" onclick="document.getElementById('addCardBtn').click()" class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-[#23366f] text-white font-bold hover:scale-105 transition-all">
+                    Adicionar Primeiro Cartão
+                    <i class="fas fa-plus"></i>
+                </button>
             </div>
         @endforelse
+    </div>
+
+    <!-- Informações de Segurança -->
+    <div class="bg-[#23366f]/5 border border-[#23366f]/10 rounded-[2.5rem] p-10 mt-6">
+        <div class="flex flex-col md:flex-row items-center gap-10">
+            <div class="w-24 h-24 rounded-3xl bg-white flex items-center justify-center text-[#23366f] text-4xl shadow-xl shadow-blue-900/5">
+                <i class="fas fa-shield-check"></i>
+            </div>
+            <div class="flex-1 text-center md:text-left">
+                <h3 class="text-xl font-black text-[#23366f] mb-3">Seus dados estão 100% seguros</h3>
+                <p class="text-slate-500 font-medium leading-relaxed mb-6">
+                    Utilizamos tecnologia de tokenização de ponta. Seus dados sensíveis nunca tocam nossos servidores, sendo processados com criptografia bancária PCI-DSS Level 1.
+                </p>
+                <div class="flex flex-wrap justify-center md:justify-start gap-6">
+                    <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <i class="fas fa-lock text-green-500"></i> SSL 256-bit
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <i class="fas fa-check-circle text-green-500"></i> Tokenização AES
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <i class="fas fa-user-shield text-green-500"></i> PCI-DSS Compliance
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -126,6 +169,18 @@
                        required>
             </div>
 
+            <div class="form-group">
+                <label for="card-cpf" class="form-label">CPF do Titular</label>
+                <input type="text"
+                       id="card-cpf"
+                       name="card-cpf"
+                       class="form-input"
+                       placeholder="000.000.000-00"
+                       autocomplete="off"
+                       maxlength="14"
+                       required>
+            </div>
+
             <div class="grid grid-cols-2 gap-4">
                 <div class="form-group">
                     <label for="card-expiry" class="form-label">Validade (MM/AA)</label>
@@ -153,7 +208,7 @@
 
             <div class="form-group">
                 <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="is_default" id="is_default" class="w-4 h-4 text-blue-600 rounded" @if(count($savedCards) == 0) checked @endif>
+                    <input type="checkbox" name="is_default" id="is_default" class="w-4 h-4 text-[#23366f] rounded" @if(count($savedCards) == 0) checked @endif>
                     <span class="text-sm font-semibold text-slate-700">Tornar este cartão padrão</span>
                 </label>
             </div>
@@ -168,26 +223,6 @@
             </button>
         </div>
     </form>
-</div>
-
-<!-- Informações de Segurança -->
-<div class="settings-card">
-    <div class="flex items-start gap-4">
-        <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-shield-alt text-green-600 text-xl"></i>
-        </div>
-        <div>
-            <h3 class="font-semibold text-slate-900 mb-2">Seus dados estão seguros</h3>
-            <p class="text-sm text-slate-600 mb-3">
-                Utilizamos criptografia de ponta a ponta e seguimos os mais altos padrões de segurança PCI-DSS para proteger suas informações de pagamento.
-            </p>
-            <ul class="text-sm text-slate-600 space-y-1">
-                <li><i class="fas fa-check-circle text-green-600 mr-2"></i>Criptografia SSL/TLS 256-bit</li>
-                <li><i class="fas fa-check-circle text-green-600 mr-2"></i>Tokenização de dados do cartão via Aprovei</li>
-                <li><i class="fas fa-check-circle text-green-600 mr-2"></i>Conformidade PCI-DSS Level 1</li>
-            </ul>
-        </div>
-    </div>
 </div>
 
 <!-- Aprovei SDK -->
@@ -235,6 +270,24 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.error('Erro ao inicializar Aprovei SDK:', error);
         alert('Erro ao inicializar sistema de pagamento. Tente novamente mais tarde.');
     }
+
+    // Máscara de CPF
+    const cpfInput = document.getElementById('card-cpf');
+    cpfInput?.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 11) value = value.slice(0, 11);
+
+        // Aplicar máscara: 000.000.000-00
+        if (value.length > 9) {
+            e.target.value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        } else if (value.length > 6) {
+            e.target.value = value.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+        } else if (value.length > 3) {
+            e.target.value = value.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+        } else {
+            e.target.value = value;
+        }
+    });
 
     addBtn?.addEventListener('click', function() {
         // Aguardar o modal aparecer
@@ -284,6 +337,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Obter dados do formulário
             const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
             const holderName = document.getElementById('card-name').value;
+            const cpf = document.getElementById('card-cpf').value.replace(/\D/g, '');
             const expiry = document.getElementById('card-expiry').value;
             const cvv = document.getElementById('card-cvc').value;
             const isDefault = document.getElementById('is_default').checked;
@@ -295,6 +349,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Validação básica
             if (!cardNumber || cardNumber.length < 13) {
                 throw new Error('Número do cartão inválido');
+            }
+
+            if (!cpf || cpf.length !== 11) {
+                throw new Error('CPF inválido');
             }
 
             if (!expMonth || !expYear || parseInt(expMonth) < 1 || parseInt(expMonth) > 12) {
@@ -337,6 +395,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     exp_month: parseInt(expMonth),
                     exp_year: parseInt(fullYear),
                     holder_name: holderName,
+                    cpf: cpf,
                     is_default: isDefault
                 })
             });

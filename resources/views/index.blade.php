@@ -223,7 +223,7 @@
                 <img src="{!! asset('images/logoproxy.webp') !!}" alt="Logo" height="200" width="250">
             </div>
             <!-- Glass Pill Menu -->
-            <nav
+            <!-- <nav
                 class="hidden md:flex items-center bg-white/15 backdrop-blur-xl border border-white/20 rounded-full px-5 py-3 shadow-lg shadow-black/5">
                 <a href="{{ route('inicial') }}"
                     class="glass-pill-link font-onest text-base font-medium px-8 py-2 rounded-full text-white hover:text-[#2055dd] transition-all duration-300 ease-out hover:bg-white/20">
@@ -241,7 +241,7 @@
                     class="glass-pill-link font-onest text-base font-medium px-8 py-2 rounded-full text-white hover:text-[#2055dd] transition-all duration-300 ease-out hover:bg-white/20">
                     Suporte
                 </a>
-            </nav>
+            </nav> -->
             <div class="flex items-center gap-3">
                 @auth
                     <a href="{{ route('dash.show') }}" data-ripple-light="true"

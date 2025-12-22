@@ -9,15 +9,10 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use App\Mail\RecuperarSenhaMail;
 
 class RecuperarSenhaController extends Controller
 {
-
-    public function setPasswordAttribute($value)
-    {
-    $this->attributes['password'] = Hash::needsRehash($value) ? bcrypt($value) : $value;
-    }
-
     public function formSolicitar()
     {
         return view('auth.esqueci-senha');
@@ -34,16 +29,12 @@ class RecuperarSenhaController extends Controller
             ['email' => $email],
             [
                 'email' => $email,
-                'token' => $token,
+                'token' => Hash::make($token),
                 'created_at' => now()
             ]
-            );
+        );
 
-        $link = url('/redefinir-senha/' . $token);
-
-        Mail::raw('Clique aqui para redefinir sua senha:' . $link, function($message) use ($email){
-            $message->to($email)->subject('Recuperação de senha');
-        });
+        Mail::to($email)->send(new RecuperarSenhaMail($token, $email));
 
         return redirect()->route('senha.show')->with('success', 'Link de recuperação enviado para seu e-mail.');
     }
@@ -64,11 +55,19 @@ class RecuperarSenhaController extends Controller
 
         $reset = DB::table('password_reset_tokens')
             ->where('email', $request->email)
-            ->where('token', $request->token)
             ->first();
 
-        if(!$reset){
-            return back()->withErrors('email', 'Token inválido ou expirado.');
+        if (!$reset) {
+            return back()->withErrors(['email' => 'Token inválido ou expirado.']);
+        }
+
+        if (!Hash::check($request->token, $reset->token)) {
+            return back()->withErrors(['email' => 'Token inválido ou expirado.']);
+        }
+
+        if (now()->diffInMinutes($reset->created_at) > 60) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return back()->withErrors(['email' => 'Token expirado. Solicite um novo link de recuperação.']);
         }
 
         $user = User::where('email', $request->email)->first();
@@ -78,7 +77,6 @@ class RecuperarSenhaController extends Controller
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
         return redirect()->route('login')->with('success', 'Senha alterada com sucesso!');
-
     }
 
     public function recuperarsenhav2()

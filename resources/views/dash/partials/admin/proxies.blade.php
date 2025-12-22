@@ -258,7 +258,7 @@
 <div class="flex flex-col gap-4 mb-4">
     <div class="flex items-center justify-between">
         <h2 class="text-xl font-semibold text-slate-900">Controle de estoque por VPS</h2>
-        <span class="text-sm text-slate-500">Clique para expandir cada nó</span>
+        <span class="text-sm text-slate-500">Clique em uma VPS para ver os detalhes</span>
     </div>
 </div>
 
@@ -273,67 +273,130 @@
         </div>
     @endif
 
-    @foreach($vpsFarm as $idx => $farm)
-        <div class="vps-card">
-            <button type="button" class="w-full text-left" data-admin-accordion="vps-{{ $idx }}">
-                <div class="vps-header">
-                    <div>
-                        <p class="text-lg font-semibold text-slate-900">{{ $farm->apelido }}</p>
-                        <p class="text-sm text-slate-500">{{ $farm->ip }} • {{ $farm->pais }} •
-                            {{ $farm->hospedagem }}
-                        </p>
+    @if($vpsFarm->count() > 0)
+        <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            @foreach($vpsFarm as $farm)
+                @php
+                    $totalProxies = $farm->proxies->count();
+                    $bloqueadas = $farm->proxies->where('bloqueada', true)->count();
+                    $disponiveis = $farm->proxies->where('bloqueada', false)->where('disponibilidade', true)->count();
+                    $vendidas = max(0, $totalProxies - $bloqueadas - $disponiveis);
+                @endphp
+
+                <button type="button"
+                    class="admin-card w-full text-left hover:shadow-md transition-shadow"
+                    data-open-vps-modal="vpsModal-{{ $farm->id }}">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="min-w-0">
+                            <p class="text-lg font-semibold text-slate-900 truncate">{{ $farm->apelido }}</p>
+                            <p class="text-sm text-slate-500 truncate">{{ $farm->ip }} &middot; {{ $farm->pais }} &middot; {{ $farm->hospedagem }}</p>
+                        </div>
+                        <div class="flex items-center gap-3 flex-shrink-0">
+                            <span class="badge-status"
+                                data-status="{{ \Illuminate\Support\Str::slug($farm->status, '-') }}">{{ $farm->status }}</span>
+                            <i class="fas fa-arrow-up-right-from-square text-slate-400 text-sm"></i>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <span class="badge-status"
-                            data-status="{{ \Illuminate\Support\Str::slug($farm->status, '-') }}">{{ $farm->status }}</span>
-                        <i class="fas fa-chevron-down text-slate-400 text-sm"></i>
+
+                    <div class="vps-meta mt-3">
+                        <span><i class="fas fa-wallet"></i> {{ $farm->valor }}</span>
+                        <span><i class="fas fa-calendar-alt"></i> {{ $farm->periodo }}</span>
+                        <span><i class="fas fa-clock"></i> Contratada em {{ $farm->contratada }}</span>
                     </div>
-                </div>
-                <div class="vps-meta mt-3">
-                    <span><i class="fas fa-wallet"></i> {{ $farm->valor }}</span>
-                    <span><i class="fas fa-calendar-alt"></i> {{ $farm->periodo }}</span>
-                    <span><i class="fas fa-clock"></i> Contratada em {{ $farm->contratada }}</span>
-                </div>
-            </button>
-            <div id="vps-{{ $idx }}" class="vps-body hidden">
-                <div class="grid md:grid-cols-2 gap-3">
-                    @foreach($farm->proxies as $pIdx => $proxy)
-                        @php
-                            $statusId = "proxy-status-{$idx}-{$pIdx}";
-                            // Determinar status baseado no campo bloqueada do banco de dados
-                            if ($proxy->bloqueada) {
-                                $proxyStatus = 'bloqueada';
-                            } elseif ($proxy->disponibilidade) {
-                                $proxyStatus = 'disponivel';
-                            } else {
-                                $proxyStatus = 'vendida';
-                            }
-                            $proxyEndpoint = $farm->ip . ':' . $proxy->porta;
-                            $proxyCodigo = '#' . str_pad($proxy->id, 3, '0', STR_PAD_LEFT);
-                        @endphp
-                        <div class="proxy-pill">
-                            <div>
-                                <p class="font-semibold text-slate-900">{{ $proxyCodigo }} • {{ $proxyEndpoint }}</p>
-                                <span id="{{ $statusId }}" class="badge-status"
-                                    data-status="{{ $proxyStatus }}">{{ ucfirst($proxyStatus) }}</span>
-                            </div>
-                            <div class="flex flex-col gap-2 text-xs text-center">
-                                <button type="button" class="btn-secondary text-xs px-3 py-2" data-action="test-proxy"><i
-                                        class="fas fa-vial"></i> Testar</button>
-                                <button type="button" class="btn-secondary text-xs px-3 py-2" data-toggle-port
-                                    data-stock-id="{{ $proxy->id }}"
-                                    data-target="#{{ $statusId }}"
-                                    data-state="{{ $proxy->bloqueada ? 'blocked' : 'open' }}">
-                                    <i class="fas {{ $proxy->bloqueada ? 'fa-unlock' : 'fa-ban' }}"></i>
-                                    {{ $proxy->bloqueada ? 'Desbloquear' : 'Bloquear' }}
-                                </button>
+
+                    <div class="mt-4 grid grid-cols-3 gap-2 text-xs">
+                        <div class="bg-slate-50 rounded-lg p-2 text-center">
+                            <p class="text-slate-500">Disponíveis</p>
+                            <p class="font-bold text-slate-900">{{ $disponiveis }}</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-lg p-2 text-center">
+                            <p class="text-slate-500">Bloqueadas</p>
+                            <p class="font-bold text-slate-900">{{ $bloqueadas }}</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-lg p-2 text-center">
+                            <p class="text-slate-500">Vendidas</p>
+                            <p class="font-bold text-slate-900">{{ $vendidas }}</p>
+                        </div>
+                    </div>
+                </button>
+            @endforeach
+        </div>
+
+        <!-- Modais por VPS -->
+        @foreach($vpsFarm as $farm)
+            <div id="vpsModal-{{ $farm->id }}" class="admin-modal-overlay hidden" data-vps-modal>
+                <div class="admin-modal w-full" style="max-width: 1200px; width: 95%;">
+                    <div class="flex items-start justify-between gap-4 mb-4">
+                        <div class="min-w-0">
+                            <h3 class="text-2xl font-semibold text-slate-900 truncate">{{ $farm->apelido }}</h3>
+                            <p class="text-sm text-slate-500 truncate">{{ $farm->ip }} &middot; {{ $farm->pais }} &middot; {{ $farm->hospedagem }}</p>
+                            <div class="vps-meta mt-2">
+                                <span><i class="fas fa-wallet"></i> {{ $farm->valor }}</span>
+                                <span><i class="fas fa-calendar-alt"></i> {{ $farm->periodo }}</span>
+                                <span><i class="fas fa-clock"></i> Contratada em {{ $farm->contratada }}</span>
                             </div>
                         </div>
-                    @endforeach
+                        <button type="button" class="btn-secondary text-xs px-3 py-2" data-close-vps-modal>
+                            <i class="fas fa-times"></i> Fechar
+                        </button>
+                    </div>
+
+                    <div class="border-t border-slate-200 pt-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-sm font-semibold text-slate-700">
+                                Proxies ({{ $farm->proxies->count() }})
+                            </p>
+                        </div>
+
+                        @if($farm->proxies->count() === 0)
+                            <div class="text-center py-10 text-slate-500">
+                                <i class="fas fa-network-wired text-4xl mb-3 text-slate-300"></i>
+                                <p>Nenhuma proxy gerada nesta VPS ainda</p>
+                            </div>
+                        @else
+                            <div class="max-h-[70vh] overflow-y-auto pr-1">
+                                <div class="grid md:grid-cols-2 gap-3">
+                                    @foreach($farm->proxies as $proxy)
+                                        @php
+                                            $statusId = "proxy-status-{$farm->id}-{$proxy->id}";
+                                            // Determinar status baseado no campo bloqueada do banco de dados
+                                            if ($proxy->bloqueada) {
+                                                $proxyStatus = 'bloqueada';
+                                            } elseif ($proxy->disponibilidade) {
+                                                $proxyStatus = 'disponivel';
+                                            } else {
+                                                $proxyStatus = 'vendida';
+                                            }
+                                            $proxyEndpoint = $farm->ip . ':' . $proxy->porta;
+                                            $proxyCodigo = '#' . str_pad($proxy->id, 3, '0', STR_PAD_LEFT);
+                                        @endphp
+                                        <div class="proxy-pill">
+                                            <div>
+                                                <p class="font-semibold text-slate-900">{{ $proxyCodigo }} &middot; {{ $proxyEndpoint }}</p>
+                                                <span id="{{ $statusId }}" class="badge-status"
+                                                    data-status="{{ $proxyStatus }}">{{ ucfirst($proxyStatus) }}</span>
+                                            </div>
+                                            <div class="flex flex-col gap-2 text-xs text-center">
+                                                <button type="button" class="btn-secondary text-xs px-3 py-2" data-action="test-proxy"><i
+                                                        class="fas fa-vial"></i> Testar</button>
+                                                <button type="button" class="btn-secondary text-xs px-3 py-2" data-toggle-port
+                                                    data-stock-id="{{ $proxy->id }}"
+                                                    data-target="#{{ $statusId }}"
+                                                    data-state="{{ $proxy->bloqueada ? 'blocked' : 'open' }}">
+                                                    <i class="fas {{ $proxy->bloqueada ? 'fa-unlock' : 'fa-ban' }}"></i>
+                                                    {{ $proxy->bloqueada ? 'Desbloquear' : 'Bloquear' }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
-        </div>
-    @endforeach
+        @endforeach
+    @endif
 </div>
 <!-- Modal de Loading -->
 <div id="loadingModal" class="admin-modal-overlay hidden">
@@ -445,6 +508,56 @@
                 // Se não estiver marcado, deixar o formulário submeter normalmente
             });
         }
+    });
+
+    // ============================================
+    // MODAIS DE VPS (cards -> modal grande)
+    // ============================================
+    function openVpsModal(modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+
+        const dialog = modal.querySelector('.admin-modal');
+        if (dialog) dialog.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeVpsModal(modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('active');
+
+        const dialog = modal.querySelector('.admin-modal');
+        if (dialog) dialog.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('click', function (e) {
+        const openBtn = e.target.closest('[data-open-vps-modal]');
+        if (openBtn) {
+            const modalId = openBtn.dataset.openVpsModal;
+            const modal = document.getElementById(modalId);
+            if (modal) openVpsModal(modal);
+            return;
+        }
+
+        const closeBtn = e.target.closest('[data-close-vps-modal]');
+        if (closeBtn) {
+            const modal = closeBtn.closest('[data-vps-modal]');
+            if (modal) closeVpsModal(modal);
+            return;
+        }
+
+        // Clique fora (overlay)
+        if (e.target && e.target.matches('[data-vps-modal]')) {
+            closeVpsModal(e.target);
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        const openModals = Array.from(document.querySelectorAll('[data-vps-modal]')).filter(m => !m.classList.contains('hidden'));
+        const lastModal = openModals[openModals.length - 1];
+        if (lastModal) closeVpsModal(lastModal);
     });
 
     // ============================================

@@ -38,7 +38,6 @@ Route::post('/register', [RegisterController::class, 'register'])->name('registe
 Route::get('/esqueci-senha', [RecuperarSenhaController::class, 'formSolicitar'])->name('senha.show');
 Route::post('/esqueci-senha', [RecuperarSenhaController::class, 'enviarLink'])->name('senha.enviar');
 // Route::get('/redefinir-senha/{token}', [RecuperarSenhaController::class, 'formRedefinir'])->name('senha.redefinir');
-// Route::post('/redefinir-senha', [RecuperarSenhaController::class, 'redefinir'])->name('senha.redefinir');
 
 
 //Rotas de usuários logados

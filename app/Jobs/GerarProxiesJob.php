@@ -16,12 +16,12 @@ class GerarProxiesJob implements ShouldQueue
     /**
      * Número de tentativas de reprocessamento em caso de falha
      */
-    public $tries = 3;
+    public $tries = 1;
 
     /**
-     * Tempo máximo de execução em segundos (10 minutos)
+     * Tempo máximo de execução em segundos (30 minutos)
      */
-    public $timeout = 600;
+    public $timeout = 1800;
 
     /**
      * Dados da VPS
@@ -55,20 +55,35 @@ class GerarProxiesJob implements ShouldQueue
             $this->vps->update(['status_geracao' => 'processing']);
 
             // Chamar API Python
-            $apiUrl = env('PYTHON_API_URL', 'http://127.0.0.1:8000');
+            $apiUrl = config('services.python_api.url');
 
+            // Log dos dados que serão enviados (sem senha por segurança)
+            Log::info('Enviando requisição para API Python', [
+                'vps_id' => $this->vps->id,
+                'api_url' => "{$apiUrl}/criar",
+                'payload' => [
+                    'ip' => $this->vps->ip,
+                    'user' => $this->vps->usuario_ssh,
+                ],
+            ]);
 
-            $response = Http::timeout(300)->post("{$apiUrl}/criar", [
+            $response = Http::timeout(900)->post("{$apiUrl}/criar", [
                 'ip' => $this->vps->ip,
                 'user' => $this->vps->usuario_ssh,
                 'senha' => $this->vps->senha_ssh,
             ]);
 
+            // Log da resposta recebida
+            Log::info('Resposta recebida da API Python', [
+                'vps_id' => $this->vps->id,
+                'status_code' => $response->status(),
+                'response_body' => $response->body(),
+            ]);
 
             // Tentar decodificar JSON
             try {
                 $jsonData = $response->json();
-                
+
             } catch (\Exception $jsonException) {
                 Log::error('Erro ao decodificar JSON', [
                     'vps_id' => $this->vps->id,

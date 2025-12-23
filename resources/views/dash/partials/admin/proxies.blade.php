@@ -31,8 +31,9 @@
 
     /* Modal grande das VPS: sobrepor layout (header/sidebar) e evitar cortes */
     .admin-modal.vps-modal {
-        width: min(1152px, calc(100% - 0rem));
-        max-height: calc(100vh - 9rem);
+        width: min(95vw, 1400px);
+        max-width: 1400px;
+        max-height: calc(100vh - 4rem);
         display: flex;
         flex-direction: column;
         padding: 0;
@@ -43,12 +44,126 @@
         padding: 2rem 2.5rem;
         background: #fff;
         border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        flex-shrink: 0;
     }
 
     .admin-modal.vps-modal .vps-modal-body {
         flex: 1;
         overflow-y: auto;
         padding: 2.5rem;
+        min-height: 0;
+    }
+
+    /* Garantir que a modal de VPS fique centralizada (apenas modais com data-vps-modal) */
+    [data-vps-modal].admin-modal-overlay {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    /* Cards de proxy dentro da modal (mais espaçamento e foco consistente) */
+    .vps-proxy-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.25rem;
+        padding: 1.25rem 1.4rem;
+        border-radius: 22px;
+        background: #f8fafc;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    }
+
+    .vps-proxy-card:hover {
+        border-color: rgba(35, 54, 111, 0.35);
+        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+        transform: translateY(-1px);
+    }
+
+    .vps-proxy-info p {
+        margin: 0;
+    }
+
+    .vps-proxy-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.6rem;
+        border-radius: 10px;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+    }
+
+    .vps-proxy-status[data-status="disponivel"] {
+        background: rgba(16, 185, 129, 0.12);
+        color: #047857;
+    }
+
+    .vps-proxy-status[data-status="vendida"] {
+        background: rgba(245, 158, 11, 0.14);
+        color: #b45309;
+    }
+
+    .vps-proxy-status[data-status="bloqueada"] {
+        background: rgba(239, 68, 68, 0.14);
+        color: #b91c1c;
+    }
+
+    .vps-proxy-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        flex-shrink: 0;
+    }
+
+    .vps-proxy-action-btn {
+        min-width: 170px;
+        height: 44px;
+        padding: 0 0.9rem;
+        border-radius: 16px;
+        background: #fff;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        color: #64748b;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: transform 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
+        user-select: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .vps-proxy-action-btn:hover {
+        color: #23366f;
+        border-color: rgba(35, 54, 111, 0.35);
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+    }
+
+    .vps-proxy-action-btn:active {
+        transform: translateY(1px);
+    }
+
+    .vps-proxy-action-btn i {
+        font-size: 0.95rem;
+    }
+
+    .vps-proxy-action-btn:focus {
+        outline: none;
+    }
+
+    .vps-proxy-action-btn:focus-visible {
+        box-shadow: 0 0 0 4px rgba(68, 140, 203, 0.18);
+        border-color: rgba(68, 140, 203, 0.75);
+        color: #23366f;
+    }
+
+    .vps-proxy-action-btn.danger:hover {
+        color: #ef4444;
+        border-color: rgba(239, 68, 68, 0.55);
     }
 </style>
 
@@ -305,7 +420,7 @@
 
         <!-- Modais por VPS -->
         @foreach($vpsFarm as $farm)
-            <div id="vpsModal-{{ $farm->id }}" class="admin-modal-overlay hidden vps-modal-overlay" data-vps-modal>
+            <div id="vpsModal-{{ $farm->id }}" class="admin-modal-overlay hidden" data-vps-modal>
                 <div class="admin-modal vps-modal">
                     <div class="vps-modal-header flex items-start justify-between gap-4">
                         <div class="min-w-0 flex-1">
@@ -337,7 +452,7 @@
                                 <p class="font-medium">Nenhuma proxy gerada nesta VPS ainda</p>
                             </div>
                         @else
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                                 @foreach($farm->proxies as $proxy)
                                     @php
                                         $statusId = "proxy-status-{$farm->id}-{$proxy->id}";
@@ -351,34 +466,36 @@
                                         $proxyEndpoint = $farm->ip . ':' . $proxy->porta;
                                         $proxyCodigo = '#' . str_pad($proxy->id, 3, '0', STR_PAD_LEFT);
                                     @endphp
-                                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between group hover:border-[#23366f] transition-all">
-                                        <div>
-                                            <p class="text-sm font-black text-slate-900 mb-1">{{ $proxyCodigo }} &middot; {{ $proxyEndpoint }}</p>
-                                            <span id="{{ $statusId }}" class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider"
+                                    <div class="vps-proxy-card">
+                                        <div class="vps-proxy-info">
+                                            <p class="text-sm font-black text-slate-900 mb-2">{{ $proxyCodigo }} &middot; {{ $proxyEndpoint }}</p>
+                                            <span id="{{ $statusId }}" class="vps-proxy-status"
                                                 data-status="{{ $proxyStatus }}">
                                                 @if($proxyStatus === 'disponivel')
-                                                    <span class="text-green-600 bg-green-50 px-2 py-0.5 rounded">Disponível</span>
+                                                    <span class="text-green-600  px-2 py-0.5 rounded">Disponível</span>
                                                 @elseif($proxyStatus === 'bloqueada')
-                                                    <span class="text-red-600 bg-red-50 px-2 py-0.5 rounded">Bloqueada</span>
+                                                    <span class="text-red-600  px-2 py-0.5 rounded">Bloqueada</span>
                                                 @else
-                                                    <span class="text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Vendida</span>
+                                                    <span class="text-amber-600  px-2 py-0.5 rounded">Vendida</span>
                                                 @endif
                                             </span>
                                         </div>
-                                        <div class="flex gap-2">
-                                            <button type="button" class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-[#23366f] hover:border-[#23366f] transition-all flex items-center justify-center test-proxy-btn"
+                                        <div class="vps-proxy-actions">
+                                            <button type="button" class="vps-proxy-action-btn test-proxy-btn"
                                                 data-action="test-proxy"
                                                 data-ip="{{ $farm->ip }}"
                                                 data-porta="{{ $proxy->porta }}"
                                                 data-usuario="{{ $proxy->usuario }}"
                                                 data-senha="{{ $proxy->senha }}">
                                                 <i class="fas fa-vial"></i>
+                                                <span>Testar proxy</span>
                                             </button>
-                                            <button type="button" class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-500 transition-all flex items-center justify-center" data-toggle-port
+                                            <button type="button" class="vps-proxy-action-btn danger" data-toggle-port
                                                 data-stock-id="{{ $proxy->id }}"
                                                 data-target="#{{ $statusId }}"
                                                 data-state="{{ $proxy->bloqueada ? 'blocked' : 'open' }}">
                                                 <i class="fas {{ $proxy->bloqueada ? 'fa-unlock' : 'fa-ban' }}"></i>
+                                                <span data-btn-text>{{ $proxy->bloqueada ? 'Desbloquear' : 'Bloquear' }}</span>
                                             </button>
                                         </div>
                                     </div>
@@ -926,7 +1043,7 @@
         const targetStatus = toggleButton.querySelector('.badge-status') || document.querySelector(toggleButton.dataset.target);
         const currentState = toggleButton.dataset.state; // 'blocked' or 'open'
         const icon = toggleButton.querySelector('i');
-        const btnText = toggleButton.childNodes[toggleButton.childNodes.length - 1];
+        const btnText = toggleButton.querySelector('[data-btn-text]') || toggleButton.childNodes[toggleButton.childNodes.length - 1];
 
         // Determinar ação (se está bloqueada, desbloquear; se está aberta, bloquear)
         const action = currentState === 'blocked' ? 'bloquear' : 'desbloquear';
@@ -936,7 +1053,7 @@
         // Desabilitar botão durante requisição
         toggleButton.disabled = true;
         icon.className = 'fas fa-spinner fa-spin';
-        btnText.textContent = ' Processando...';
+        if (btnText) btnText.textContent = 'Processando...';
 
         try {
             const response = await fetch(endpoint, {
@@ -959,7 +1076,7 @@
                     }
                     toggleButton.dataset.state = 'blocked';
                     icon.className = 'fas fa-unlock';
-                    btnText.textContent = ' Desbloquear';
+                    if (btnText) btnText.textContent = 'Desbloquear';
                 } else {
                     if (targetStatus) {
                         targetStatus.dataset.status = 'disponivel';
@@ -967,7 +1084,7 @@
                     }
                     toggleButton.dataset.state = 'open';
                     icon.className = 'fas fa-ban';
-                    btnText.textContent = ' Bloquear';
+                    if (btnText) btnText.textContent = 'Bloquear';
                 }
 
                 // Mostrar notificação de sucesso
@@ -975,13 +1092,13 @@
             } else {
                 showToast(data.error || 'Erro ao processar requisição', 'error');
                 icon.className = 'fas fa-ban';
-                btnText.textContent = action === 'bloquear' ? ' Bloquear' : ' Desbloquear';
+                if (btnText) btnText.textContent = action === 'bloquear' ? 'Bloquear' : 'Desbloquear';
             }
         } catch (error) {
             console.error('Erro:', error);
             showToast('Erro ao conectar com o servidor', 'error');
             icon.className = 'fas fa-ban';
-            btnText.textContent = action === 'bloquear' ? ' Bloquear' : ' Desbloquear';
+            if (btnText) btnText.textContent = action === 'bloquear' ? 'Bloquear' : 'Desbloquear';
         } finally {
             toggleButton.disabled = false;
         }

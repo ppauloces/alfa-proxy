@@ -1224,45 +1224,7 @@
                 @include('dash.partials.admin.cupons')
             </section>
 
-            <div id="buyerModalOverlay" class="admin-modal-overlay">
-                <div id="buyerModal" class="admin-modal">
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#23366f] flex items-center justify-center text-xl">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-black text-slate-900 tracking-tight" data-buyer-name>Cliente</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest" data-buyer-email>email@exemplo.com</p>
-                            </div>
-                        </div>
-                        <button type="button" class="text-slate-400 hover:text-slate-900 transition-all" data-close-buyer>
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="p-4 bg-slate-50 rounded-2xl">
-                            <p class="text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-1">Pedidos</p>
-                            <p class="text-lg font-black text-slate-900" data-buyer-orders>--</p>
-                        </div>
-                        <div class="p-4 bg-slate-50 rounded-2xl">
-                            <p class="text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-1">Gasto total</p>
-                            <p class="text-lg font-black text-slate-900" data-buyer-spent>--</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-blue-50/50 rounded-2xl p-5 mb-8 text-sm text-[#23366f] font-medium leading-relaxed" data-buyer-note>
-                        Histórico recente indisponível.
-                    </div>
-
-                    <div class="flex gap-3">
-                        <button type="button" class="btn-primary flex-1 py-4 rounded-2xl bg-[#23366f] text-white font-black hover:scale-[1.02] transition-all shadow-lg shadow-blue-900/20" data-close-buyer>
-                            Confirmar
-                        </button>
-                    </div>
-                </div>
-            </div>
+          
         @endif
     </div>
 @endsection

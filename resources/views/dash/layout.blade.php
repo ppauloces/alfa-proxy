@@ -38,7 +38,6 @@ header nav a {
 }
 .dashboard-shell {
     position: relative;
-    z-index: 1;
     min-height: 100vh;
     padding: 100px 0 2.5rem;
     display: flex;
@@ -177,6 +176,47 @@ header nav a {
 }
 .caret { transition: transform 0.2s ease; }
 .caret.open { transform: rotate(180deg); }
+
+/* Estilos Globais para Modais */
+.admin-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+    display: none;
+    z-index: 9998;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    animation: fadeIn 0.3s ease;
+}
+.admin-modal-overlay.active {
+    display: flex;
+}
+.admin-modal {
+    background: #fff;
+    border-radius: 32px;
+    padding: 2.5rem;
+    box-shadow: 0 50px 100px rgba(15, 23, 42, 0.25);
+    z-index: 9999;
+    width: 100%;
+    max-width: 600px;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    position: relative;
+    animation: modalSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlide {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
 header {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 40;
@@ -342,7 +382,13 @@ header {
                     <button type="button" class="nav-pill" data-section-link="admin-proxies">
                         <span class="flex items-center gap-3">
                             <i class="fas fa-server w-5 text-center"></i>
-                            <span class="nav-text">Proxies</span>
+                            <span class="nav-text">VPS</span>
+                        </span>
+                    </button>
+                    <button type="button" class="nav-pill" data-section-link="admin-historico-vps">
+                        <span class="flex items-center gap-3">
+                            <i class="fas fa-history w-5 text-center"></i>
+                            <span class="nav-text">Histórico de VPS</span>
                         </span>
                     </button>
                     <button type="button" class="nav-pill" data-section-link="admin-transacoes">

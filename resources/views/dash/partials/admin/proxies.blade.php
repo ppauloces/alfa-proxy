@@ -28,6 +28,28 @@
             opacity: .5;
         }
     }
+
+    /* Modal grande das VPS: sobrepor layout (header/sidebar) e evitar cortes */
+    .admin-modal.vps-modal {
+        width: min(1152px, calc(100% - 0rem));
+        max-height: calc(100vh - 9rem);
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .admin-modal.vps-modal .vps-modal-header {
+        padding: 2rem 2.5rem;
+        background: #fff;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .admin-modal.vps-modal .vps-modal-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 2.5rem;
+    }
 </style>
 
 <div class="flex flex-col gap-2 mb-8">
@@ -60,7 +82,7 @@
 </div>
 
 <!-- Container de Notificações Toast -->
-<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-3" style="max-width: 400px;">
+<div id="toastContainer" class="fixed top-20 right-4 space-y-3" style="max-width: 400px; z-index: 9999;">
     <!-- Toasts serão injetados aqui -->
 </div>
 
@@ -212,48 +234,7 @@
     </div> -->
 </div>
 
-<div class="admin-card mb-10">
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold text-slate-900">Proxies recém geradas</h2>
-        <button type="button" class="btn-secondary text-xs px-3 py-2"><i class="fas fa-copy"></i> Exportar
-            lista</button>
-    </div>
-    <div class="overflow-x-auto">
-        <table class="admin-table text-sm min-w-full">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Endereço</th>
-                    <th>Usuário</th>
-                    <th>Senha</th>
-                    <th>VPS</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($generatedProxies as $proxy)
-                    <tr>
-                        <td>{{ $proxy['numero'] }}</td>
-                        <td class="font-mono text-xs">{{ $proxy['endereco'] }}</td>
-                        <td>{{ $proxy['user'] }}</td>
-                        <td class="font-mono text-xs">{{ $proxy['senha'] }}</td>
-                        <td>{{ $proxy['vps'] }}</td>
-                        <td><span class="badge-status"
-                                data-status="{{ \Illuminate\Support\Str::slug(strtolower($proxy['status'])) }}">{{ $proxy['status'] }}</span>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="text-center py-8 text-slate-500">
-                            <i class="fas fa-inbox text-4xl mb-3 text-slate-300"></i>
-                            <p>Nenhuma proxy gerada ainda</p>
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-</div>
+
 
 <div class="flex flex-col gap-4 mb-4">
     <div class="flex items-center justify-between">
@@ -324,72 +305,84 @@
 
         <!-- Modais por VPS -->
         @foreach($vpsFarm as $farm)
-            <div id="vpsModal-{{ $farm->id }}" class="admin-modal-overlay hidden" data-vps-modal>
-                <div class="admin-modal w-full" style="max-width: 1200px; width: 95%;">
-                    <div class="flex items-start justify-between gap-4 mb-4">
-                        <div class="min-w-0">
-                            <h3 class="text-2xl font-semibold text-slate-900 truncate">{{ $farm->apelido }}</h3>
-                            <p class="text-sm text-slate-500 truncate">{{ $farm->ip }} &middot; {{ $farm->pais }} &middot; {{ $farm->hospedagem }}</p>
-                            <div class="vps-meta mt-2">
-                                <span><i class="fas fa-wallet"></i> {{ $farm->valor }}</span>
-                                <span><i class="fas fa-calendar-alt"></i> {{ $farm->periodo }}</span>
-                                <span><i class="fas fa-clock"></i> Contratada em {{ $farm->contratada }}</span>
+            <div id="vpsModal-{{ $farm->id }}" class="admin-modal-overlay hidden vps-modal-overlay" data-vps-modal>
+                <div class="admin-modal vps-modal">
+                    <div class="vps-modal-header flex items-start justify-between gap-4">
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-xl lg:text-2xl font-black text-slate-900 truncate tracking-tight">{{ $farm->apelido }}</h3>
+                            <p class="text-xs lg:text-sm text-slate-400 font-medium truncate">{{ $farm->ip }} &middot; {{ $farm->pais }} &middot; {{ $farm->hospedagem }}</p>
+                            <div class="vps-meta mt-3 flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                <span class="flex items-center gap-1.5"><i class="fas fa-wallet text-[#448ccb]"></i> {{ $farm->valor }}</span>
+                                <span class="flex items-center gap-1.5"><i class="fas fa-calendar-alt text-[#448ccb]"></i> {{ $farm->periodo }}</span>
+                                <span class="hidden sm:flex items-center gap-1.5"><i class="fas fa-clock text-[#448ccb]"></i> {{ $farm->contratada }}</span>
                             </div>
                         </div>
-                        <button type="button" class="btn-secondary text-xs px-3 py-2" data-close-vps-modal>
-                            <i class="fas fa-times"></i> Fechar
+                        <button type="button" class="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 transition-all flex items-center justify-center" data-close-vps-modal>
+                            <i class="fas fa-times"></i>
                         </button>
                     </div>
 
-                    <div class="border-t border-slate-200 pt-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="text-sm font-semibold text-slate-700">
-                                Proxies ({{ $farm->proxies->count() }})
+                    <div class="vps-modal-body">
+                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-50">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                Proxies Ativas ({{ $farm->proxies->count() }})
                             </p>
                         </div>
 
                         @if($farm->proxies->count() === 0)
-                            <div class="text-center py-10 text-slate-500">
-                                <i class="fas fa-network-wired text-4xl mb-3 text-slate-300"></i>
-                                <p>Nenhuma proxy gerada nesta VPS ainda</p>
+                            <div class="text-center py-20 text-slate-500">
+                                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-network-wired text-2xl text-slate-300"></i>
+                                </div>
+                                <p class="font-medium">Nenhuma proxy gerada nesta VPS ainda</p>
                             </div>
                         @else
-                            <div class="max-h-[70vh] overflow-y-auto pr-1">
-                                <div class="grid md:grid-cols-2 gap-3">
-                                    @foreach($farm->proxies as $proxy)
-                                        @php
-                                            $statusId = "proxy-status-{$farm->id}-{$proxy->id}";
-                                            // Determinar status baseado no campo bloqueada do banco de dados
-                                            if ($proxy->bloqueada) {
-                                                $proxyStatus = 'bloqueada';
-                                            } elseif ($proxy->disponibilidade) {
-                                                $proxyStatus = 'disponivel';
-                                            } else {
-                                                $proxyStatus = 'vendida';
-                                            }
-                                            $proxyEndpoint = $farm->ip . ':' . $proxy->porta;
-                                            $proxyCodigo = '#' . str_pad($proxy->id, 3, '0', STR_PAD_LEFT);
-                                        @endphp
-                                        <div class="proxy-pill">
-                                            <div>
-                                                <p class="font-semibold text-slate-900">{{ $proxyCodigo }} &middot; {{ $proxyEndpoint }}</p>
-                                                <span id="{{ $statusId }}" class="badge-status"
-                                                    data-status="{{ $proxyStatus }}">{{ ucfirst($proxyStatus) }}</span>
-                                            </div>
-                                            <div class="flex flex-col gap-2 text-xs text-center">
-                                                <button type="button" class="btn-secondary text-xs px-3 py-2" data-action="test-proxy"><i
-                                                        class="fas fa-vial"></i> Testar</button>
-                                                <button type="button" class="btn-secondary text-xs px-3 py-2" data-toggle-port
-                                                    data-stock-id="{{ $proxy->id }}"
-                                                    data-target="#{{ $statusId }}"
-                                                    data-state="{{ $proxy->bloqueada ? 'blocked' : 'open' }}">
-                                                    <i class="fas {{ $proxy->bloqueada ? 'fa-unlock' : 'fa-ban' }}"></i>
-                                                    {{ $proxy->bloqueada ? 'Desbloquear' : 'Bloquear' }}
-                                                </button>
-                                            </div>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                @foreach($farm->proxies as $proxy)
+                                    @php
+                                        $statusId = "proxy-status-{$farm->id}-{$proxy->id}";
+                                        if ($proxy->bloqueada) {
+                                            $proxyStatus = 'bloqueada';
+                                        } elseif ($proxy->disponibilidade) {
+                                            $proxyStatus = 'disponivel';
+                                        } else {
+                                            $proxyStatus = 'vendida';
+                                        }
+                                        $proxyEndpoint = $farm->ip . ':' . $proxy->porta;
+                                        $proxyCodigo = '#' . str_pad($proxy->id, 3, '0', STR_PAD_LEFT);
+                                    @endphp
+                                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between group hover:border-[#23366f] transition-all">
+                                        <div>
+                                            <p class="text-sm font-black text-slate-900 mb-1">{{ $proxyCodigo }} &middot; {{ $proxyEndpoint }}</p>
+                                            <span id="{{ $statusId }}" class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider"
+                                                data-status="{{ $proxyStatus }}">
+                                                @if($proxyStatus === 'disponivel')
+                                                    <span class="text-green-600 bg-green-50 px-2 py-0.5 rounded">Disponível</span>
+                                                @elseif($proxyStatus === 'bloqueada')
+                                                    <span class="text-red-600 bg-red-50 px-2 py-0.5 rounded">Bloqueada</span>
+                                                @else
+                                                    <span class="text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Vendida</span>
+                                                @endif
+                                            </span>
                                         </div>
-                                    @endforeach
-                                </div>
+                                        <div class="flex gap-2">
+                                            <button type="button" class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-[#23366f] hover:border-[#23366f] transition-all flex items-center justify-center test-proxy-btn"
+                                                data-action="test-proxy"
+                                                data-ip="{{ $farm->ip }}"
+                                                data-porta="{{ $proxy->porta }}"
+                                                data-usuario="{{ $proxy->usuario }}"
+                                                data-senha="{{ $proxy->senha }}">
+                                                <i class="fas fa-vial"></i>
+                                            </button>
+                                            <button type="button" class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-500 transition-all flex items-center justify-center" data-toggle-port
+                                                data-stock-id="{{ $proxy->id }}"
+                                                data-target="#{{ $statusId }}"
+                                                data-state="{{ $proxy->bloqueada ? 'blocked' : 'open' }}">
+                                                <i class="fas {{ $proxy->bloqueada ? 'fa-unlock' : 'fa-ban' }}"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         @endif
                     </div>
@@ -398,20 +391,71 @@
         @endforeach
     @endif
 </div>
+
+<div class="admin-card mt-10">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-slate-900">Proxies recém geradas</h2>
+        <button type="button" class="btn-secondary text-xs px-3 py-2"><i class="fas fa-copy"></i> Exportar
+            lista</button>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="admin-table text-sm min-w-full">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Endereço</th>
+                    <th>Usuário</th>
+                    <th>Senha</th>
+                    <th>VPS</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($generatedProxies as $proxy)
+                    <tr>
+                        <td>{{ $proxy['numero'] }}</td>
+                        <td class="font-mono text-xs">{{ $proxy['endereco'] }}</td>
+                        <td>{{ $proxy['user'] }}</td>
+                        <td class="font-mono text-xs">{{ $proxy['senha'] }}</td>
+                        <td>{{ $proxy['vps'] }}</td>
+                        <td><span class="badge-status"
+                                data-status="{{ \Illuminate\Support\Str::slug(strtolower($proxy['status'])) }}">{{ $proxy['status'] }}</span>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-slate-500">
+                            <i class="fas fa-inbox text-4xl mb-3 text-slate-300"></i>
+                            <p>Nenhuma proxy gerada ainda</p>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
 <!-- Modal de Loading -->
 <div id="loadingModal" class="admin-modal-overlay hidden">
     <div class="admin-modal" style="max-width: 400px;">
-        <div class="text-center">
-            <div class="mb-6">
-                <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600">
+        <div class="text-center py-10">
+            <div class="mb-8">
+                <div class="relative inline-block">
+                    <div class="w-20 h-20 rounded-full border-4 border-slate-100 border-t-[#23366f] animate-spin"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i class="fas fa-network-wired text-[#23366f] text-2xl animate-pulse"></i>
+                    </div>
                 </div>
             </div>
-            <h3 class="text-xl font-semibold text-slate-900 mb-2">Gerando Proxies</h3>
-            <p class="text-sm text-slate-500 mb-4" id="loadingMessage">Aguarde enquanto as proxies estão sendo
-                geradas...</p>
-            <div class="flex items-center justify-center gap-2 text-xs text-slate-400">
-                <span class="animate-pulse">●</span>
-                <span>Conectando com a VPS</span>
+            <h3 class="text-2xl font-black text-slate-900 mb-2 tracking-tight">Gerando Proxies</h3>
+            <p class="text-sm text-slate-400 font-medium mb-8" id="loadingMessage">Aguarde enquanto as proxies estão sendo geradas...</p>
+            
+            <div class="bg-slate-50 rounded-2xl p-4 flex items-center justify-center gap-3">
+                <div class="flex gap-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-[#448ccb] animate-bounce [animation-delay:-0.3s]"></div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-[#448ccb] animate-bounce [animation-delay:-0.15s]"></div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-[#448ccb] animate-bounce"></div>
+                </div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Conectando com a VPS</span>
             </div>
         </div>
     </div>
@@ -513,13 +557,39 @@
     // ============================================
     // MODAIS DE VPS (cards -> modal grande)
     // ============================================
+    const vpsModalPortalInfo = new WeakMap();
+
+    function lockPageScroll() {
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        document.body.style.overflow = 'hidden';
+        if (scrollbarWidth > 0) {
+            document.body.style.paddingRight = `${scrollbarWidth}px`;
+        }
+    }
+
+    function unlockPageScroll() {
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    }
+
     function openVpsModal(modal) {
+        if (!vpsModalPortalInfo.has(modal)) {
+            vpsModalPortalInfo.set(modal, {
+                parent: modal.parentNode,
+                nextSibling: modal.nextSibling,
+            });
+        }
+        // Portal para fora da dashboard-shell (evita flash de z-index do header/sidebar)
+        if (modal.parentNode !== document.body) {
+            document.body.appendChild(modal);
+        }
+
         modal.classList.remove('hidden');
         modal.classList.add('active');
 
         const dialog = modal.querySelector('.admin-modal');
         if (dialog) dialog.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        lockPageScroll();
     }
 
     function closeVpsModal(modal) {
@@ -528,7 +598,12 @@
 
         const dialog = modal.querySelector('.admin-modal');
         if (dialog) dialog.classList.remove('active');
-        document.body.style.overflow = '';
+        unlockPageScroll();
+
+        const portal = vpsModalPortalInfo.get(modal);
+        if (portal?.parent) {
+            portal.parent.insertBefore(modal, portal.nextSibling);
+        }
     }
 
     document.addEventListener('click', function (e) {
@@ -576,24 +651,35 @@
         const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
 
         toast.innerHTML = `
-            <div class="${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3">
-                <i class="fas ${icon} text-xl"></i>
-                <span class="font-medium">${message}</span>
+            <div class="${bgColor} text-white px-6 py-4 rounded-lg shadow-xl flex items-start gap-3 min-w-[320px] max-w-[400px]">
+                <i class="fas ${icon} text-xl flex-shrink-0 mt-0.5"></i>
+                <div class="font-medium flex-1 text-sm leading-relaxed">${message}</div>
+                <button onclick="this.closest('.transform').remove()" class="flex-shrink-0 hover:bg-white/20 rounded p-1 transition-colors">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
             </div>
         `;
 
-        document.getElementById('toastContainer').appendChild(toast);
+        const toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) return;
+
+        // Garantir que o container fique acima da modal (fora do stacking context da dashboard-shell)
+        if (toastContainer.parentNode !== document.body) {
+            document.body.appendChild(toastContainer);
+        }
+
+        toastContainer.appendChild(toast);
 
         // Animar entrada
         setTimeout(() => {
             toast.className = 'transform transition-all duration-300 translate-x-0';
         }, 10);
 
-        // Remover após 5 segundos
+        // Remover após 8 segundos (mais tempo para ler geolocalização)
         setTimeout(() => {
             toast.className = 'transform transition-all duration-300 translate-x-full';
             setTimeout(() => toast.remove(), 300);
-        }, 5000);
+        }, 8000);
     }
 
     // Função para atualizar status das VPS
@@ -706,6 +792,123 @@
     window.addEventListener('beforeunload', function() {
         if (pollingInterval) {
             clearInterval(pollingInterval);
+        }
+    });
+
+    // ============================================
+    // TESTAR PROXY
+    // ============================================
+
+    // Função para obter geolocalização do IP
+    async function getIpGeolocation(ip) {
+        try {
+            const response = await fetch(`https://ipapi.co/${ip}/json/`);
+            if (response.ok) {
+                const data = await response.json();
+                return {
+                    city: data.city || 'N/A',
+                    region: data.region || 'N/A',
+                    country: data.country_name || 'N/A',
+                    flag: data.country_code ? `https://flagcdn.com/16x12/${data.country_code.toLowerCase()}.png` : null
+                };
+            }
+        } catch (error) {
+            console.error('Erro ao buscar geolocalização:', error);
+        }
+        return null;
+    }
+
+    document.addEventListener('click', async function(e) {
+        const testButton = e.target.closest('[data-action="test-proxy"]');
+        if (!testButton) return;
+
+        e.preventDefault();
+
+        const ip = testButton.dataset.ip;
+        const porta = testButton.dataset.porta;
+        const usuario = testButton.dataset.usuario;
+        const senha = testButton.dataset.senha;
+
+        const originalHTML = testButton.innerHTML;
+        const originalClasses = testButton.className;
+
+        // Animação de carregamento estilo Lauth
+        testButton.disabled = true;
+        testButton.className = 'btn-secondary test-proxy-btn text-xs px-3 py-2 relative overflow-hidden';
+        testButton.innerHTML = `
+            <span class="flex items-center gap-2">
+                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Testando...</span>
+            </span>
+        `;
+
+        try {
+            const response = await fetch('{{ route("proxies.testar") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify({
+                    ip: ip,
+                    porta: parseInt(porta),
+                    usuario: usuario,
+                    senha: senha
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.status === 'online') {
+                // Buscar geolocalização do IP
+                const geoData = await getIpGeolocation(data.ip_visto_pelo_servidor || ip);
+
+                // Sucesso
+                testButton.className = originalClasses + ' bg-green-500 text-white border-green-500';
+                testButton.innerHTML = '<i class="fas fa-check"></i> Online';
+
+                // Toast com geolocalização
+                let toastMessage = `<div class="space-y-1">`;
+                toastMessage += `<div class="font-bold text-base mb-2">Proxy online!</div>`;
+                toastMessage += `<div><strong>IP:</strong> ${data.ip_visto_pelo_servidor || 'N/A'}</div>`;
+                toastMessage += `<div><strong>Latência:</strong> ${data.latencia_ms || 'N/A'}ms</div>`;
+
+                if (geoData) {
+                    toastMessage += `<div class="flex items-center gap-2">`;
+                    toastMessage += `<strong>Local:</strong> ${geoData.city}, ${geoData.country}`;
+                    if (geoData.flag) {
+                        toastMessage += ` <img src="${geoData.flag}" alt="${geoData.country}" class="inline-block w-5 h-4 rounded">`;
+                    }
+                    toastMessage += `</div>`;
+                }
+                toastMessage += `</div>`;
+
+                showToast(toastMessage, 'success');
+            } else {
+                // Erro
+                testButton.className = originalClasses + ' bg-red-500 text-white border-red-500';
+                testButton.innerHTML = '<i class="fas fa-times"></i> Offline';
+
+                showToast(`❌ Proxy offline: ${data.mensagem || data.error || 'Não foi possível conectar'}`, 'error');
+            }
+
+            // Restaurar botão após 3 segundos
+            setTimeout(() => {
+                testButton.className = originalClasses;
+                testButton.innerHTML = originalHTML;
+                testButton.disabled = false;
+            }, 3000);
+
+        } catch (error) {
+            console.error('Erro ao testar proxy:', error);
+            showToast('Erro ao conectar com o servidor de testes', 'error');
+
+            testButton.className = originalClasses;
+            testButton.innerHTML = originalHTML;
+            testButton.disabled = false;
         }
     });
 

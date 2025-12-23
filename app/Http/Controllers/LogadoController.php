@@ -23,6 +23,98 @@ class LogadoController extends Controller
     {
         $usuario = User::where('id', Auth::id())->first();
 
+        // Se for admin, precisamos dos dados do painel admin também
+        $vpsFarm = collect();
+        $vpsHistorico = collect();
+        $estatisticas = [
+            'total_vps' => 0,
+            'vps_ativas' => 0,
+            'vps_expiradas' => 0,
+            'total_gasto' => 0,
+            'total_proxies_geradas' => 0,
+            'media_proxies_por_vps' => 0,
+        ];
+        $generatedProxies = [];
+
+        if ($usuario->isAdmin()) {
+            $vpsList = \App\Models\Vps::with('proxies')->orderBy('created_at', 'desc')->get();
+            
+            $vpsFarm = $vpsList->map(function ($vps) {
+                return (object) [
+                    'id' => $vps->id,
+                    'apelido' => $vps->apelido,
+                    'ip' => $vps->ip,
+                    'pais' => $vps->pais,
+                    'hospedagem' => $vps->hospedagem,
+                    'valor' => 'R$ ' . number_format($vps->valor, 2, ',', '.'),
+                    'periodo' => $vps->periodo_dias . ' dias',
+                    'contratada' => $vps->data_contratacao->format('d/m/Y'),
+                    'status' => $vps->status,
+                    'proxies' => $vps->proxies,
+                ];
+            });
+
+            $vpsHistorico = $vpsList->map(function ($vps) {
+                $dataExpiracao = $vps->data_contratacao->addDays($vps->periodo_dias);
+                $diasRestantes = now()->diffInDays($dataExpiracao, false);
+                
+                $statusExpiracao = 'Ativa';
+                $badgeExpiracao = 'bg-green-100 text-green-700';
+                
+                if ($diasRestantes < 0) {
+                    $statusExpiracao = 'Expirada';
+                    $badgeExpiracao = 'bg-red-100 text-red-700';
+                } elseif ($diasRestantes <= 5) {
+                    $statusExpiracao = 'Expira em breve';
+                    $badgeExpiracao = 'bg-amber-100 text-amber-700';
+                }
+
+                return (object) [
+                    'id' => $vps->id,
+                    'apelido' => $vps->apelido,
+                    'ip' => $vps->ip,
+                    'pais' => $vps->pais,
+                    'hospedagem' => $vps->hospedagem,
+                    'valor_formatado' => 'R$ ' . number_format($vps->valor, 2, ',', '.'),
+                    'periodo_dias' => $vps->periodo_dias,
+                    'data_contratacao' => $vps->data_contratacao->format('d/m/Y'),
+                    'data_expiracao' => $dataExpiracao->format('d/m/Y'),
+                    'status_expiracao' => $statusExpiracao,
+                    'badge_expiracao' => $badgeExpiracao,
+                    'status' => $vps->status,
+                    'total_proxies' => $vps->proxies->count(),
+                    'proxies_geradas' => $vps->proxies_geradas,
+                    'status_geracao' => $vps->status_geracao,
+                    'erro_geracao' => $vps->erro_geracao,
+                ];
+            });
+
+            $estatisticas = [
+                'total_vps' => $vpsList->count(),
+                'vps_ativas' => $vpsList->filter(fn($v) => $v->data_contratacao->addDays($v->periodo_dias)->isFuture())->count(),
+                'vps_expiradas' => $vpsList->filter(fn($v) => $v->data_contratacao->addDays($v->periodo_dias)->isPast())->count(),
+                'total_gasto' => $vpsList->sum('valor'),
+                'total_proxies_geradas' => $vpsList->sum('proxies_geradas'),
+                'media_proxies_por_vps' => $vpsList->count() > 0 ? round($vpsList->sum('proxies_geradas') / $vpsList->count(), 1) : 0,
+            ];
+
+            $generatedProxies = \App\Models\Stock::with('vps')
+                ->whereNotNull('vps_id')
+                ->orderBy('created_at', 'desc')
+                ->limit(25)
+                ->get()
+                ->map(function ($proxy) {
+                    return [
+                        'numero' => '#' . str_pad($proxy->id, 3, '0', STR_PAD_LEFT),
+                        'endereco' => $proxy->ip . ':' . $proxy->porta,
+                        'user' => $proxy->usuario,
+                        'senha' => $proxy->senha,
+                        'vps' => $proxy->vps ? $proxy->vps->apelido : 'N/A',
+                        'status' => $proxy->disponibilidade ? 'Disponivel' : 'Vendida',
+                    ];
+                })->toArray();
+        }
+
         // Buscar proxies do usuário agrupados por tipo
         $stocks = Stock::where('user_id', Auth::id())->get();
 
@@ -105,6 +197,10 @@ class LogadoController extends Controller
             'transacoes',
             'activeSection',
             'savedCards',
+            'vpsFarm',
+            'vpsHistorico',
+            'estatisticas',
+            'generatedProxies',
         ));
     }
 

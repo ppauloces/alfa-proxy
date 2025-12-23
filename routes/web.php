@@ -92,6 +92,7 @@ Route::middleware(['auth', CheckUserStatus::class])->group(function () {
 Route::middleware(AdminMiddleware::class)->group(function () {
     Route::get('/admin/proxies', [AdminController::class, 'proxies'])->name('admin.proxies');
     Route::post('/admin/vps/cadastrar', [AdminController::class, 'cadastrarVps'])->name('vps.cadastrar');
+    Route::get('/admin/historico-vps', [AdminController::class, 'historicoVps'])->name('admin.historico-vps');
     Route::get('/admin/usuarios', [AdminController::class, 'usuarios'])->name('usuarios.show');
 
     // Gerenciamento de portas (bloqueio/desbloqueio)

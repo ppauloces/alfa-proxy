@@ -197,7 +197,7 @@
                             <p class="font-bold text-slate-700 group-hover:text-[#23366f] transition-colors">{{ $faq['q'] }}</p>
                             <i class="fas fa-chevron-down faq-icon text-slate-300 group-hover:text-[#23366f] transition-all"></i>
                         </div>
-                        <div class="faq-answer hidden mt-4 pt-4 border-t border-slate-50 text-sm text-slate-500 font-medium leading-relaxed">
+                        <div class="faq-answer mt-4 pt-4 border-t border-slate-50 text-sm text-slate-500 font-medium leading-relaxed">
                             {{ $faq['a'] }}
                         </div>
                     </div>
@@ -216,7 +216,6 @@
         </div>
     </div>
 </div>
-@endsection
 @endsection
 
 @section('scripts')

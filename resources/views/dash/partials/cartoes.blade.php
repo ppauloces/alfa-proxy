@@ -124,105 +124,106 @@
 </div>
 
 <!-- Modal de Adicionar Cartão -->
-<div id="addCardModalOverlay" class="admin-modal-overlay"></div>
-<div id="addCardModal" class="admin-modal" style="max-width: 600px;">
-    <div class="flex justify-between items-start mb-6">
-        <div>
-            <h3 class="text-2xl font-bold text-slate-900">Adicionar Cartão</h3>
-            <p class="text-sm text-slate-500">Preencha os dados do seu cartão</p>
+<div id="addCardModalOverlay" class="admin-modal-overlay">
+    <div id="addCardModal" class="admin-modal card-modal" style="max-width: 600px;">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h3 class="text-2xl font-bold text-slate-900">Adicionar Cartão</h3>
+                <p class="text-sm text-slate-500">Preencha os dados do seu cartão</p>
+            </div>
+            <button type="button" class="text-slate-400 hover:text-slate-900" id="closeCardModal">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <button type="button" class="text-slate-400 hover:text-slate-900" id="closeCardModal">
-            <i class="fas fa-times"></i>
-        </button>
+
+        <form id="cardForm">
+            @csrf
+
+            <!-- Card Preview -->
+            <div class="mb-6">
+                <div id="card-wrapper"></div>
+            </div>
+
+            <!-- Formulário -->
+            <div class="space-y-4">
+                <div class="form-group">
+                    <label for="card-number" class="form-label">Número do Cartão</label>
+                    <input type="text"
+                           id="card-number"
+                           name="card-number"
+                           class="form-input"
+                           placeholder="0000 0000 0000 0000"
+                           autocomplete="off"
+                           maxlength="19"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="card-name" class="form-label">Nome no Cartão</label>
+                    <input type="text"
+                           id="card-name"
+                           name="card-name"
+                           class="form-input"
+                           placeholder="NOME SOBRENOME"
+                           autocomplete="off"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="card-cpf" class="form-label">CPF do Titular</label>
+                    <input type="text"
+                           id="card-cpf"
+                           name="card-cpf"
+                           class="form-input"
+                           placeholder="000.000.000-00"
+                           autocomplete="off"
+                           maxlength="14"
+                           required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label for="card-expiry" class="form-label">Validade (MM/AA)</label>
+                        <input type="text"
+                               id="card-expiry"
+                               name="card-expiry"
+                               class="form-input"
+                               placeholder="MM/AA"
+                               autocomplete="off"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="card-cvc" class="form-label">CVV</label>
+                        <input type="text"
+                               id="card-cvc"
+                               name="card-cvc"
+                               class="form-input"
+                               placeholder="123"
+                               autocomplete="off"
+                               maxlength="4"
+                               required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="is_default" id="is_default" class="w-4 h-4 text-[#23366f] rounded" @if(count($savedCards) == 0) checked @endif>
+                        <span class="text-sm font-semibold text-slate-700">Tornar este cartão padrão</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button type="button" class="btn-secondary flex-1" id="cancelCardBtn">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn-primary flex-1" id="submitCardBtn">
+                    <i class="fas fa-save"></i> Salvar Cartão
+                </button>
+            </div>
+        </form>
     </div>
-
-    <form id="cardForm">
-        @csrf
-
-        <!-- Card Preview -->
-        <div class="mb-6">
-            <div id="card-wrapper"></div>
-        </div>
-
-        <!-- Formulário -->
-        <div class="space-y-4">
-            <div class="form-group">
-                <label for="card-number" class="form-label">Número do Cartão</label>
-                <input type="text"
-                       id="card-number"
-                       name="card-number"
-                       class="form-input"
-                       placeholder="0000 0000 0000 0000"
-                       autocomplete="off"
-                       maxlength="19"
-                       required>
-            </div>
-
-            <div class="form-group">
-                <label for="card-name" class="form-label">Nome no Cartão</label>
-                <input type="text"
-                       id="card-name"
-                       name="card-name"
-                       class="form-input"
-                       placeholder="NOME SOBRENOME"
-                       autocomplete="off"
-                       required>
-            </div>
-
-            <div class="form-group">
-                <label for="card-cpf" class="form-label">CPF do Titular</label>
-                <input type="text"
-                       id="card-cpf"
-                       name="card-cpf"
-                       class="form-input"
-                       placeholder="000.000.000-00"
-                       autocomplete="off"
-                       maxlength="14"
-                       required>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="form-group">
-                    <label for="card-expiry" class="form-label">Validade (MM/AA)</label>
-                    <input type="text"
-                           id="card-expiry"
-                           name="card-expiry"
-                           class="form-input"
-                           placeholder="MM/AA"
-                           autocomplete="off"
-                           required>
-                </div>
-
-                <div class="form-group">
-                    <label for="card-cvc" class="form-label">CVV</label>
-                    <input type="text"
-                           id="card-cvc"
-                           name="card-cvc"
-                           class="form-input"
-                           placeholder="123"
-                           autocomplete="off"
-                           maxlength="4"
-                           required>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="is_default" id="is_default" class="w-4 h-4 text-[#23366f] rounded" @if(count($savedCards) == 0) checked @endif>
-                    <span class="text-sm font-semibold text-slate-700">Tornar este cartão padrão</span>
-                </label>
-            </div>
-        </div>
-
-        <div class="flex gap-3 mt-6">
-            <button type="button" class="btn-secondary flex-1" id="cancelCardBtn">
-                Cancelar
-            </button>
-            <button type="submit" class="btn-primary flex-1" id="submitCardBtn">
-                <i class="fas fa-save"></i> Salvar Cartão
-            </button>
-        </div>
-    </form>
 </div>
 
 <!-- Aprovei SDK -->

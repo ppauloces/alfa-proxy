@@ -863,37 +863,6 @@
             border: 1px solid rgba(226, 232, 240, 0.9);
         }
 
-        .admin-modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(2px);
-            display: none;
-            z-index: 40;
-        }
-
-        .admin-modal-overlay.active {
-            display: block;
-        }
-
-        .admin-modal {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: min(480px, calc(100% - 2rem));
-            background: #fff;
-            border-radius: 24px;
-            padding: 1.75rem;
-            box-shadow: 0 40px 80px rgba(15, 23, 42, 0.2);
-            z-index: 41;
-            display: none;
-        }
-
-        .admin-modal.active {
-            display: block;
-        }
-
         .timeline {
             display: grid;
             gap: 1rem;
@@ -985,29 +954,16 @@
 
         if (Auth::user()?->isAdmin()) {
             $clientLeads = User::where('cargo', 'usuario')->get();
-
-            // Todas as variáveis admin devem vir do controller
-            // Se não foram definidas, inicializar como vazias para evitar erros
-            // Buscar todas as VPS cadastradas
-            $vpsList = Vps::with('proxies')->orderBy('created_at', 'desc')->get();
-
-
-            // Formatar dados para a view
-            $vpsFarm = $vpsList->map(function ($vps) {
-                $vpsData = [
-                    'id' => $vps->id,
-                    'apelido' => $vps->apelido,
-                    'ip' => $vps->ip,
-                    'pais' => $vps->pais,
-                    'hospedagem' => $vps->hospedagem,
-                    'valor' => 'R$ ' . number_format($vps->valor, 2, ',', '.'),
-                    'periodo' => $vps->periodo_dias . ' dias',
-                    'contratada' => $vps->data_contratacao->format('d/m/Y'),
-                    'status' => $vps->status,
-                    'proxies' => $vps->proxies, // Manter como coleção de objetos
-                ];
-                return (object) $vpsData;
-            });
+            $vpsFarm = $vpsFarm ?? collect();
+            $vpsHistorico = $vpsHistorico ?? collect();
+            $estatisticas = $estatisticas ?? [
+                'total_vps' => 0,
+                'vps_ativas' => 0,
+                'vps_expiradas' => 0,
+                'total_gasto' => 0,
+                'total_proxies_geradas' => 0,
+                'media_proxies_por_vps' => 0,
+            ];
             $generatedProxies = $generatedProxies ?? [];
             $soldProxyCards = $soldProxyCards ?? [];
             $soldProxies = $soldProxies ?? [];
@@ -1058,7 +1014,7 @@
                             $nextExp = $allProxies->sortBy('expires_at')->first();
                         @endphp
                         <p class="text-3xl font-black text-slate-900">
-                            {{ $nextExp ? \Carbon\Carbon::parse($nextExp['expires_at'])->diffForHumans() : 'N/A' }}
+                            {{ intval($nextExp ? \Carbon\Carbon::parse(now())->diffInDays($nextExp['expires_at']) : 'N/A') }} dias
                         </p>
                     </div>
                 </div>
@@ -1243,6 +1199,11 @@
                 @include('dash.partials.admin.proxies')
             </section>
 
+            <section class="dash-section {{ $currentSection === 'admin-historico-vps' ? 'active' : 'hidden' }}"
+                data-section="admin-historico-vps">
+                @include('dash.partials.admin.historico-vps')
+            </section>
+
             <section class="dash-section {{ $currentSection === 'admin-transacoes' ? 'active' : 'hidden' }}"
                 data-section="admin-transacoes">
                 @include('dash.partials.admin.transacoes')
@@ -1263,38 +1224,43 @@
                 @include('dash.partials.admin.cupons')
             </section>
 
-            <div id="buyerModalOverlay" class="admin-modal-overlay"></div>
-            <div id="buyerModal" class="admin-modal">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Cliente</p>
-                        <h3 class="text-2xl font-bold text-slate-900" data-buyer-name>---</h3>
-                        <p class="text-sm text-slate-500" data-buyer-email>---</p>
+            <div id="buyerModalOverlay" class="admin-modal-overlay">
+                <div id="buyerModal" class="admin-modal">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#23366f] flex items-center justify-center text-xl">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black text-slate-900 tracking-tight" data-buyer-name>Cliente</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest" data-buyer-email>email@exemplo.com</p>
+                            </div>
+                        </div>
+                        <button type="button" class="text-slate-400 hover:text-slate-900 transition-all" data-close-buyer>
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
-                    <button type="button" class="text-slate-400 hover:text-slate-900" data-close-buyer>
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Pedidos</p>
-                        <p class="text-lg font-semibold text-slate-900" data-buyer-orders>--</p>
+
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="p-4 bg-slate-50 rounded-2xl">
+                            <p class="text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-1">Pedidos</p>
+                            <p class="text-lg font-black text-slate-900" data-buyer-orders>--</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-2xl">
+                            <p class="text-[10px] uppercase tracking-[0.25em] text-slate-400 mb-1">Gasto total</p>
+                            <p class="text-lg font-black text-slate-900" data-buyer-spent>--</p>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Gasto total</p>
-                        <p class="text-lg font-semibold text-slate-900" data-buyer-spent>--</p>
+
+                    <div class="bg-blue-50/50 rounded-2xl p-5 mb-8 text-sm text-[#23366f] font-medium leading-relaxed" data-buyer-note>
+                        Histórico recente indisponível.
                     </div>
-                </div>
-                <div class="bg-slate-50 rounded-2xl p-4 mb-4 text-sm text-slate-600" data-buyer-note>
-                    Histórico recente indisponível.
-                </div>
-                <div class="flex gap-3">
-                    <button type="button" class="btn-primary flex-1" data-close-buyer>
-                        <i class="fas fa-envelope"></i> Enviar mensagem
-                    </button>
-                    <button type="button" class="btn-secondary flex-1" data-close-buyer>
-                        <i class="fas fa-user-shield"></i> Ver perfil completo
-                    </button>
+
+                    <div class="flex gap-3">
+                        <button type="button" class="btn-primary flex-1 py-4 rounded-2xl bg-[#23366f] text-white font-black hover:scale-[1.02] transition-all shadow-lg shadow-blue-900/20" data-close-buyer>
+                            Confirmar
+                        </button>
+                    </div>
                 </div>
             </div>
         @endif
@@ -1617,7 +1583,6 @@
         setTimeout(() => {
         btn.innerHTML = originalText;
         btn.disabled = false;
-        alert('Teste disparado! Aguarde o retorno do health-check.');
         }, 1200);
         });
         });
@@ -1639,19 +1604,21 @@
 
             // Criar modal PIX
             const modalHTML = `
-            <div id="pixModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-                style="animation: fadeIn 0.3s;">
-                <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4" style="animation: slideUp 0.3s;">
-                    <div class="text-center mb-6">
-                        <div
-                            class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+            <div id="pixModal" class="admin-modal-overlay active">
+                <div class="admin-modal" style="max-width: 500px;">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#23366f] flex items-center justify-center text-xl">
+                                <i class="fas fa-qrcode"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black text-slate-900 tracking-tight">Pagamento PIX</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Aguardando confirmação</p>
+                            </div>
                         </div>
-                        <h2 class="text-2xl font-bold text-slate-900 mb-2">Pagamento PIX</h2>
-                        <p class="text-slate-600">Escaneie o QR Code ou copie o código</p>
+                        <button onclick="fecharModalPix()" class="text-slate-400 hover:text-slate-900 transition-all">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
 
                     <div class="bg-slate-50 rounded-2xl p-6 mb-6">
@@ -1674,36 +1641,32 @@
                             }
                         </div>
 
+                        <!-- Temporizador -->
+                        <div class="text-center text-sm font-black text-amber-600 uppercase tracking-widest mb-4">
+                            <i class="fas fa-clock mr-1"></i> Expira em: <span id="pixTimer"></span>
+                        </div>
+
                         <!-- Código Copia e Cola -->
                         <div class="bg-white rounded-xl p-4 mb-4">
-                            <label class="block text-xs font-semibold text-slate-600 mb-2">PIX Copia e Cola</label>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PIX Copia e Cola</label>
                             <div class="flex gap-2">
                                 <input type="text" id="pixCode" value="${pixData.copia_e_cola}" readonly
-                                    class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono">
+                                    class="flex-1 px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-xs font-mono font-bold text-slate-600 truncate px-2">
                                 <button onclick="copiarPixCode()"
-                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                    </svg>
-                                    Copiar
+                                    class="px-4 py-2 bg-[#23366f] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all flex items-center gap-2 shadow-lg shadow-blue-900/20">
+                                    <i class="fas fa-copy"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Temporizador -->
-                        <div class="text-center text-sm text-slate-600 mb-4">
-                            <p>Expira em: <span id="pixTimer" class="font-semibold text-amber-600"></span></p>
-                        </div>
-
                         <button onclick="fecharModalPix()"
-                            class="w-full py-3 bg-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-300 transition-colors">
-                            Fechar
+                            class="w-full py-4 bg-slate-200 text-slate-700 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-300 transition-all">
+                            Fechar Janela
                         </button>
                     </div>
 
-                    <p class="text-xs text-center text-slate-500">
-                        ID da Transação: <span class="font-mono">${pixData.transaction_code}</span>
+                    <p class="text-[9px] font-bold text-center text-slate-300 uppercase tracking-widest">
+                        ID da Transação: ${pixData.transaction_code}
                     </p>
                 </div>
             </div>

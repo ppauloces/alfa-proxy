@@ -36,6 +36,8 @@ class AdminController extends Controller
                 'contratada' => $vps->data_contratacao->format('d/m/Y'),
                 'status' => $vps->status,
                 'proxies' => $vps->proxies,
+                'usuario_ssh' => $vps->usuario_ssh,
+                'senha_ssh' => $vps->senha_ssh,
             ];
             return (object) $vpsData;
         });
@@ -61,10 +63,10 @@ class AdminController extends Controller
         $vpsHistorico = $vpsList->map(function ($vps) {
             $dataExpiracao = $vps->data_contratacao->addDays($vps->periodo_dias);
             $diasRestantes = now()->diffInDays($dataExpiracao, false);
-            
+
             $statusExpiracao = 'Ativa';
             $badgeExpiracao = 'bg-green-100 text-green-700';
-            
+
             if ($diasRestantes < 0) {
                 $statusExpiracao = 'Expirada';
                 $badgeExpiracao = 'bg-red-100 text-red-700';
@@ -106,12 +108,12 @@ class AdminController extends Controller
         $currentSection = $activeSection;
 
         return view('dash.index', compact(
-            'usuario', 
-            'vpsFarm', 
-            'generatedProxies', 
-            'vpsHistorico', 
-            'estatisticas', 
-            'activeSection', 
+            'usuario',
+            'vpsFarm',
+            'generatedProxies',
+            'vpsHistorico',
+            'estatisticas',
+            'activeSection',
             'currentSection'
         ));
     }
@@ -176,7 +178,7 @@ class AdminController extends Controller
             $vps->update(['status_geracao' => 'pending']);
 
             // Despachar Job para a fila (processamento em background)
-           // \App\Jobs\GerarProxiesJob::dispatch($vps, intval($validated['periodo_dias']), Auth::id());
+            // \App\Jobs\GerarProxiesJob::dispatch($vps, intval($validated['periodo_dias']), Auth::id());
 
             // Resposta imediata ao admin
             if ($request->ajax() || $request->wantsJson()) {
@@ -243,7 +245,7 @@ class AdminController extends Controller
      */
     private function getBadgeClass($status)
     {
-        return match($status) {
+        return match ($status) {
             'pending' => 'bg-yellow-100 text-yellow-800',
             'processing' => 'bg-blue-100 text-blue-800 animate-pulse',
             'completed' => 'bg-green-100 text-green-800',
@@ -257,7 +259,7 @@ class AdminController extends Controller
      */
     private function getBadgeText($status)
     {
-        return match($status) {
+        return match ($status) {
             'pending' => 'Na fila',
             'processing' => 'Gerando...',
             'completed' => 'Concluído',
@@ -315,7 +317,12 @@ class AdminController extends Controller
             // Chamar API Python para bloquear a porta
             $pythonApiUrl = config('services.python_api.url', 'http://127.0.0.1:8001');
             $response = Http::timeout(30)->post("{$pythonApiUrl}/bloquear", $payload);
-
+            Log::info('Resposta da API Python', [
+                'status_code' => $response->status(),
+                'response_body' => $response->body(),
+                'response_json' => $response->json(),
+                'payload_enviado' => $payload,
+            ]);
             if ($response->successful()) {
                 $data = $response->json();
 

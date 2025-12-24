@@ -729,7 +729,7 @@ class LogadoController extends Controller
                 'porta' => (int) $request->porta,
                 'usuario' => $request->usuario,
                 'senha' => $request->senha,
-                'timeout' => 10,
+                'timeout' => 5,
             ]);
 
             if ($response->successful()) {

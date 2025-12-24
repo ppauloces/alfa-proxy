@@ -493,7 +493,11 @@
                                             <button type="button" class="vps-proxy-action-btn danger" data-toggle-port
                                                 data-stock-id="{{ $proxy->id }}"
                                                 data-target="#{{ $statusId }}"
-                                                data-state="{{ $proxy->bloqueada ? 'blocked' : 'open' }}">
+                                                data-state="{{ $proxy->bloqueada ? 'blocked' : 'open' }}"
+                                                data-ip="{{ $farm->ip }}"
+                                                data-porta="{{ $proxy->porta }}"
+                                                data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
+                                                data-senha-ssh="{{ $farm->senha_ssh ?? '' }}">
                                                 <i class="fas {{ $proxy->bloqueada ? 'fa-unlock' : 'fa-ban' }}"></i>
                                                 <span data-btn-text>{{ $proxy->bloqueada ? 'Desbloquear' : 'Bloquear' }}</span>
                                             </button>
@@ -941,24 +945,28 @@
 
         e.preventDefault();
 
+        // Estado inicial real do botão (antes de qualquer modificação)
+        const initialHTML = `
+            <i class="fas fa-vial"></i>
+            <span>Testar proxy</span>
+        `;
+        const initialClasses = 'vps-proxy-action-btn test-proxy-btn';
+
         const ip = testButton.dataset.ip;
         const porta = testButton.dataset.porta;
         const usuario = testButton.dataset.usuario;
         const senha = testButton.dataset.senha;
 
-        const originalHTML = testButton.innerHTML;
-        const originalClasses = testButton.className;
-
         // Animação de carregamento estilo Lauth
         testButton.disabled = true;
-        testButton.className = 'btn-secondary test-proxy-btn text-xs px-3 py-2 relative overflow-hidden';
+        testButton.className = 'vps-proxy-action-btn test-proxy-btn text-xs px-3 py-2 relative overflow-hidden bg-slate-100';
         testButton.innerHTML = `
             <span class="flex items-center gap-2">
-                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg class="animate-spin h-4 w-4 text-[#23366f]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span>Testando...</span>
+                <span class="text-[#23366f] font-bold">Testando...</span>
             </span>
         `;
 
@@ -979,12 +987,14 @@
 
             const data = await response.json();
 
+
+
             if (response.ok && data.status === 'online') {
                 // Buscar geolocalização do IP
                 const geoData = await getIpGeolocation(data.ip_visto_pelo_servidor || ip);
 
                 // Sucesso
-                testButton.className = originalClasses + ' bg-green-500 text-white border-green-500';
+                testButton.className = initialClasses + ' bg-green-500 text-white border-green-500';
                 testButton.innerHTML = '<i class="fas fa-check"></i> Online';
 
                 // Toast com geolocalização
@@ -1006,25 +1016,25 @@
                 showToast(toastMessage, 'success');
             } else {
                 // Erro
-                testButton.className = originalClasses + ' bg-red-500 text-white border-red-500';
+                testButton.className = initialClasses + ' bg-red-500 text-white border-red-500';
                 testButton.innerHTML = '<i class="fas fa-times"></i> Offline';
 
                 showToast(`❌ Proxy offline: ${data.mensagem || data.error || 'Não foi possível conectar'}`, 'error');
             }
 
-            // Restaurar botão após 3 segundos
+            // Restaurar botão ao estado INICIAL após 3 segundos
             setTimeout(() => {
-                testButton.className = originalClasses;
-                testButton.innerHTML = originalHTML;
+                testButton.className = initialClasses;
+                testButton.innerHTML = initialHTML;
                 testButton.disabled = false;
-            }, 3000);
+            }, 1000);
 
         } catch (error) {
             console.error('Erro ao testar proxy:', error);
             showToast('Erro ao conectar com o servidor de testes', 'error');
 
-            testButton.className = originalClasses;
-            testButton.innerHTML = originalHTML;
+            testButton.className = initialClasses;
+            testButton.innerHTML = initialHTML;
             testButton.disabled = false;
         }
     });
@@ -1046,10 +1056,10 @@
         const btnText = toggleButton.querySelector('[data-btn-text]') || toggleButton.childNodes[toggleButton.childNodes.length - 1];
 
         // Determinar ação (se está bloqueada, desbloquear; se está aberta, bloquear)
-        const action = currentState === 'blocked' ? 'bloquear' : 'desbloquear';
-        const endpoint = action === 'desbloquear' ? '/admin/proxy/bloquear' : '/admin/proxy/bloquear';
-       
-        console.log(action, endpoint);
+        const action = currentState === 'desbloquear' ? 'blocked' : 'bloquear';
+        const endpoint = action === 'bloquear' ? '/admin/proxy/bloquear' : '/admin/proxy/desbloquear';
+
+        console.log('Ação:', action, 'Endpoint:', endpoint, 'Estado atual:', currentState);
         // Desabilitar botão durante requisição
         toggleButton.disabled = true;
         icon.className = 'fas fa-spinner fa-spin';

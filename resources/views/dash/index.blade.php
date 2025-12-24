@@ -1536,19 +1536,6 @@
         });
         })();
 
-        (() => {
-        document.querySelectorAll('[data-action="test-proxy"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Testando';
-        btn.disabled = true;
-        setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        }, 1200);
-        });
-        });
-        })();
 
         (() => {
         document.querySelectorAll('[data-replace-toggle]').forEach(btn => {

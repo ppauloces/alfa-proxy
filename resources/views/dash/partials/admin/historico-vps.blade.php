@@ -1,16 +1,3 @@
-@php
-    // Garantir que as variáveis existem com valores padrão
-    $estatisticas = $estatisticas ?? [
-        'total_vps' => 0,
-        'vps_ativas' => 0,
-        'vps_expiradas' => 0,
-        'total_gasto' => 0,
-        'total_proxies_geradas' => 0,
-        'media_proxies_por_vps' => 0,
-    ];
-    $vpsHistorico = $vpsHistorico ?? collect();
-@endphp
-
 <div class="flex flex-col gap-6">
     {{-- Header da Seção --}}
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">

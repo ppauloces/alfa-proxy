@@ -95,6 +95,12 @@ Route::middleware(AdminMiddleware::class)->group(function () {
     Route::get('/admin/historico-vps', [AdminController::class, 'historicoVps'])->name('admin.historico-vps');
     Route::get('/admin/usuarios', [AdminController::class, 'usuarios'])->name('usuarios.show');
 
+    // Relatórios financeiros
+    Route::get('/admin/relatorios', [AdminController::class, 'relatorios'])->name('admin.relatorios');
+
+    // Transações / Vendas
+    Route::get('/admin/transacoes', [AdminController::class, 'transacoes'])->name('admin.transacoes');
+
     // Gerenciamento de portas (bloqueio/desbloqueio)
     Route::post('/admin/proxy/bloquear', [AdminController::class, 'bloquearProxy'])->name('proxy.bloquear');
     Route::post('/admin/proxy/desbloquear', [AdminController::class, 'desbloquearProxy'])->name('proxy.desbloquear');

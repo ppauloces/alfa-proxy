@@ -7,6 +7,7 @@ use App\Models\Stock;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Cartao;
+use App\Models\Despesa;
 use App\Services\ProxyAllocationService;
 use App\Services\AbacatePayService;
 use Illuminate\Http\Request;
@@ -36,9 +37,16 @@ class LogadoController extends Controller
         ];
         $generatedProxies = [];
 
+        // Variáveis para seções admin
+        $financeCards = [];
+        $financeExtract = ['saida' => [], 'entrada' => []];
+        $forecast = [];
+        $soldProxyCards = [];
+        $soldProxies = [];
+
         if ($usuario->isAdmin()) {
             $vpsList = \App\Models\Vps::with('proxies')->orderBy('created_at', 'desc')->get();
-            
+
             $vpsFarm = $vpsList->map(function ($vps) {
                 return (object) [
                     'id' => $vps->id,
@@ -57,10 +65,10 @@ class LogadoController extends Controller
             $vpsHistorico = $vpsList->map(function ($vps) {
                 $dataExpiracao = $vps->data_contratacao->addDays($vps->periodo_dias);
                 $diasRestantes = now()->diffInDays($dataExpiracao, false);
-                
+
                 $statusExpiracao = 'Ativa';
                 $badgeExpiracao = 'bg-green-100 text-green-700';
-                
+
                 if ($diasRestantes < 0) {
                     $statusExpiracao = 'Expirada';
                     $badgeExpiracao = 'bg-red-100 text-red-700';
@@ -111,6 +119,183 @@ class LogadoController extends Controller
                         'senha' => $proxy->senha,
                         'vps' => $proxy->vps ? $proxy->vps->apelido : 'N/A',
                         'status' => $proxy->disponibilidade ? 'Disponivel' : 'Vendida',
+                    ];
+                })->toArray();
+
+            // ===== DADOS PARA RELATÓRIOS FINANCEIROS =====
+            $totalEntradas = Transaction::where('status', 1)->sum('valor');
+            $totalSaidas = \App\Models\Despesa::whereIn('status', ['pago', 'pendente'])->sum('valor');
+            $saldoDisponivel = User::sum('saldo');
+            $lucroLiquido = $totalEntradas - $totalSaidas;
+
+            $financeCards = [
+                [
+                    'label' => 'Total Entradas',
+                    'value' => 'R$ ' . number_format($totalEntradas, 2, ',', '.'),
+                    'trend' => '+' . Transaction::where('status', 1)->whereMonth('created_at', now()->month)->count() . ' este mês',
+                    'bar' => 100,
+                ],
+                [
+                    'label' => 'Total Saídas',
+                    'value' => 'R$ ' . number_format($totalSaidas, 2, ',', '.'),
+                    'trend' => \App\Models\Despesa::whereMonth('created_at', now()->month)->count() . ' despesas este mês',
+                    'bar' => $totalEntradas > 0 ? ($totalSaidas / $totalEntradas) * 100 : 0,
+                ],
+                [
+                    'label' => 'Lucro Líquido',
+                    'value' => 'R$ ' . number_format($lucroLiquido, 2, ',', '.'),
+                    'trend' => $lucroLiquido >= 0 ? 'Positivo' : 'Negativo',
+                    'bar' => $totalEntradas > 0 ? ($lucroLiquido / $totalEntradas) * 100 : 0,
+                ],
+            ];
+
+
+            // ===== EXTRATO DE SAÍDAS (Últimas 25 despesas) =====
+            $saidas = Despesa::with('vps')
+                ->orderBy('created_at', 'desc')
+                ->limit(25)
+                ->get()
+                ->map(function ($despesa) {
+                    return [
+                        'descricao' => $despesa->descricao ?? 'VPS ' . ($despesa->vps->apelido ?? 'N/A'),
+                        'categoria' => ucfirst($despesa->tipo),
+                        'data' => $despesa->created_at->format('d/m/Y'),
+                        'valor' => '- R$ ' . number_format((float) $despesa->valor, 2, ',', '.'),
+                    ];
+                });
+
+
+            // ===== EXTRATO DE ENTRADAS (Últimas 25 transações aprovadas) =====
+            $entradas = Transaction::with('user')
+                ->where('status', 1)
+                ->orderBy('created_at', 'desc')
+                ->limit(25)
+                ->get()
+                ->map(function ($transacao) {
+                    // Determinar tipo de transação
+                    $tipo = $transacao->tipo ?? 'compra_proxy';
+                    $tipoLabel = match ($tipo) {
+                        'compra_proxy' => 'Compra de Proxy',
+                        'recarga' => 'Recarga de Saldo',
+                        default => ucfirst($tipo),
+                    };
+
+
+                    // Determinar método de pagamento
+                    $metodo = $transacao->metodo_pagamento ?? 'saldo';
+
+                    $metodoLabel = match ($metodo) {
+                        'pix' => 'PIX',
+                        'credit_card' => 'Cartão de Crédito',
+                        'saldo' => 'Saldo',
+                        'boleto' => 'Boleto',
+                        'usdt' => 'USDT',
+                        'btc' => 'Bitcoin',
+                        'ltc' => 'Litecoin',
+                        'bnb' => 'Binance',
+                        default => ucfirst($metodo),
+                    };
+
+                    $descricao = $tipoLabel . ' - ' . ($transacao->user->username ?? 'Usuário');
+
+                    return [
+                        'descricao' => $descricao,
+                        'categoria' => $metodoLabel,
+                        'data' => $transacao->created_at->format('d/m/Y'),
+                        'valor' => '+ R$ ' . number_format((float) $transacao->valor, 2, ',', '.'),
+                    ];
+                });
+
+            $financeExtract = [
+                'saida' => $saidas,
+                'entrada' => $entradas,
+            ];
+            $precosPorPeriodo = [
+                30 => 20.00,
+                60 => 35.00,
+                90 => 45.00,
+                180 => 80.00,
+                360 => 120.00,
+            ];
+
+            $proxiesDisponiveis = Stock::where('disponibilidade', true)->count();
+            $precoMedio = array_sum($precosPorPeriodo) / count($precosPorPeriodo);
+            $potencialVenda = $proxiesDisponiveis * $precoMedio;
+
+            $forecast = [
+                [
+                    'title' => 'Estoque Disponível',
+                    'value' => number_format($proxiesDisponiveis, 0, ',', '.') . ' proxies',
+                    'detail' => 'Prontos para venda',
+                ],
+                [
+                    'title' => 'Potencial de Vendas',
+                    'value' => 'R$ ' . number_format($potencialVenda, 2, ',', '.'),
+                    'detail' => 'Baseado no preço médio',
+                ],
+                [
+                    'title' => 'Saldo em Carteiras',
+                    'value' => 'R$ ' . number_format($saldoDisponivel, 2, ',', '.'),
+                    'detail' => 'Saldo total dos usuários',
+                ],
+            ];
+
+            // ===== DADOS PARA TRANSAÇÕES (VENDAS) =====
+            $proxiesVendidos = Stock::where('disponibilidade', false)->count();
+            $proxiesAtivos = Stock::where('disponibilidade', false)->where('bloqueada', false)->count();
+            $proxiesBloqueados = Stock::where('bloqueada', true)->count();
+            $receitaTotal = Transaction::where('status', 1)->sum('valor');
+
+            $soldProxyCards = [
+                [
+                    'label' => 'Total Vendidos',
+                    'value' => number_format($proxiesVendidos, 0, ',', '.'),
+                    'chip' => 'Proxies',
+                ],
+                [
+                    'label' => 'Ativos',
+                    'value' => number_format($proxiesAtivos, 0, ',', '.'),
+                    'chip' => 'Em uso',
+                ],
+                [
+                    'label' => 'Bloqueados',
+                    'value' => number_format($proxiesBloqueados, 0, ',', '.'),
+                    'chip' => 'Suspensos',
+                ],
+                [
+                    'label' => 'Receita Total',
+                    'value' => 'R$ ' . number_format($receitaTotal, 2, ',', '.'),
+                    'chip' => 'Arrecadado',
+                ],
+            ];
+
+            $soldProxies = Stock::with(['user', 'vps'])
+                ->where('disponibilidade', false)
+                ->orderBy('updated_at', 'desc')
+                ->get()
+                ->map(function ($proxy) {
+                    $expiracao = $proxy->expiracao ? Carbon::parse($proxy->expiracao) : null;
+                    $diasRestantes = $expiracao ? now()->diffInDays($expiracao, false) : 0;
+
+                    $gastoCliente = Transaction::where('user_id', $proxy->user_id)
+                        ->where('status', 1)
+                        ->sum('valor');
+
+                    $pedidos = Stock::where('user_id', $proxy->user_id)
+                        ->where('disponibilidade', false)
+                        ->count();
+
+                    return [
+                        'id' => $proxy->id,
+                        'data' => $proxy->updated_at->format('d/m/Y'),
+                        'endereco' => $proxy->ip . ':' . $proxy->porta,
+                        'comprador' => $proxy->user->username ?? 'Anônimo',
+                        'email' => $proxy->user->email ?? 'N/A',
+                        'porta' => $proxy->porta,
+                        'status' => $proxy->bloqueada ? 'bloqueada' : 'ativa',
+                        'periodo' => $diasRestantes > 0 ? $diasRestantes . ' dias' : 'Expirado',
+                        'gasto_cliente' => 'R$ ' . number_format($gastoCliente, 2, ',', '.'),
+                        'pedidos' => $pedidos,
                     ];
                 })->toArray();
         }
@@ -201,6 +386,11 @@ class LogadoController extends Controller
             'vpsHistorico',
             'estatisticas',
             'generatedProxies',
+            'financeCards',
+            'financeExtract',
+            'forecast',
+            'soldProxyCards',
+            'soldProxies',
         ));
     }
 

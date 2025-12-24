@@ -260,9 +260,14 @@
             </label>
             <label class="flex flex-col gap-2">
                 <span class="text-slate-500 font-semibold">Valor da VPS*</span>
-                <input type="number" name="valor" step="0.01" min="0"
-                    class="form-input @error('valor') border-red-500 @enderror" placeholder="120.00"
-                    value="{{ old('valor') }}" required>
+                <div class="relative">
+                    <input type="text" id="vps_valor_mask" 
+                        class="form-input pl-10 @error('valor') border-red-500 @enderror" 
+                        placeholder="0,00"
+                        value="{{ old('valor') ? number_format(old('valor'), 2, ',', '.') : '' }}" required>
+                    
+                    <input type="hidden" name="valor" id="vps_valor_real" value="{{ old('valor') }}">
+                </div>
                 @error('valor')
                     <span class="text-xs text-red-500">{{ $message }}</span>
                 @enderror
@@ -1123,6 +1128,38 @@
             toggleButton.disabled = false;
         }
     });
+
+
+    //MASCARA DE VALOR
+    
+    document.addEventListener('DOMContentLoaded', function() {
+    const inputMask = document.getElementById('vps_valor_mask');
+    const inputReal = document.getElementById('vps_valor_real');
+
+    if (inputMask) {
+        inputMask.addEventListener('input', function(e) {
+            // Remove tudo que não é dígito
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value === '') {
+                inputReal.value = '';
+                return;
+            }
+
+            // Transforma em decimal (ex: 1500 -> 15.00)
+            const floatValue = (parseInt(value) / 100).toFixed(2);
+            
+            // Atualiza o input hidden (valor que o PHP vai ler)
+            inputReal.value = floatValue;
+
+            // Formata para exibição (ex: 1.500,00)
+            e.target.value = new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(floatValue);
+        });
+    }
+});
 </script>
 
 <style>

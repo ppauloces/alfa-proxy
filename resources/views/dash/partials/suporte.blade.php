@@ -16,7 +16,7 @@
                 <p class="text-xs text-slate-500">Resposta em até 24h</p>
             </div>
         </div>
-        <a href="mailto:suporte@alfaproxy.com" class="text-[#4F8BFF] font-semibold text-sm">suporte@alfaproxy.com</a>
+        <a href="mailto:contato@alfaproxy.com" class="text-[#4F8BFF] font-semibold text-sm">contato@alfaproxy.com</a>
     </div>
 
     <div class="contact-method">
@@ -61,24 +61,26 @@
 
             <div class="mb-4">
                 <label class="form-label">Categoria</label>
-                <select name="categoria" class="form-input" required>
-                    <option value="">Selecione uma categoria</option>
-                    <option value="pagamento">Pagamento</option>
-                    <option value="proxy">Problemas com Proxy</option>
-                    <option value="conta">Conta e Perfil</option>
-                    <option value="tecnico">Suporte Técnico</option>
-                    <option value="outros">Outros</option>
-                </select>
+                
+                <x-ui.select name="categoria" :value="old('categoria')" placeholder="Selecione" :options="[
+                    'pagamento' => 'Pagamento',
+                    'proxy' => 'Problemas com Proxy',
+                    'conta' => 'Conta e Perfil',
+                    'tecnico' => 'Suporte Técnico',
+                    'outros' => 'Outros'
+                ]" required>
+                </x-ui.select>
             </div>
 
             <div class="mb-4">
                 <label class="form-label">Prioridade</label>
-                <select name="prioridade" class="form-input" required>
-                    <option value="baixa">Baixa</option>
-                    <option value="media" selected>Média</option>
-                    <option value="alta">Alta</option>
-                    <option value="urgente">Urgente</option>
-                </select>
+                <x-ui.select name="prioridade" :value="old('prioridade')" placeholder="Selecione" :options="[
+                    'baixa' => 'Baixa',
+                    'media' => 'Média',
+                    'alta' => 'Alta',
+                    'urgente' => 'Urgente'
+                ]" required>
+                </x-ui.select>
             </div>
 
             <div class="mb-4">

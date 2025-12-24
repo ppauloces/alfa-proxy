@@ -106,7 +106,7 @@ class LogadoController extends Controller
                 'media_proxies_por_vps' => $vpsList->count() > 0 ? round($vpsList->sum('proxies_geradas') / $vpsList->count(), 1) : 0,
             ];
 
-            $generatedProxies = \App\Models\Stock::with('vps')
+            $generatedProxies = Stock::with('vps')
                 ->whereNotNull('vps_id')
                 ->orderBy('created_at', 'desc')
                 ->limit(25)
@@ -124,7 +124,7 @@ class LogadoController extends Controller
 
             // ===== DADOS PARA RELATÓRIOS FINANCEIROS =====
             $totalEntradas = Transaction::where('status', 1)->sum('valor');
-            $totalSaidas = \App\Models\Despesa::whereIn('status', ['pago', 'pendente'])->sum('valor');
+            $totalSaidas = Despesa::whereIn('status', ['pago', 'pendente'])->sum('valor');
             $saldoDisponivel = User::sum('saldo');
             $lucroLiquido = $totalEntradas - $totalSaidas;
 
@@ -138,7 +138,7 @@ class LogadoController extends Controller
                 [
                     'label' => 'Total Saídas',
                     'value' => 'R$ ' . number_format($totalSaidas, 2, ',', '.'),
-                    'trend' => \App\Models\Despesa::whereMonth('created_at', now()->month)->count() . ' despesas este mês',
+                    'trend' => Despesa::whereMonth('created_at', now()->month)->count() . ' despesas este mês',
                     'bar' => $totalEntradas > 0 ? ($totalSaidas / $totalEntradas) * 100 : 0,
                 ],
                 [

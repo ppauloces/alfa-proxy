@@ -274,14 +274,10 @@
             </label>
             <label class="flex flex-col gap-2">
                 <span class="text-slate-500 font-semibold">País*</span>
-                <select name="pais" class="form-select @error('pais') border-red-500 @enderror" required>
-                    <option value="">Selecione</option>
-                    <option value="Brasil" {{ old('pais') == 'Brasil' ? 'selected' : '' }}>Brasil</option>
-                    <option value="Estados Unidos" {{ old('pais') == 'Estados Unidos' ? 'selected' : '' }}>Estados Unidos
-                    </option>
-                    <option value="Portugal" {{ old('pais') == 'Portugal' ? 'selected' : '' }}>Portugal</option>
-                    <option value="Alemanha" {{ old('pais') == 'Alemanha' ? 'selected' : '' }}>Alemanha</option>
-                </select>
+                <x-ui.select name="pais" :value="old('pais')" placeholder="Selecione" :options="[
+                    'Brasil' => 'Brasil'
+                ]" required>
+                </x-ui.select>
                 @error('pais')
                     <span class="text-xs text-red-500">{{ $message }}</span>
                 @enderror
@@ -296,14 +292,13 @@
             </label>
             <label class="flex flex-col gap-2">
                 <span class="text-slate-500 font-semibold">Período contratado*</span>
-                <select name="periodo_dias" class="form-select @error('periodo_dias') border-red-500 @enderror"
-                    required>
-                    <option value="">Selecione</option>
-                    <option value="30" {{ old('periodo_dias') == '30' ? 'selected' : '' }}>30 dias</option>
-                    <option value="60" {{ old('periodo_dias') == '60' ? 'selected' : '' }}>60 dias</option>
-                    <option value="90" {{ old('periodo_dias') == '90' ? 'selected' : '' }}>90 dias</option>
-                    <option value="180" {{ old('periodo_dias') == '180' ? 'selected' : '' }}>180 dias</option>
-                </select>
+                <x-ui.select name="periodo_dias" :value="old('periodo_dias')" placeholder="Selecione" :options="[
+                    '30' => '30 dias',
+                    '60' => '60 dias',
+                    '90' => '90 dias',
+                    '180' => '180 dias'
+                ]" required>
+                </x-ui.select>
                 @error('periodo_dias')
                     <span class="text-xs text-red-500">{{ $message }}</span>
                 @enderror

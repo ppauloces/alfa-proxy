@@ -27,6 +27,8 @@
             color: var(--sf-dark);
         }
 
+
+
         .grid-overlay {
             position: fixed;
             inset: 0;
@@ -314,19 +316,19 @@
             <div class="flex items-center gap-4">
                 @auth
                     <!-- <div class="flex items-center gap-3 bg-[#23366f]/5 px-4 py-2 rounded-2xl border border-[#23366f]/10">
-                            <div class="w-8 h-8 rounded-lg bg-[#23366f] flex items-center justify-center text-white text-xs">
-                                <i class="fas fa-wallet"></i>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-[9px] uppercase tracking-widest text-slate-400 font-bold leading-none mb-1">Saldo Disponível</span>
-                                <span class="text-sm font-extrabold text-[#23366f] leading-none">
-                                    R$ {{ number_format(Auth::user()->saldo ?? 0, 2, ',', '.') }}
-                                </span>
-                            </div>
-                            <button type="button" data-section-link="saldo" class="ml-2 w-6 h-6 rounded-md bg-white flex items-center justify-center text-[#23366f] hover:bg-[#23366f] hover:text-white transition-all shadow-sm">
-                                <i class="fas fa-plus text-[10px]"></i>
-                            </button>
-                        </div> -->
+                                <div class="w-8 h-8 rounded-lg bg-[#23366f] flex items-center justify-center text-white text-xs">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[9px] uppercase tracking-widest text-slate-400 font-bold leading-none mb-1">Saldo Disponível</span>
+                                    <span class="text-sm font-extrabold text-[#23366f] leading-none">
+                                        R$ {{ number_format(Auth::user()->saldo ?? 0, 2, ',', '.') }}
+                                    </span>
+                                </div>
+                                <button type="button" data-section-link="saldo" class="ml-2 w-6 h-6 rounded-md bg-white flex items-center justify-center text-[#23366f] hover:bg-[#23366f] hover:text-white transition-all shadow-sm">
+                                    <i class="fas fa-plus text-[10px]"></i>
+                                </button>
+                            </div> -->
 
                     <div class="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
 
@@ -612,6 +614,46 @@
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/card/2.5.4/card.min.js"></script>
+
+    <script>
+        document.addEventListener('click', (e) => {
+            // abrir/fechar
+            const trigger = e.target.closest('[data-ui-select-trigger]');
+            const select = trigger?.closest('[data-ui-select]');
+
+            document.querySelectorAll('[data-ui-select-panel]').forEach(panel => {
+                const owner = panel.closest('[data-ui-select]');
+                if (!select || owner !== select) panel.classList.add('hidden');
+            });
+
+            if (trigger && select) {
+                select.querySelector('[data-ui-select-panel]')?.classList.toggle('hidden');
+                return;
+            }
+
+            // escolher opção
+            const opt = e.target.closest('[data-ui-select-option]');
+            if (opt) {
+                const wrapper = opt.closest('[data-ui-select]');
+                const valueEl = wrapper.querySelector('[data-ui-select-value]');
+                const labelEl = wrapper.querySelector('[data-ui-select-label]');
+                const panelEl = wrapper.querySelector('[data-ui-select-panel]');
+
+                valueEl.value = opt.dataset.value;
+                labelEl.textContent = opt.querySelector('span')?.textContent?.trim() || opt.textContent.trim();
+                labelEl.classList.remove('text-slate-400');
+                labelEl.classList.add('text-slate-900');
+
+                panelEl.classList.add('hidden');
+            }
+        });
+
+        // fechar com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            document.querySelectorAll('[data-ui-select-panel]').forEach(p => p.classList.add('hidden'));
+        });
+    </script>
 
 </body>
 

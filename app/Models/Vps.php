@@ -34,4 +34,15 @@ class Vps extends Model
     {
         return $this->hasMany(Stock::class, 'vps_id');
     }
+
+    public function despesas()
+    {
+        return $this->hasMany(Despesa::class);
+    }
+
+    // Helper para pegar o custo total acumulado dessa VPS
+    public function custoTotal()
+    {
+        return $this->despesas()->sum('valor');
+    }
 }

@@ -319,7 +319,14 @@
                         class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" checked>
                     <span class="text-slate-700 font-semibold">Rodar script de geração de proxies</span>
                 </label>
+
+                <label class="flex items-center gap-2 cursor-pointer ml-auto">
+                    <input type="checkbox" name="vps_paga" value="1"
+                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" checked>
+                    <span class="text-slate-700 font-semibold">VPS paga (entrar como despesa)</span>
+                </label>
             </div>
+            
 
             <div class="md:col-span-3 flex flex-wrap gap-3 mt-6">
                 <button type="submit" class="btn-secondary">

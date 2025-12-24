@@ -6,6 +6,7 @@ use App\Models\Vps;
 use App\Models\Stock;
 use App\Models\User;
 use App\Models\Cartao;
+use App\Models\Despesa;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -178,7 +179,7 @@ class AdminController extends Controller
             $vps->update(['status_geracao' => 'pending']);
 
             // Despachar Job para a fila (processamento em background)
-            // \App\Jobs\GerarProxiesJob::dispatch($vps, intval($validated['periodo_dias']), Auth::id());
+            \App\Jobs\GerarProxiesJob::dispatch($vps, intval($validated['periodo_dias']), Auth::id());
 
             // Resposta imediata ao admin
             if ($request->ajax() || $request->wantsJson()) {
@@ -192,6 +193,20 @@ class AdminController extends Controller
             return redirect()
                 ->route('admin.proxies')
                 ->with('success', 'VPS cadastrada! A geração de proxies está sendo processada em background.');
+        }
+
+        if ($request->has('vps_paga') && $request->vps_paga) {
+           
+            // Criar a despesa
+            Despesa::create([
+                'vps_id' => $vps->id,
+                'tipo' => 'compra',
+                'valor' => $validated['valor'],
+                'descricao' => 'VPS ' . $vps->apelido . ' paga',
+                'data_vencimento' => $validated['data_contratacao'],
+                'data_pagamento' => $validated['data_contratacao'],
+                'status' => 'pago',
+            ]);
         }
 
         // Se for requisição AJAX sem script, retornar JSON

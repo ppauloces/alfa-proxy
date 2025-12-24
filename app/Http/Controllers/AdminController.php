@@ -368,4 +368,54 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * Atualizar apelido da VPS
+     */
+    public function atualizarApelidoVps(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'vps_id' => 'required|exists:vps,id',
+                'apelido' => 'required|string|max:255|min:1',
+            ], [
+                'vps_id.required' => 'ID da VPS é obrigatório.',
+                'vps_id.exists' => 'VPS não encontrada.',
+                'apelido.required' => 'O apelido é obrigatório.',
+                'apelido.max' => 'O apelido deve ter no máximo 255 caracteres.',
+                'apelido.min' => 'O apelido deve ter pelo menos 1 caractere.',
+            ]);
+
+            $vps = Vps::findOrFail($validated['vps_id']);
+            $vps->update(['apelido' => $validated['apelido']]);
+
+            Log::info('Apelido da VPS atualizado', [
+                'vps_id' => $vps->id,
+                'apelido_antigo' => $vps->getOriginal('apelido'),
+                'apelido_novo' => $validated['apelido'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Apelido atualizado com sucesso!',
+                'apelido' => $validated['apelido'],
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->validator->errors()->first(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Erro ao atualizar apelido da VPS', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao atualizar apelido: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }

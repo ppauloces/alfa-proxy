@@ -436,8 +436,16 @@
                 <div class="admin-modal vps-modal">
                     <div class="vps-modal-header flex items-start justify-between gap-4">
                         <div class="min-w-0 flex-1">
-                            <h3 class="text-xl lg:text-2xl font-black text-slate-900 truncate tracking-tight">
-                                {{ $farm->apelido }}</h3>
+                            <div class="flex items-center gap-2">
+                                <h3 id="vps-apelido-{{ $farm->id }}" class="text-xl lg:text-2xl font-black text-slate-900 truncate tracking-tight">
+                                    {{ $farm->apelido }}</h3>
+                                <button type="button"
+                                    class="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-200 transition-all flex items-center justify-center"
+                                    data-edit-apelido="{{ $farm->id }}"
+                                    title="Editar apelido">
+                                    <i class="fas fa-pen text-xs"></i>
+                                </button>
+                            </div>
                             <p class="text-xs lg:text-sm text-slate-400 font-medium truncate">{{ $farm->ip }} &middot;
                                 {{ $farm->pais }} &middot; {{ $farm->hospedagem }}</p>
                             <div
@@ -1227,7 +1235,7 @@
 
 
     //MASCARA DE VALOR
-    
+
     document.addEventListener('DOMContentLoaded', function() {
     const inputMask = document.getElementById('vps_valor_mask');
     const inputReal = document.getElementById('vps_valor_real');
@@ -1236,7 +1244,7 @@
         inputMask.addEventListener('input', function(e) {
             // Remove tudo que não é dígito
             let value = e.target.value.replace(/\D/g, '');
-            
+
             if (value === '') {
                 inputReal.value = '';
                 return;
@@ -1244,7 +1252,7 @@
 
             // Transforma em decimal (ex: 1500 -> 15.00)
             const floatValue = (parseInt(value) / 100).toFixed(2);
-            
+
             // Atualiza o input hidden (valor que o PHP vai ler)
             inputReal.value = floatValue;
 
@@ -1256,6 +1264,124 @@
         });
     }
 });
+
+    // ============================================
+    // EDITAR APELIDO DA VPS
+    // ============================================
+
+    document.addEventListener('click', async function(e) {
+        const editButton = e.target.closest('[data-edit-apelido]');
+        if (!editButton) return;
+
+        e.preventDefault();
+
+        const vpsId = editButton.dataset.editApelido;
+        const apelidoElement = document.getElementById(`vps-apelido-${vpsId}`);
+        const currentApelido = apelidoElement.textContent.trim();
+
+        // Criar input para edição inline
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentApelido;
+        input.className = 'text-xl lg:text-2xl font-black text-slate-900 tracking-tight border-2 border-blue-500 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500';
+        input.style.maxWidth = '100%';
+
+        // Substituir h3 por input
+        apelidoElement.replaceWith(input);
+        input.focus();
+        input.select();
+
+        // Função para salvar
+        const saveApelido = async () => {
+            const novoApelido = input.value.trim();
+
+            // Se não mudou, apenas restaurar
+            if (novoApelido === currentApelido || novoApelido === '') {
+                const h3 = document.createElement('h3');
+                h3.id = `vps-apelido-${vpsId}`;
+                h3.className = 'text-xl lg:text-2xl font-black text-slate-900 truncate tracking-tight';
+                h3.textContent = currentApelido;
+                input.replaceWith(h3);
+                return;
+            }
+
+            // Desabilitar input durante salvamento
+            input.disabled = true;
+            input.className = input.className.replace('border-blue-500', 'border-gray-300');
+
+            try {
+                const response = await fetch('{{ route("vps.atualizar-apelido") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({
+                        vps_id: vpsId,
+                        apelido: novoApelido
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Restaurar h3 com novo apelido
+                    const h3 = document.createElement('h3');
+                    h3.id = `vps-apelido-${vpsId}`;
+                    h3.className = 'text-xl lg:text-2xl font-black text-slate-900 truncate tracking-tight';
+                    h3.textContent = data.apelido;
+                    input.replaceWith(h3);
+
+                    // Mostrar notificação de sucesso
+                    showToast('Apelido atualizado com sucesso!', 'success');
+
+                    // Atualizar também no card da lista (se existir)
+                    const cardApelido = document.querySelector(`[data-open-vps-modal="vpsModal-${vpsId}"] p.text-lg`);
+                    if (cardApelido) {
+                        cardApelido.textContent = data.apelido;
+                    }
+                } else {
+                    // Restaurar valor anterior
+                    const h3 = document.createElement('h3');
+                    h3.id = `vps-apelido-${vpsId}`;
+                    h3.className = 'text-xl lg:text-2xl font-black text-slate-900 truncate tracking-tight';
+                    h3.textContent = currentApelido;
+                    input.replaceWith(h3);
+
+                    showToast(data.error || 'Erro ao atualizar apelido', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar apelido:', error);
+
+                // Restaurar valor anterior
+                const h3 = document.createElement('h3');
+                h3.id = `vps-apelido-${vpsId}`;
+                h3.className = 'text-xl lg:text-2xl font-black text-slate-900 truncate tracking-tight';
+                h3.textContent = currentApelido;
+                input.replaceWith(h3);
+
+                showToast('Erro ao conectar com o servidor', 'error');
+            }
+        };
+
+        // Salvar ao pressionar Enter
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveApelido();
+            } else if (e.key === 'Escape') {
+                // Cancelar edição
+                const h3 = document.createElement('h3');
+                h3.id = `vps-apelido-${vpsId}`;
+                h3.className = 'text-xl lg:text-2xl font-black text-slate-900 truncate tracking-tight';
+                h3.textContent = currentApelido;
+                input.replaceWith(h3);
+            }
+        });
+
+        // Salvar ao perder o foco
+        input.addEventListener('blur', saveApelido);
+    });
 </script>
 
 <style>

@@ -104,4 +104,7 @@ Route::middleware(AdminMiddleware::class)->group(function () {
     // Gerenciamento de portas (bloqueio/desbloqueio)
     Route::post('/admin/proxy/bloquear', [AdminController::class, 'bloquearProxy'])->name('proxy.bloquear');
     Route::post('/admin/proxy/desbloquear', [AdminController::class, 'desbloquearProxy'])->name('proxy.desbloquear');
+
+    // Atualizar apelido da VPS
+    Route::post('/admin/vps/atualizar-apelido', [AdminController::class, 'atualizarApelidoVps'])->name('vps.atualizar-apelido');
 });

@@ -961,21 +961,24 @@
 
         e.preventDefault();
 
-        // Estado inicial real do botão (antes de qualquer modificação)
-        const initialHTML = `
-            <i class="fas fa-vial"></i>
-            <span>Testar proxy</span>
-        `;
-        const initialClasses = 'vps-proxy-action-btn test-proxy-btn';
+        // Salva a classe original do botão (para não "transformar" botões de outras tabelas/seções)
+        if (!testButton.dataset.restoreClass) {
+            testButton.dataset.restoreClass = testButton.className || '';
+        }
+
+        // Padrão escolhido: sempre voltar para "Testar"
+        const defaultHTML = '<i class="fas fa-vial"></i> Testar';
+        const restoreClass = testButton.dataset.restoreClass;
 
         const ip = testButton.dataset.ip;
         const porta = testButton.dataset.porta;
         const usuario = testButton.dataset.usuario;
         const senha = testButton.dataset.senha;
 
-        // Animação de carregamento estilo Lauth
+        // Animação de carregamento
         testButton.disabled = true;
-        testButton.className = 'vps-proxy-action-btn test-proxy-btn text-xs px-3 py-2 relative overflow-hidden bg-slate-100';
+        testButton.className = restoreClass;
+        testButton.classList.add('opacity-80', 'cursor-wait');
         testButton.innerHTML = `
             <span class="flex items-center gap-2">
                 <svg class="animate-spin h-4 w-4 text-[#23366f]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1010,7 +1013,8 @@
                 const geoData = await getIpGeolocation(data.ip_visto_pelo_servidor || ip);
 
                 // Sucesso
-                testButton.className = initialClasses + ' bg-green-500 text-white border-green-500';
+                testButton.className = restoreClass;
+                testButton.classList.add('bg-green-500', 'text-white', 'border-green-500');
                 testButton.innerHTML = '<i class="fas fa-check"></i> Online';
 
                 // Toast com geolocalização
@@ -1032,16 +1036,17 @@
                 showToast(toastMessage, 'success');
             } else {
                 // Erro
-                testButton.className = initialClasses + ' bg-red-500 text-white border-red-500';
+                testButton.className = restoreClass;
+                testButton.classList.add('bg-red-500', 'text-white', 'border-red-500');
                 testButton.innerHTML = '<i class="fas fa-times"></i> Offline';
 
                 showToast(`❌ Proxy offline: ${data.mensagem || data.error || 'Não foi possível conectar'}`, 'error');
             }
 
-            // Restaurar botão ao estado INICIAL após 3 segundos
+            // Restaurar botão ao padrão escolhido após 1s
             setTimeout(() => {
-                testButton.className = initialClasses;
-                testButton.innerHTML = initialHTML;
+                testButton.className = restoreClass;
+                testButton.innerHTML = defaultHTML;
                 testButton.disabled = false;
             }, 1000);
 
@@ -1049,8 +1054,8 @@
             console.error('Erro ao testar proxy:', error);
             showToast('Erro ao conectar com o servidor de testes', 'error');
 
-            testButton.className = initialClasses;
-            testButton.innerHTML = initialHTML;
+            testButton.className = restoreClass;
+            testButton.innerHTML = defaultHTML;
             testButton.disabled = false;
         }
     });

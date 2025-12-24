@@ -63,44 +63,28 @@
                         <td>
                             <span id="{{ $statusId }}" class="badge-status" data-status="{{ $proxy['status'] }}">{{ ucfirst($proxy['status']) }}</span>
                         </td>
-                        <td>{{ $proxy['periodo'] }}</td>
+                        <td>{{ intval($proxy['periodo']) }} dias</td>
                         <td>
                             <div class="flex flex-wrap gap-2">
-                                <button type="button" class="btn-secondary text-xs px-3 py-2" data-action="test-proxy">
+                                <button type="button"
+                                    class="btn-secondary text-xs px-3 py-2"
+                                    data-action="test-proxy"
+                                    data-ip="{{ $proxy['ip'] }}"
+                                    data-porta="{{ $proxy['porta'] }}"
+                                    data-usuario="{{ $proxy['usuario'] }}"
+                                    data-senha="{{ $proxy['senha'] }}">
                                     <i class="fas fa-vial"></i> Testar
                                 </button>
                                 <button type="button"
                                     class="btn-secondary text-xs px-3 py-2"
                                     data-toggle-port
+                                    data-stock-id="{{ $proxy['stock_id'] }}"
                                     data-target="#{{ $statusId }}"
                                     data-state="{{ $blocked ? 'blocked' : 'open' }}">
-                                    <i class="fas fa-ban"></i> {{ $blocked ? 'Desbloquear' : 'Bloquear' }}
-                                </button>
-                                <button type="button"
-                                    class="btn-secondary text-xs px-3 py-2"
-                                    data-replace-toggle="#replaceRow{{ $loop->index }}">
-                                    <i class="fas fa-rotate"></i> Repor proxy
+                                    <i class="fas fa-ban"></i> <span data-btn-text>{{ $blocked ? 'Desbloquear' : 'Bloquear' }}</span>
                                 </button>
                             </div>
-                            <div id="replaceRow{{ $loop->index }}" class="replace-panel hidden mt-2">
-                                <div class="grid sm:grid-cols-2 gap-2 mb-2">
-                                    <select class="form-select text-xs">
-                                        <option>Selecione a VPS</option>
-                                        @foreach($availableVps as $vps)
-                                            <option>{{ $vps }}</option>
-                                        @endforeach
-                                    </select>
-                                    <select class="form-select text-xs">
-                                        <option>Proxy disponível</option>
-                                        <option>#001 - BR-ALFA 01</option>
-                                        <option>#040 - US-NODE 03</option>
-                                        <option>#072 - EU-SCALA 02</option>
-                                    </select>
-                                </div>
-                                <button type="button" class="btn-primary text-xs px-3 py-2 w-full">
-                                    <i class="fas fa-paper-plane"></i> Confirmar reposição (valor 0)
-                                </button>
-                            </div>
+
                         </td>
                     </tr>
                 @endforeach
@@ -108,3 +92,89 @@
         </table>
     </div>
 </div>
+
+<!-- Container de Notificações Toast -->
+<div id="toastContainer" class="fixed top-20 right-4 space-y-3" style="max-width: 400px; z-index: 9999;">
+    <!-- Toasts serão injetados aqui -->
+</div>
+
+<script>
+    // Prevenir execução duplicada do script
+    if (window.transacoesScriptLoaded) {
+        console.log('Script de transações já carregado, pulando inicialização');
+    } else {
+        window.transacoesScriptLoaded = true;
+
+        // ============================================
+        // SISTEMA DE TOAST DE NOTIFICAÇÕES
+        // ============================================
+        if (typeof window.showToast === 'undefined') {
+            window.showToast = function(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `transform transition-all duration-300 translate-x-full`;
+
+        const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+        const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+
+        toast.innerHTML = `
+            <div class="${bgColor} text-white px-6 py-4 rounded-lg shadow-xl flex items-start gap-3 min-w-[320px] max-w-[400px]">
+                <i class="fas ${icon} text-xl flex-shrink-0 mt-0.5"></i>
+                <div class="font-medium flex-1 text-sm leading-relaxed">${message}</div>
+                <button onclick="this.closest('.transform').remove()" class="flex-shrink-0 hover:bg-white/20 rounded p-1 transition-colors">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+        `;
+
+        const toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) return;
+
+        // Garantir que o container fique acima da modal
+        if (toastContainer.parentNode !== document.body) {
+            document.body.appendChild(toastContainer);
+        }
+
+        toastContainer.appendChild(toast);
+
+        // Animar entrada
+        setTimeout(() => {
+            toast.className = 'transform transition-all duration-300 translate-x-0';
+        }, 10);
+
+        // Remover após 8 segundos
+        setTimeout(() => {
+            toast.className = 'transform transition-all duration-300 translate-x-full';
+            setTimeout(() => toast.remove(), 300);
+        }, 8000);
+            };
+        }
+
+        // ============================================
+        // TESTAR PROXY
+        // ============================================
+        if (typeof window.getIpGeolocation === 'undefined') {
+            window.getIpGeolocation = async function(ip) {
+        try {
+            const response = await fetch(`https://ipapi.co/${ip}/json/`);
+            if (response.ok) {
+                const data = await response.json();
+                return {
+                    city: data.city || 'N/A',
+                    region: data.region || 'N/A',
+                    country: data.country_name || 'N/A',
+                    flag: data.country_code ? `https://flagcdn.com/16x12/${data.country_code.toLowerCase()}.png` : null
+                };
+            }
+        } catch (error) {
+            console.error('Erro ao buscar geolocalização:', error);
+            }
+            return null;
+            };
+        }
+
+        document.addEventListener('click', async function handleTogglePort(e) {
+            const toggleButton = e.target.closest('[data-toggle-port]');
+            if (!toggleButton) return;
+        });
+    }
+</script>

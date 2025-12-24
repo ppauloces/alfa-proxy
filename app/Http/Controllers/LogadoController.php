@@ -287,11 +287,15 @@ class LogadoController extends Controller
 
                     return [
                         'id' => $proxy->id,
+                        'stock_id' => $proxy->id,
                         'data' => $proxy->updated_at->format('d/m/Y'),
                         'endereco' => $proxy->ip . ':' . $proxy->porta,
                         'comprador' => $proxy->user->username ?? 'Anônimo',
                         'email' => $proxy->user->email ?? 'N/A',
+                        'ip' => $proxy->ip,
                         'porta' => $proxy->porta,
+                        'usuario' => $proxy->usuario,
+                        'senha' => $proxy->senha,
                         'status' => $proxy->bloqueada ? 'bloqueada' : 'ativa',
                         'periodo' => $diasRestantes > 0 ? $diasRestantes . ' dias' : 'Expirado',
                         'gasto_cliente' => 'R$ ' . number_format($gastoCliente, 2, ',', '.'),

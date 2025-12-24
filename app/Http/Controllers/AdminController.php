@@ -23,7 +23,7 @@ class AdminController extends Controller
         ]);
     }
     public function historicoVps(Request $request)
-    {
+    { 
         return redirect()->route('dash.show', ['section' => $request->query('section', 'admin-historico-vps')]);
     }
 

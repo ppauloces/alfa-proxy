@@ -212,6 +212,85 @@
         #priceDisplay {
             font-family: 'Onest', sans-serif;
         }
+
+        /* Multilogin Logo Marquee */
+        @keyframes marquee {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        .logo-marquee {
+            position: relative;
+        }
+
+        .logo-marquee-track {
+            display: flex;
+            width: max-content;
+            gap: 16px;
+            animation: marquee 26s linear infinite;
+            will-change: transform;
+        }
+
+        .logo-marquee:hover .logo-marquee-track {
+            animation-play-state: paused;
+        }
+
+        .logo-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+            color: #0f172a;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .logo-pill:hover {
+            transform: translateY(-2px);
+            border-color: rgba(35, 54, 111, 0.25);
+            box-shadow: 0 22px 55px rgba(15, 23, 42, 0.10);
+        }
+
+        .logo-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+        }
+
+        .logo-fade {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 140px;
+            pointer-events: none;
+        }
+
+        .logo-fade.left {
+            left: 0;
+            background: linear-gradient(90deg, rgba(248, 250, 252, 1) 0%, rgba(248, 250, 252, 0) 100%);
+        }
+
+        .logo-fade.right {
+            right: 0;
+            background: linear-gradient(270deg, rgba(248, 250, 252, 1) 0%, rgba(248, 250, 252, 0) 100%);
+        }
     </style>
 </head>
 
@@ -266,7 +345,7 @@
 
     <!-- Hero Section -->
     <section class="relative flex items-start justify-center overflow-hidden"
-        style="background: linear-gradient(to right, #438ccb, #316fab, #306da8, #3066a0, #2a508a, #233a72); min-height: 100vh; padding-top: 120px;">
+        style="background: linear-gradient(to right, #438ccb, #316fab, #306da8, #3066a0, #2a508a, #233a72); min-height: 85vh; padding-top: 120px;">
         <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-16 items-start">
 
@@ -343,14 +422,45 @@
                             class="calculator-card bg-white/60 backdrop-blur-md rounded-xl px-4 py-3 flex-1 min-w-[140px] relative">
                             <label
                                 class="block text-[10px] font-semibold text-[#94A3B8] mb-1 uppercase tracking-wider">Período</label>
-                            <select id="rentalPeriod"
-                                class="w-full text-[#1E293B] font-bold text-sm bg-transparent border-none outline-none appearance-none cursor-pointer hover:text-[#2055d5] transition-colors pr-5">
-                                <option value="30" data-price="20">30 dias</option>
-                                <option value="60" data-price="35">60 dias</option>
-                                <option value="90" data-price="45">90 dias</option>
-                                <option value="180" data-price="80">180 dias</option>
-                                <option value="360" data-price="120">360 dias</option>
-                            </select>
+                            <div class="relative" data-ui-select data-sync-select="#rentalPeriod">
+                                <!-- select original escondido (mantém toda a lógica/JS existente) -->
+                                <select id="rentalPeriod"
+                                    class="appearance-none absolute opacity-0 pointer-events-none w-0 h-0 overflow-hidden">
+                                    <option value="30" data-price="20">30 dias</option>
+                                    <option value="60" data-price="35">60 dias</option>
+                                    <option value="90" data-price="45">90 dias</option>
+                                    <option value="180" data-price="80">180 dias</option>
+                                    <option value="360" data-price="120">360 dias</option>
+                                </select>
+
+                                <!-- trigger visual -->
+                                <button type="button"
+                                    class="w-full text-[#1E293B] font-bold text-sm bg-transparent border-none outline-none cursor-pointer hover:text-[#2055d5] transition-colors pr-6 text-left"
+                                    data-ui-select-trigger>
+                                    <span data-ui-select-label>30 dias</span>
+
+                                </button>
+
+                                <!-- dropdown -->
+                                <div class="absolute z-[9999] mt-2 w-full rounded-xl border border-slate-200 bg-white shadow-xl hidden overflow-hidden"
+                                    data-ui-select-panel>
+                                    <button type="button"
+                                        class="w-full px-4 py-3 text-left hover:bg-slate-50 font-bold text-sm text-slate-700"
+                                        data-ui-select-option data-value="30">30 dias</button>
+                                    <button type="button"
+                                        class="w-full px-4 py-3 text-left hover:bg-slate-50 font-bold text-sm text-slate-700"
+                                        data-ui-select-option data-value="60">60 dias</button>
+                                    <button type="button"
+                                        class="w-full px-4 py-3 text-left hover:bg-slate-50 font-bold text-sm text-slate-700"
+                                        data-ui-select-option data-value="90">90 dias</button>
+                                    <button type="button"
+                                        class="w-full px-4 py-3 text-left hover:bg-slate-50 font-bold text-sm text-slate-700"
+                                        data-ui-select-option data-value="180">180 dias</button>
+                                    <button type="button"
+                                        class="w-full px-4 py-3 text-left hover:bg-slate-50 font-bold text-sm text-slate-700"
+                                        data-ui-select-option data-value="360">360 dias</button>
+                                </div>
+                            </div>
                             <svg class="w-3.5 h-3.5 text-[#94A3B8] absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -382,177 +492,174 @@
                 </div>
             </div>
         </div>
+        <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-[0] transform rotate-180">
+            <svg class="relative block w-[calc(100%+1.3px)] h-[80px]" data-name="Layer 1"
+                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path
+                    d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5,73.84-4.36,147.54,16.88,218.2,35.26,69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113,2.99,1200,52.47V0Z"
+                    fill="#FFFFFF" opacity=".25"></path>
+                <path
+                    d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+                    fill="#FFFFFF" opacity=".5"></path>
+                <path
+                    d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.41,31.3,13.6,63.24,28.27,97,33.15,64.44,9.33,121.51-12.05,174.69-42.33,54.31-30.9,104.58-40.4,165.31-41.59V0Z"
+                    fill="#FFFFFF"></path>
+            </svg>
+        </div>
     </section>
 
-    <!-- Calculator Section -->
-    <section id="calculator" class="py-16 bg-white">
-        <div class="container mx-auto px-4">
-            <div class="max-w-4xl mx-auto bg-gray-50 rounded-xl shadow-md overflow-hidden">
-                <div class="p-8">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Monte seu pacote de proxies</h3>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <!-- Proxy Type -->
-                        <div>
-                            <label for="proxyType" class="block text-sm font-medium text-gray-700 mb-2">Tipo de
-                                Proxy</label>
-                            <div class="dropdown">
-                                <select id="proxyType"
-                                    class="dropdown-select w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                                    <option value="socks5" selected>SOCKS5</option>
-                                    <option value="http">HTTP</option>
-                                    <option value="https">HTTPS</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Country -->
-                        <div>
-                            <label for="country" class="block text-sm font-medium text-gray-700 mb-2">País</label>
-                            <div class="dropdown">
-                                <select id="country"
-                                    class="dropdown-select w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                                    <option value="br" selected>Brasil</option>
-                                    <option value="us">Estados Unidos</option>
-                                    <option value="uk">Reino Unido</option>
-                                    <option value="de">Alemanha</option>
-                                    <option value="fr">França</option>
-                                    <option value="jp">Japão</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Rental Period -->
-                        <div>
-                            <label for="rentalPeriod" class="block text-sm font-medium text-gray-700 mb-2">Período de
-                                Aluguel</label>
-                            <div class="dropdown">
-                                <select id="rentalPeriod"
-                                    class="dropdown-select w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                                    <option value="7">7 dias</option>
-                                    <option value="14">14 dias</option>
-                                    <option value="30" selected>30 dias</option>
-                                    <option value="90">90 dias</option>
-                                    <option value="180">180 dias</option>
-                                    <option value="365">365 dias</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Quantity -->
-                        <div>
-                            <label for="quantity"
-                                class="block text-sm font-medium text-gray-700 mb-2">Quantidade</label>
-                            <input type="number" id="quantity" min="1" value="1"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+    <!-- Multilogins (overlap + continuidade visual) -->
+    <section class="relative -mt-24 pb-20 overflow-hidden bg-gradient-to-b from-transparent via-gray-50/70 to-gray-50">
+        <div class="container mx-auto px-6">
+            <div
+                class="relative rounded-[2.25rem] border border-white/30 bg-white/35 backdrop-blur-2xl shadow-[0_28px_70px_rgba(15,23,42,0.18)] overflow-hidden">
+                <div class="px-6 sm:px-10 pt-10 pb-6">
+                    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+                        <div class="max-w-3xl">
+                            <p class="text-[10px] font-black uppercase tracking-[0.35em] text-slate-500">Integrações</p>
+                            <h2 class="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                                Funciona com 99.9% dos multilogins do mercado
+                            </h2>
+                            <p class="mt-2 text-slate-500 font-medium">
+                                Você compra aqui e usa nos seus perfis imediatamente.
+                            </p>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Price Display -->
-                    <div class="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-8">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h4 class="text-lg font-semibold text-gray-800">Total do Pedido</h4>
-                                <p class="text-sm text-gray-600">Preço calculado com base nas suas seleções</p>
+                <div class="px-4 sm:px-10 pb-10">
+                    <div
+                        class="relative rounded-[1.75rem] border border-slate-200 bg-white/75 backdrop-blur-xl overflow-hidden">
+                        <div class="logo-marquee py-6">
+                            <div class="logo-marquee-track px-6">
+                                @php
+                                    $multilogins = [
+                                        ['name' => 'Lauth App', 'logo' => 'lauth.webp', 'bg' => '#000002'],
+                                        ['name' => 'AdsPower', 'logo' => 'adspower.webp', 'bg' => '#1952FF'],
+                                        ['name' => 'Dolphin Anty', 'logo' => 'dolphin.webp', 'bg' => 'linear-gradient(180deg, #b645ee 0.6%, #9b26b6 100%)'],
+                                        ['name' => 'GoLogin', 'logo' => 'gologin.jpeg', 'bg' => 'white'],
+                                        ['name' => 'Incogniton', 'logo' => 'incogniton.png', 'bg' => '#000002'],
+                                        ['name' => 'Multilogin', 'logo' => 'multilogin.jpeg', 'bg' => '#fff'],
+                                        ['name' => 'Octo Browser', 'logo' => 'octobrowser.png', 'bg' => 'linear-gradient(180deg, #FFFFFF 15%, #A5F0F0 85%)'],
+                                        ['name' => 'VMLogin', 'logo' => 'vmlogin.png', 'bg' => ' #fff'],
+                                    ];
+                                @endphp
+
+                                @foreach(array_merge($multilogins, $multilogins) as $item)
+                                    <div
+                                        class="logo-pill flex items-center gap-3 bg-white border border-slate-100 px-4 py-2 rounded-2xl shadow-sm">
+                                        <span class="logo-mark w-8 h-8 rounded-lg flex items-center justify-center p-1.5"
+                                            style="background: {{ $item['bg'] }};">
+                                            <img src="{{ asset('images/multilogins/' . $item['logo']) }}"
+                                                alt="{{ $item['name'] }} Logo" class="w-full h-full object-contain">
+                                            {{-- Removi 'brightness-0 invert' para mostrar as cores originais --}}
+                                            {{-- A classe 'brightness-0 invert' deixa o logo branco, combinando com seus
+                                            gradientes escuros --}}
+                                        </span>
+                                        <span class="text-sm font-black tracking-tight text-slate-900">
+                                            {{ $item['name'] }}
+                                        </span>
+                                    </div>
+                                @endforeach
                             </div>
-                            <div class="text-right">
-                                <p class="text-sm text-gray-600">Preço total</p>
-                                <p id="totalPrice" class="text-3xl font-bold text-blue-600">R$ 29,90</p>
-                            </div>
+
+                            <div class="logo-fade left"></div>
+                            <div class="logo-fade right"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+    </section>
 
-                    <!-- Submit Button -->
-                    <button id="submitBtn"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center space-x-2">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span>Comprar Agora</span>
-                    </button>
+    <!-- Benefícios rápidos -->
+    <section class="relative py-16 bg-gradient-to-b from-gray-50 to-slate-100">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
+                <div class="max-w-2xl">
+                    <p class="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Benefícios</p>
+                    <h2 class="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                        Tudo o que você precisa para rodar em escala
+                    </h2>
+                    <p class="mt-2 text-slate-500 font-medium">
+                        Setup rápido, estabilidade e suporte para manter sua operação fluindo.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div
+                    class="group rounded-[2rem] border border-slate-200 bg-white/70 backdrop-blur-xl p-8 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-[#23366f]/10 text-[#23366f] flex items-center justify-center mb-5">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-black text-slate-900 tracking-tight">Ativação instantânea</h3>
+                    <p class="mt-2 text-sm text-slate-500 font-medium">Comprou, conectou e começou a usar — sem espera.
+                    </p>
+                </div>
+
+                <div
+                    class="group rounded-[2rem] border border-slate-200 bg-white/70 backdrop-blur-xl p-8 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-[#23366f]/10 text-[#23366f] flex items-center justify-center mb-5">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V6l-8-4-8 4v6c0 6 8 10 8 10z" />
+                            <path d="M9 12l2 2 4-4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-black text-slate-900 tracking-tight">Operação segura</h3>
+                    <p class="mt-2 text-sm text-slate-500 font-medium">Infra e controle pensados para estabilidade no
+                        dia a dia.</p>
+                </div>
+
+                <div
+                    class="group rounded-[2rem] border border-slate-200 bg-white/70 backdrop-blur-xl p-8 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-[#23366f]/10 text-[#23366f] flex items-center justify-center mb-5">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16v12H7l-3 3V4z" />
+                            <path d="M8 10h8" />
+                            <path d="M8 13h5" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-black text-slate-900 tracking-tight">Suporte humano</h3>
+                    <p class="mt-2 text-sm text-slate-500 font-medium">Ajuda rápida para resolver o que trava sua
+                        entrega.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="py-16 bg-gray-50">
-        <div class="container mx-auto px-4">
-            <h3 class="text-3xl font-bold text-center text-gray-800 mb-12">Por que escolher a ProxyAlfa?</h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition duration-300">
-                    <div class="text-blue-500 mb-4">
-                        <i class="fas fa-bolt text-4xl"></i>
-                    </div>
-                    <h4 class="text-xl font-bold mb-3 text-gray-800">Alta Velocidade</h4>
-                    <p class="text-gray-600">Nossos servidores são otimizados para oferecer a máxima velocidade de
-                        conexão com baixa latência.</p>
-                </div>
-
-                <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition duration-300">
-                    <div class="text-blue-500 mb-4">
-                        <i class="fas fa-shield-alt text-4xl"></i>
-                    </div>
-                    <h4 class="text-xl font-bold mb-3 text-gray-800">Segurança Total</h4>
-                    <p class="text-gray-600">Criptografia avançada e protocolos seguros para proteger seus dados e sua
-                        privacidade online.</p>
-                </div>
-
-                <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition duration-300">
-                    <div class="text-blue-500 mb-4">
-                        <i class="fas fa-headset text-4xl"></i>
-                    </div>
-                    <h4 class="text-xl font-bold mb-3 text-gray-800">Suporte 24/7</h4>
-                    <p class="text-gray-600">Nossa equipe de suporte está disponível a qualquer momento para ajudar com
-                        qualquer questão.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12">
+        <!-- Footer -->
+        <footer class="text-white py-12" style="background: linear-gradient(to right, #438ccb, #316fab, #306da8, #3066a0, #2a508a, #233a72);">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
-                    <h4 class="text-xl font-bold mb-4 flex items-center">
-                        <i class="fas fa-globe mr-2"></i> ProxyAlfa
-                    </h4>
-                    <p class="text-gray-400">A solução mais confiável para proxies SOCKS5 premium com suporte técnico
+                    <img src="{{ asset('images/logoproxy.webp') }}" alt="AlfaProxy" class="h-8 w-auto mb-4">
+                    <p class="text-white">A solução mais confiável para proxies SOCKS5 premium com suporte técnico
                         especializado.</p>
                 </div>
 
-                <div>
-                    <h4 class="text-lg font-bold mb-4">Links Rápidos</h4>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white">Início</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">Planos</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">API</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">Termos de Serviço</a></li>
-                    </ul>
-                </div>
+
 
                 <div>
-                    <h4 class="text-lg font-bold mb-4">Suporte</h4>
+                    <h4 class="text-lg font-bold mb-4 text-white">Contato</h4>
                     <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white">Central de Ajuda</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">Contato</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">Status do Serviço</a></li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h4 class="text-lg font-bold mb-4">Contato</h4>
-                    <ul class="space-y-2">
-                        <li class="flex items-center text-gray-400"><i class="fas fa-envelope mr-2"></i>
-                            suporte@proxyalfa.com</li>
-                        <li class="flex items-center text-gray-400"><i class="fas fa-phone mr-2"></i> +55 11 98765-4321
+                        <li class="flex items-center text-white"><i class="fas fa-envelope mr-2"></i>
+                            contato@alfaproxy.com</li>
+                        <li class="flex items-center text-white"><i class="fas fa-phone mr-2"></i> +55 11 98765-4321
                         </li>
                     </ul>
                 </div>
             </div>
 
-            <div class="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
-                <p>&copy; 2023 ProxyAlfa. Todos os direitos reservados.</p>
+            <div class="border-t border-white/30 mt-12 pt-8 text-center text-white">
+                <p>&copy; {{ date('Y') }} ScriptPro. AlfaProxy. Todos os direitos reservados.</p>
             </div>
         </div>
     </footer>
@@ -803,6 +910,48 @@
                     delay: 2.5
                 });
             }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('click', (e) => {
+            const trigger = e.target.closest('[data-ui-select-trigger]');
+            const wrap = trigger?.closest('[data-ui-select]');
+
+            // fecha outros
+            document.querySelectorAll('[data-ui-select-panel]').forEach(panel => {
+                const owner = panel.closest('[data-ui-select]');
+                if (!wrap || owner !== wrap) panel.classList.add('hidden');
+            });
+
+            // abre/fecha o atual
+            if (trigger && wrap) {
+                wrap.querySelector('[data-ui-select-panel]')?.classList.toggle('hidden');
+                return;
+            }
+
+            // seleciona
+            const opt = e.target.closest('[data-ui-select-option]');
+            if (!opt) return;
+
+            const wrapper = opt.closest('[data-ui-select]');
+            const label = wrapper.querySelector('[data-ui-select-label]');
+            const panel = wrapper.querySelector('[data-ui-select-panel]');
+            const sync = wrapper.getAttribute('data-sync-select');
+            const realSelect = sync ? document.querySelector(sync) : null;
+
+            label.textContent = opt.textContent.trim();
+            panel.classList.add('hidden');
+
+            if (realSelect) {
+                realSelect.value = opt.dataset.value;
+                realSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            document.querySelectorAll('[data-ui-select-panel]').forEach(p => p.classList.add('hidden'));
         });
     </script>
 

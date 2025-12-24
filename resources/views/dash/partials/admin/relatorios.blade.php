@@ -105,9 +105,6 @@
             <button type="button" class="btn-secondary text-xs px-3 py-2" onclick="alert('Relatório mensal em desenvolvimento')">
                 <i class="fas fa-chart-line"></i> Relatório mensal
             </button>
-            <button type="button" class="btn-primary text-xs px-3 py-2" onclick="alert('Simulação em desenvolvimento')">
-                <i class="fas fa-calculator"></i> Simular previsão
-            </button>
         </div>
     </div>
     <div class="grid md:grid-cols-3 gap-4">

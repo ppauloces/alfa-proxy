@@ -1069,11 +1069,11 @@
                                                             </div>
                                                         </div>
                                                         <div class="flex items-center gap-2">
-                                                            <button class="action-btn px-4 py-2 rounded-xl border border-slate-200 text-[11px] font-bold hover:bg-[#23366f] hover:text-white hover:border-[#23366f] transition-all"
+                                                            <button class="action-btn px-4 py-2 rounded-xl border border-slate-200 text-[11px] font-bold hover:bg-[#23366f] hover:!text-white hover:border-[#23366f] transition-all"
                                                                 onclick="testarProxy('{{ $proxy['ip'] }}', '{{ $proxy['port'] }}', '{{ $proxy['user'] }}', '{{ $proxy['password'] }}', this)">
-                                                                <i class="fas fa-bolt mr-1.5"></i> Testar Rota
+                                                                <i class="fas fa-bolt mr-1.5"></i> Testar proxy
                                                             </button>
-                                                            <button class="action-btn px-4 py-2 rounded-xl border border-slate-200 text-[11px] font-bold hover:bg-[#23366f] hover:text-white hover:border-[#23366f] transition-all"
+                                                            <button class="action-btn px-4 py-2 rounded-xl border border-slate-200 text-[11px] font-bold hover:bg-[#23366f] hover:!text-white hover:border-[#23366f] transition-all"
                                                                 onclick="copyToClipboard('{{ $proxy['ip'] }}:{{ $proxy['port'] }}:{{ $proxy['user'] }}:{{ $proxy['password'] }}')">
                                                                 <i class="fas fa-copy mr-1.5"></i> Copiar
                                                             </button>
@@ -1251,11 +1251,55 @@
     });
     })();
 
-    window.copyToClipboard = function(text) {
-    navigator.clipboard.writeText(text).then(() => {
-    alert('Proxy copiado para a area de transferencia!');
-    });
+    window.copyToClipboard = function (text) {
+    const toast = (msg, type = 'success') => {
+        if (typeof window.showToast === 'function') {
+            window.showToast(msg, type);
+        } else {
+            alert(msg);
+        }
     };
+
+    const copyModern = async () => {
+        if (navigator.clipboard?.writeText && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+        return false;
+    };
+
+    const copyFallback = () => {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const ok = document.execCommand('copy');
+            textArea.remove();
+            return ok;
+        } catch (e) {
+            textArea.remove();
+            return false;
+        }
+    };
+
+    (async () => {
+        const okModern = await copyModern();
+        const ok = okModern || copyFallback();
+
+        if (ok) {
+            toast(`Proxy copiado: ${text}`, 'success');
+        } else {
+            toast('Não foi possível copiar. Use HTTPS/localhost ou copie manualmente.', 'error');
+        }
+    })();
+};
+
 
     (() => {
     const orderForm = document.getElementById('orderForm');

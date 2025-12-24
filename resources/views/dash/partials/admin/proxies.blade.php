@@ -501,6 +501,11 @@
                                             </span>
                                         </div>
                                         <div class="vps-proxy-actions">
+                                            <button type="button" class="vps-proxy-action-btn" data-action="copy-proxy"
+                                                data-proxy-string="socks5://{{ $farm->ip }}:{{ $proxy->porta }}:{{ $proxy->usuario }}:{{ $proxy->senha }}">
+                                                <i class="fas fa-copy"></i>
+                                                <span>Copiar proxy</span>
+                                            </button>
                                             <button type="button" class="vps-proxy-action-btn test-proxy-btn" data-action="test-proxy"
                                                 data-ip="{{ $farm->ip }}" data-porta="{{ $proxy->porta }}"
                                                 data-usuario="{{ $proxy->usuario }}" data-senha="{{ $proxy->senha }}">
@@ -1131,6 +1136,92 @@
             if (btnText) btnText.textContent = action === 'bloquear' ? 'Bloquear' : 'Desbloquear';
         } finally {
             toggleButton.disabled = false;
+        }
+    });
+
+    // ============================================
+    // COPIAR PROXY
+    // ============================================
+
+    // Função auxiliar para copiar texto (com fallback para ambientes não-HTTPS)
+    const copyToClipboardSafe = (text) => {
+    // Tentar Clipboard API moderna (HTTPS/localhost)
+    if (navigator.clipboard?.writeText && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    }
+
+    // Fallback (HTTP)
+    return new Promise((resolve, reject) => {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            textArea.remove();
+            successful ? resolve() : reject(new Error('Comando copy falhou'));
+        } catch (err) {
+            textArea.remove();
+            reject(err);
+        }
+    });
+};
+
+    document.addEventListener('click', async function (e) {
+        const copyButton = e.target.closest('[data-action="copy-proxy"]');
+        if (!copyButton) return;
+
+        e.preventDefault();
+
+        const proxyString = copyButton.dataset.proxyString;
+        const icon = copyButton.querySelector('i');
+        const text = copyButton.querySelector('span');
+
+        // Salvar conteúdo original
+        const originalIconClass = icon.className;
+        const originalText = text.textContent;
+
+        try {
+            // Copiar para clipboard (com fallback)
+            await copyToClipboardSafe(proxyString);
+
+            // Feedback visual de sucesso
+            icon.className = 'fas fa-check';
+            text.textContent = 'Copiado!';
+            copyButton.classList.add('bg-green-50', 'border-green-200');
+
+            // Toast de sucesso
+            showToast(`Proxy copiado: ${proxyString}`, 'success');
+
+            // Restaurar botão após 2 segundos
+            setTimeout(() => {
+                icon.className = originalIconClass;
+                text.textContent = originalText;
+                copyButton.classList.remove('bg-green-50', 'border-green-200');
+            }, 2000);
+
+        } catch (error) {
+            console.error('Erro ao copiar proxy:', error);
+
+            // Feedback visual de erro
+            icon.className = 'fas fa-times';
+            text.textContent = 'Erro ao copiar';
+            copyButton.classList.add('bg-red-50', 'border-red-200');
+
+            // Toast de erro
+            showToast('Erro ao copiar proxy para área de transferência', 'error');
+
+            // Restaurar botão após 2 segundos
+            setTimeout(() => {
+                icon.className = originalIconClass;
+                text.textContent = originalText;
+                copyButton.classList.remove('bg-red-50', 'border-red-200');
+            }, 2000);
         }
     });
 

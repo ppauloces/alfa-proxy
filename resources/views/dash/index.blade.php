@@ -440,34 +440,7 @@
             padding: 2rem;
         }
 
-        .price-card {
-            background: linear-gradient(120deg, var(--sf-blue-light), var(--sf-blue));
-            color: white;
-            padding: 1.5rem;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 3px solid transparent;
-        }
 
-        .price-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(32, 85, 221, 0.3);
-        }
-
-        .price-card.selected {
-            border-color: #fbbf24;
-            box-shadow: 0 12px 30px rgba(251, 191, 36, 0.4);
-        }
-
-        .price-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-left: 0.5rem;
-        }
 
         .payment-method {
             padding: 1rem;
@@ -1306,20 +1279,26 @@
     if (!orderForm) return;
 
     const priceCards = orderForm.querySelectorAll('.price-card');
+    const periodRadios = orderForm.querySelectorAll('input[name="periodo"]');
     const paymentMethods = orderForm.querySelectorAll('.payment-method');
-    const periodInput = document.getElementById('periodo');
     const paymentInput = document.getElementById('orderPaymentMethod');
     const quantityInput = document.getElementById('quantidade');
     let selectedPrice = 0;
-    let selectedPeriod = periodInput?.value || null;
+    let selectedPeriod = null;
+
+    const refreshSelectedPeriod = () => {
+    const checked = orderForm.querySelector('input[name="periodo"]:checked');
+    if (!checked) {
+    selectedPeriod = null;
+    selectedPrice = 0;
+    return;
+    }
+    selectedPeriod = checked.value;
+    selectedPrice = parseFloat(checked.dataset.price || '0');
+    };
 
     const refreshFromDefaults = () => {
-    priceCards.forEach(card => {
-    if (card.classList.contains('selected')) {
-    selectedPeriod = card.dataset.period;
-    selectedPrice = parseFloat(card.dataset.price);
-    }
-    });
+    refreshSelectedPeriod();
     paymentMethods.forEach(method => {
     if (method.classList.contains('selected')) {
     paymentInput.value = method.dataset.method;
@@ -1337,14 +1316,20 @@
     document.getElementById('summary-total').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
     };
 
+    periodRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+    refreshSelectedPeriod();
+    updateSummary();
+    });
+    });
+
     priceCards.forEach(card => {
     card.addEventListener('click', () => {
-    priceCards.forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    selectedPeriod = card.dataset.period;
-    selectedPrice = parseFloat(card.dataset.price);
-    periodInput.value = selectedPeriod;
-    updateSummary();
+    const label = card.closest('label');
+    const radio = label?.querySelector('input[name="periodo"]');
+    if (!radio) return;
+    radio.checked = true;
+    radio.dispatchEvent(new Event('change', { bubbles: true }));
     });
     });
 
@@ -1367,6 +1352,7 @@
     quantityInput.addEventListener('input', updateSummary);
 
     orderForm.addEventListener('submit', (event) => {
+    refreshSelectedPeriod();
     if (!selectedPeriod) {
     event.preventDefault();
     alert('Por favor, selecione um periodo de contratacao.');

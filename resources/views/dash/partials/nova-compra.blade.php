@@ -34,25 +34,106 @@
 
                     <div class="grid md:grid-cols-2 gap-6">
                         <div class="form-group">
-                            <label
-                                class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">País</label>
+                            <label class="form-label block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 leading-none whitespace-nowrap">País</label>
                             <x-ui.select name="pais" :value="old('pais')" placeholder="Selecione" :options="[
                                 'Brasil' => 'Brasil'
                             ]" />
                         </div>
 
                         <div class="form-group">
-                            <label
-                                class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Motivo
-                                do Uso</label>
-                            <select name="motivo"
-                                class="form-select bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] transition-all"
-                                required>
-                                <option value="">Selecione o motivo</option>
-                                @foreach(['Facebook', 'Google', 'TikTok', 'Bet', 'Kwai', 'Instagram', 'Outros'] as $motivo)
-                                    <option value="{{ strtolower($motivo) }}" {{ old('motivo') === strtolower($motivo) ? 'selected' : '' }}>{{ $motivo }}</option>
+                            <label class="form-label block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 leading-none whitespace-nowrap">Motivo do Uso</label>
+
+                            @php
+                                $motivos = [
+                                    [
+                                        'value' => 'Facebook',
+                                        'label' => 'Facebook',
+                                    ],
+                                    [
+                                        'value' => 'Google',
+                                        'label' => 'Google',
+                                    ],
+                                    [
+                                        'value' => 'TikTok',
+                                        'label' => 'TikTok',
+                                    ],
+                                    [
+                                        'value' => 'Bet',
+                                        'label' => 'Cassino',
+                                    ],
+                                    [
+                                        'value' => 'Kwai',
+                                        'label' => 'Kwai',
+                                    ],
+                                    [
+                                        'value' => 'Instagram',
+                                        'label' => 'Instagram',
+                                    ],
+                                    [
+                                        'value' => 'Dark',
+                                        'label' => 'Dark',
+                                    ],
+                                    [
+                                        'value' => 'Outros',
+                                        'label' => 'Outros',
+                                    ],
+                                ];
+                            @endphp
+
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                @foreach($motivos as $motivo)
+                                    <label class="cursor-pointer select-none">
+                                        <input
+                                            type="radio"
+                                            name="motivo"
+                                            value="{{ $motivo['value'] }}"
+                                            class="peer hidden"
+                                            @checked(old('motivo') === $motivo['value'])
+                                            required
+                                        >
+                                        <div
+                                            class="flex flex-col items-center justify-center gap-2 p-4 rounded-[1.25rem] border-2 border-slate-50 bg-white hover:border-slate-200 transition-all duration-300 peer-checked:border-blue-500 peer-checked:ring-2 peer-checked:ring-blue-500/40 [&_svg]:h-10 [&_svg]:w-10 [&_svg]:grayscale [&_svg]:opacity-50 [&_svg]:transition-all [&_svg]:duration-300 peer-checked:[&_svg]:grayscale-0 peer-checked:[&_svg]:opacity-100 [&_span]:text-xs [&_span]:font-bold [&_span]:text-slate-500 peer-checked:[&_span]:text-slate-900"
+                                        >
+                                            @switch($motivo['value'])
+                                                @case('Facebook')
+                                                    <svg viewBox="0 0 24 24" class="fill-[#1877F2]" aria-hidden="true">
+                                                        <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.414c0-3.03 1.793-4.705 4.533-4.705 1.312 0 2.686.236 2.686.236v2.975h-1.513c-1.49 0-1.953.93-1.953 1.887v2.266h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
+                                                    </svg>
+                                                    @break
+
+                                                @case('Google')
+                                                    <x-svg.google />
+                                                    @break
+
+                                                @case('TikTok')
+                                                    <x-svg.tiktok />
+                                                    @break
+
+                                                @case('Bet')
+                                                    <x-svg.bet />
+                                                    @break
+
+                                                @case('Kwai')
+                                                    <x-svg.kwai />
+                                                    @break
+
+                                                @case('Instagram')
+                                                    <x-svg.instagram />
+                                                    @break
+
+                                                @case('Dark')
+                                                    <x-svg.anonymous />
+                                                    @break
+
+                                                @default
+                                                    <x-svg.outros />
+                                            @endswitch
+
+                                            <span>{{ $motivo['label'] }}</span>
+                                        </div>
+                                    </label>
                                 @endforeach
-                            </select>
+                            </div>
                         </div>
                     </div>
 
@@ -60,59 +141,151 @@
                         <label
                             class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Quantidade
                             de Proxies</label>
-                        <div class="flex items-center gap-4">
-                            <input type="number" name="quantidade" value="{{ old('quantidade', 1) }}" id="quantidade"
-                                min="1" max="100"
-                                class="form-input bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] transition-all max-w-[120px]"
-                                required>
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                            <div class="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    data-qty-minus
+                                    class="w-10 h-10 rounded-xl bg-slate-50 hover:bg-white border border-transparent hover:border-slate-200 text-slate-500 hover:text-slate-900 font-black transition-all"
+                                    aria-label="Diminuir quantidade"
+                                >
+                                    −
+                                </button>
+
+                                <input type="number" name="quantidade" value="{{ old('quantidade', 1) }}" id="quantidade"
+                                    min="1" max="100"
+                                    class="form-input bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] transition-all max-w-[120px] text-center font-bold"
+                                    required>
+
+                                <button
+                                    type="button"
+                                    data-qty-plus
+                                    class="w-10 h-10 rounded-xl bg-slate-50 hover:bg-white border border-transparent hover:border-slate-200 text-slate-500 hover:text-slate-900 font-black transition-all"
+                                    aria-label="Aumentar quantidade"
+                                >
+                                    +
+                                </button>
+
+                                <span id="quantidadeDescontoBadge" class="hidden whitespace-nowrap px-3 py-1 rounded-xl bg-green-50 text-green-700 text-[10px] font-black uppercase tracking-wide border border-green-100">
+                                    Economize 10%
+                                </span>
+                            </div>
                             <p class="text-xs text-slate-400 font-medium">Você pode contratar até 100 proxies por vez.
                             </p>
                         </div>
                     </div>
                 </div>
 
+                <script>
+                    (() => {
+                        const form = document.getElementById('orderForm');
+                        if (!form) return;
+
+                        const qtyInput = form.querySelector('#quantidade');
+                        const badge = form.querySelector('#quantidadeDescontoBadge');
+                        const minus = form.querySelector('[data-qty-minus]');
+                        const plus = form.querySelector('[data-qty-plus]');
+
+                        if (!qtyInput) return;
+
+                        const min = Number.parseInt(qtyInput.min || '1', 10);
+                        const max = Number.parseInt(qtyInput.max || '100', 10);
+
+                        const toInt = (value, fallback) => {
+                            const parsed = Number.parseInt(String(value ?? ''), 10);
+                            return Number.isFinite(parsed) ? parsed : fallback;
+                        };
+
+                        const clamp = (value) => Math.min(max, Math.max(min, value));
+
+                        const updateBadge = () => {
+                            if (!badge) return;
+                            const value = toInt(qtyInput.value, min);
+                            badge.classList.toggle('hidden', !(value > 10));
+                        };
+
+                        const setValue = (nextValue) => {
+                            qtyInput.value = clamp(nextValue);
+                            qtyInput.dispatchEvent(new Event('input', { bubbles: true }));
+                            qtyInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        };
+
+                        if (minus) {
+                            minus.addEventListener('click', () => {
+                                const current = toInt(qtyInput.value, min);
+                                setValue(current - 1);
+                            });
+                        }
+
+                        if (plus) {
+                            plus.addEventListener('click', () => {
+                                const current = toInt(qtyInput.value, min);
+                                setValue(current + 1);
+                            });
+                        }
+
+                        qtyInput.addEventListener('input', updateBadge);
+                        qtyInput.addEventListener('change', updateBadge);
+                        updateBadge();
+                    })();
+                </script>
+
                 <!-- Período de Contratação -->
                 <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
                     <h2 class="text-xl font-bold text-slate-900 mb-2 flex items-center gap-3">
                         <span
-                            class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 text-sm">02</span>
+                            class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-sm font-bold">02</span>
                         Período de Contratação
                     </h2>
                     <p class="text-sm text-slate-500 mb-8 ml-11">Quanto maior o período, melhor o preço por proxy!</p>
 
-                    <div class="grid md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                         @php
                             $periods = [
                                 ['days' => 30, 'price' => 20.00, 'badge' => null],
                                 ['days' => 60, 'price' => 35.00, 'badge' => '-12%'],
                                 ['days' => 90, 'price' => 45.00, 'badge' => '-25%'],
                                 ['days' => 180, 'price' => 80.00, 'badge' => '-33%'],
-                                ['days' => 360, 'price' => 120.00, 'badge' => 'Melhor'],
+                                ['days' => 360, 'price' => 120.00, 'badge' => 'Melhor Preço'],
                             ];
                         @endphp
 
                         @foreach($periods as $period)
-                            <div class="price-card group relative p-6 rounded-[1.5rem] border-2 {{ old('periodo') == $period['days'] ? 'border-[#23366f] bg-blue-50/30' : 'border-slate-50 hover:border-slate-200' }} transition-all cursor-pointer"
-                                data-period="{{ $period['days'] }}" data-price="{{ $period['price'] }}">
-                                @if($period['badge'])
-                                    <span
-                                        class="absolute -top-3 -right-2 px-3 py-1 bg-[#448ccb] text-white text-[10px] font-black rounded-lg shadow-lg">
-                                        {{ $period['badge'] }}
+                            <label class="relative cursor-pointer group">
+                                <input
+                                    type="radio"
+                                    name="periodo"
+                                    value="{{ $period['days'] }}"
+                                    data-price="{{ $period['price'] }}"
+                                    class="peer hidden"
+                                    @checked(old('periodo') == $period['days'])
+                                    required
+                                >
+
+                                <div class="price-card flex flex-col items-center text-center p-6 rounded-[1.8rem] border-2 border-slate-50 bg-white transition-all duration-300 peer-checked:border-blue-600 peer-checked:bg-blue-50/20 peer-checked:ring-4 peer-checked:ring-blue-600/5 group-hover:border-slate-200">
+                                    @if($period['badge'])
+                                        <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-full shadow-md z-10 whitespace-nowrap">
+                                            {{ $period['badge'] }}
+                                        </span>
+                                    @endif
+
+                                    <span class="text-4xl font-black text-slate-900 leading-none mb-1 group-hover:scale-110 transition-transform duration-300">
+                                        {{ $period['days'] }}
                                     </span>
-                                @endif
-                                <p class="text-xs font-bold text-slate-400 uppercase mb-4">{{ $period['days'] }} dias</p>
-                                <div class="flex items-baseline gap-1">
-                                    <span class="text-sm font-bold text-slate-900">R$</span>
-                                    <span
-                                        class="text-3xl font-black text-slate-900">{{ number_format($period['price'], 0, ',', '.') }}</span>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Dias</span>
+
+                                    <div class="flex items-center justify-center gap-1 text-blue-600">
+                                        <span class="text-xs font-bold">R$</span>
+                                        <span class="text-xl font-black">{{ number_format($period['price'], 0, ',', '.') }}</span>
+                                    </div>
+
+                                    <div class="mt-4 pt-4 border-t border-slate-100 w-full flex items-center justify-center gap-2 text-[9px] font-bold text-slate-400 group-hover:text-green-600 transition-colors">
+                                        <i class="fas fa-bolt"></i> Ativação imediata
+                                    </div>
                                 </div>
-                                <div class="mt-4 flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                                    <i class="fas fa-check-circle text-green-500"></i> Ativação imediata
-                                </div>
-                            </div>
+                            </label>
                         @endforeach
                     </div>
-                    <input type="hidden" name="periodo" id="periodo" value="{{ old('periodo') }}" required>
                 </div>
 
                 <!-- Forma de Pagamento -->

@@ -659,7 +659,7 @@
             </div>
 
             <div class="border-t border-white/30 mt-12 pt-8 text-center text-white">
-                <p>&copy; {{ date('Y') }} ScriptPro. AlfaProxy. Todos os direitos reservados.</p>
+                <p>&copy; {{ date('Y') }} AlfaProxy. Todos os direitos reservados.</p>
             </div>
         </div>
     </footer>

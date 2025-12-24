@@ -379,13 +379,13 @@
                     $vendidas = max(0, $totalProxies - $bloqueadas - $disponiveis);
                 @endphp
 
-                <button type="button"
-                    class="admin-card w-full text-left hover:shadow-md transition-shadow"
+                <button type="button" class="admin-card w-full text-left hover:shadow-md transition-shadow"
                     data-open-vps-modal="vpsModal-{{ $farm->id }}">
                     <div class="flex items-start justify-between gap-4">
                         <div class="min-w-0">
                             <p class="text-lg font-semibold text-slate-900 truncate">{{ $farm->apelido }}</p>
-                            <p class="text-sm text-slate-500 truncate">{{ $farm->ip }} &middot; {{ $farm->pais }} &middot; {{ $farm->hospedagem }}</p>
+                            <p class="text-sm text-slate-500 truncate">{{ $farm->ip }} &middot; {{ $farm->pais }} &middot;
+                                {{ $farm->hospedagem }}</p>
                         </div>
                         <div class="flex items-center gap-3 flex-shrink-0">
                             <span class="badge-status"
@@ -424,15 +424,23 @@
                 <div class="admin-modal vps-modal">
                     <div class="vps-modal-header flex items-start justify-between gap-4">
                         <div class="min-w-0 flex-1">
-                            <h3 class="text-xl lg:text-2xl font-black text-slate-900 truncate tracking-tight">{{ $farm->apelido }}</h3>
-                            <p class="text-xs lg:text-sm text-slate-400 font-medium truncate">{{ $farm->ip }} &middot; {{ $farm->pais }} &middot; {{ $farm->hospedagem }}</p>
-                            <div class="vps-meta mt-3 flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                <span class="flex items-center gap-1.5"><i class="fas fa-wallet text-[#448ccb]"></i> {{ $farm->valor }}</span>
-                                <span class="flex items-center gap-1.5"><i class="fas fa-calendar-alt text-[#448ccb]"></i> {{ $farm->periodo }}</span>
-                                <span class="hidden sm:flex items-center gap-1.5"><i class="fas fa-clock text-[#448ccb]"></i> {{ $farm->contratada }}</span>
+                            <h3 class="text-xl lg:text-2xl font-black text-slate-900 truncate tracking-tight">
+                                {{ $farm->apelido }}</h3>
+                            <p class="text-xs lg:text-sm text-slate-400 font-medium truncate">{{ $farm->ip }} &middot;
+                                {{ $farm->pais }} &middot; {{ $farm->hospedagem }}</p>
+                            <div
+                                class="vps-meta mt-3 flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                <span class="flex items-center gap-1.5"><i class="fas fa-wallet text-[#448ccb]"></i>
+                                    {{ $farm->valor }}</span>
+                                <span class="flex items-center gap-1.5"><i class="fas fa-calendar-alt text-[#448ccb]"></i>
+                                    {{ $farm->periodo }}</span>
+                                <span class="hidden sm:flex items-center gap-1.5"><i class="fas fa-clock text-[#448ccb]"></i>
+                                    {{ $farm->contratada }}</span>
                             </div>
                         </div>
-                        <button type="button" class="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 transition-all flex items-center justify-center" data-close-vps-modal>
+                        <button type="button"
+                            class="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-900 transition-all flex items-center justify-center"
+                            data-close-vps-modal>
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -468,9 +476,9 @@
                                     @endphp
                                     <div class="vps-proxy-card">
                                         <div class="vps-proxy-info">
-                                            <p class="text-sm font-black text-slate-900 mb-2">{{ $proxyCodigo }} &middot; {{ $proxyEndpoint }}</p>
-                                            <span id="{{ $statusId }}" class="vps-proxy-status"
-                                                data-status="{{ $proxyStatus }}">
+                                            <p class="text-sm font-black text-slate-900 mb-2">{{ $proxyCodigo }} &middot;
+                                                {{ $proxyEndpoint }}</p>
+                                            <span id="{{ $statusId }}" class="vps-proxy-status" data-status="{{ $proxyStatus }}">
                                                 @if($proxyStatus === 'disponivel')
                                                     <span class="text-green-600  px-2 py-0.5 rounded">Disponível</span>
                                                 @elseif($proxyStatus === 'bloqueada')
@@ -481,22 +489,16 @@
                                             </span>
                                         </div>
                                         <div class="vps-proxy-actions">
-                                            <button type="button" class="vps-proxy-action-btn test-proxy-btn"
-                                                data-action="test-proxy"
-                                                data-ip="{{ $farm->ip }}"
-                                                data-porta="{{ $proxy->porta }}"
-                                                data-usuario="{{ $proxy->usuario }}"
-                                                data-senha="{{ $proxy->senha }}">
+                                            <button type="button" class="vps-proxy-action-btn test-proxy-btn" data-action="test-proxy"
+                                                data-ip="{{ $farm->ip }}" data-porta="{{ $proxy->porta }}"
+                                                data-usuario="{{ $proxy->usuario }}" data-senha="{{ $proxy->senha }}">
                                                 <i class="fas fa-vial"></i>
                                                 <span>Testar proxy</span>
                                             </button>
                                             <button type="button" class="vps-proxy-action-btn danger" data-toggle-port
-                                                data-stock-id="{{ $proxy->id }}"
-                                                data-target="#{{ $statusId }}"
-                                                data-state="{{ $proxy->bloqueada ? 'blocked' : 'open' }}"
-                                                data-ip="{{ $farm->ip }}"
-                                                data-porta="{{ $proxy->porta }}"
-                                                data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
+                                                data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}"
+                                                data-state="{{ $proxy->bloqueada ? 'blocked' : 'open' }}" data-ip="{{ $farm->ip }}"
+                                                data-porta="{{ $proxy->porta }}" data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
                                                 data-senha-ssh="{{ $farm->senha_ssh ?? '' }}">
                                                 <i class="fas {{ $proxy->bloqueada ? 'fa-unlock' : 'fa-ban' }}"></i>
                                                 <span data-btn-text>{{ $proxy->bloqueada ? 'Desbloquear' : 'Bloquear' }}</span>
@@ -568,15 +570,17 @@
                 </div>
             </div>
             <h3 class="text-2xl font-black text-slate-900 mb-2 tracking-tight">Gerando Proxies</h3>
-            <p class="text-sm text-slate-400 font-medium mb-8" id="loadingMessage">Aguarde enquanto as proxies estão sendo geradas...</p>
-            
+            <p class="text-sm text-slate-400 font-medium mb-8" id="loadingMessage">Aguarde enquanto as proxies estão
+                sendo geradas...</p>
+
             <div class="bg-slate-50 rounded-2xl p-4 flex items-center justify-center gap-3">
                 <div class="flex gap-1">
                     <div class="w-1.5 h-1.5 rounded-full bg-[#448ccb] animate-bounce [animation-delay:-0.3s]"></div>
                     <div class="w-1.5 h-1.5 rounded-full bg-[#448ccb] animate-bounce [animation-delay:-0.15s]"></div>
                     <div class="w-1.5 h-1.5 rounded-full bg-[#448ccb] animate-bounce"></div>
                 </div>
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Conectando com a VPS</span>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Conectando com a
+                    VPS</span>
             </div>
         </div>
     </div>
@@ -849,8 +853,8 @@
                         try {
                             const audio = new Audio('/sounds/notification.mp3');
                             audio.volume = 0.3;
-                            audio.play().catch(() => {}); // Ignorar erro se não tiver áudio
-                        } catch(e) {}
+                            audio.play().catch(() => { }); // Ignorar erro se não tiver áudio
+                        } catch (e) { }
                     }
                 }
 
@@ -901,7 +905,7 @@
     }
 
     // Iniciar polling quando carregar a página
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Primeira verificação imediata
         atualizarStatusVPS();
 
@@ -910,7 +914,7 @@
     });
 
     // Parar polling quando sair da página
-    window.addEventListener('beforeunload', function() {
+    window.addEventListener('beforeunload', function () {
         if (pollingInterval) {
             clearInterval(pollingInterval);
         }
@@ -939,7 +943,7 @@
         return null;
     }
 
-    document.addEventListener('click', async function(e) {
+    document.addEventListener('click', async function (e) {
         const testButton = e.target.closest('[data-action="test-proxy"]');
         if (!testButton) return;
 
@@ -1043,7 +1047,7 @@
     // BLOQUEIO/DESBLOQUEIO DE PORTAS
     // ============================================
 
-    document.addEventListener('click', async function(e) {
+    document.addEventListener('click', async function (e) {
         const toggleButton = e.target.closest('[data-toggle-port]');
         if (!toggleButton) return;
 
@@ -1055,9 +1059,9 @@
         const icon = toggleButton.querySelector('i');
         const btnText = toggleButton.querySelector('[data-btn-text]') || toggleButton.childNodes[toggleButton.childNodes.length - 1];
 
-        // Determinar ação (se está bloqueada, desbloquear; se está aberta, bloquear)
-        const action = currentState === 'desbloquear' ? 'blocked' : 'bloquear';
-        const endpoint = action === 'bloquear' ? '/admin/proxy/bloquear' : '/admin/proxy/desbloquear';
+        const action = (currentState === 'blocked') ? 'desbloquear' : 'bloquear';
+        const endpoint = (action === 'bloquear') ? '/admin/proxy/bloquear' : '/admin/proxy/desbloquear';
+
 
         console.log('Ação:', action, 'Endpoint:', endpoint, 'Estado atual:', currentState);
         // Desabilitar botão durante requisição
@@ -1078,23 +1082,22 @@
             const data = await response.json();
 
             if (data.success) {
-                // Atualizar estado visual
                 if (action === 'bloquear') {
                     if (targetStatus) {
                         targetStatus.dataset.status = 'bloqueada';
                         targetStatus.textContent = 'Bloqueada';
                     }
-                    toggleButton.dataset.state = 'blocked';
+                    toggleButton.dataset.state = 'blocked'; // Atualiza o estado para bloqueado
                     icon.className = 'fas fa-unlock';
-                    if (btnText) btnText.textContent = 'Desbloquear';
+                    if (btnText) btnText.textContent = ' Desbloquear';
                 } else {
                     if (targetStatus) {
                         targetStatus.dataset.status = 'disponivel';
-                        targetStatus.textContent = 'Disponivel';
+                        targetStatus.textContent = 'Disponível';
                     }
-                    toggleButton.dataset.state = 'open';
+                    toggleButton.dataset.state = 'open'; // Atualiza o estado para aberto
                     icon.className = 'fas fa-ban';
-                    if (btnText) btnText.textContent = 'Bloquear';
+                    if (btnText) btnText.textContent = ' Bloquear';
                 }
 
                 // Mostrar notificação de sucesso
@@ -1117,8 +1120,16 @@
 
 <style>
     @keyframes progress {
-        0% { transform: translateX(-100%); }
-        50% { transform: translateX(0); }
-        100% { transform: translateX(100%); }
+        0% {
+            transform: translateX(-100%);
+        }
+
+        50% {
+            transform: translateX(0);
+        }
+
+        100% {
+            transform: translateX(100%);
+        }
     }
 </style>

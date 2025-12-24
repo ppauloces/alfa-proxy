@@ -1518,23 +1518,6 @@
         modal.querySelectorAll('[data-close-buyer]').forEach(el => el.addEventListener('click', closeModal));
         })();
 
-        (() => {
-        document.querySelectorAll('[data-toggle-port]').forEach(btn => {
-        btn.addEventListener('click', () => {
-        const isBlocked = btn.dataset.state === 'blocked';
-        btn.dataset.state = isBlocked ? 'open' : 'blocked';
-        btn.innerHTML = isBlocked
-        ? '<i class="fas fa-ban"></i> Bloquear'
-        : '<i class="fas fa-lock-open"></i> Desbloquear';
-        const target = document.querySelector(btn.dataset.target);
-        if (target) {
-        const statusLabel = isBlocked ? 'disponivel' : 'bloqueada';
-        target.dataset.status = statusLabel;
-        target.textContent = statusLabel === 'disponivel' ? 'Disponivel' : 'Porta bloqueada';
-        }
-        });
-        });
-        })();
 
 
         (() => {

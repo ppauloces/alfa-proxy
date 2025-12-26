@@ -29,8 +29,10 @@ class ProxyAllocationService
 
         // Buscar proxies DISPONÍVEIS no estoque do país solicitado
         // Proxies disponíveis = user_id é NULL (não vendidas ainda) e disponibilidade = true
+        // EXCLUIR proxies de uso interno
         $proxiesDisponiveis = Stock::whereNull('user_id')
             ->where('disponibilidade', true)
+            ->where('uso_interno', false)
             ->where('pais', $paisNome)
             ->inRandomOrder() // Randomiza a ordem
             ->limit($quantidade)
@@ -127,9 +129,10 @@ class ProxyAllocationService
         // Converter código do país para nome completo
         $paisNome = $this->getPaisNome($paisCodigo);
 
-        // Verificar se há proxies disponíveis no estoque (não vendidas)
+        // Verificar se há proxies disponíveis no estoque (não vendidas e não de uso interno)
         return Stock::whereNull('user_id')
             ->where('disponibilidade', true)
+            ->where('uso_interno', false)
             ->where('pais', $paisNome)
             ->exists();
     }
@@ -146,6 +149,7 @@ class ProxyAllocationService
 
         return Stock::whereNull('user_id')
             ->where('disponibilidade', true)
+            ->where('uso_interno', false)
             ->where('pais', $paisNome)
             ->count();
     }

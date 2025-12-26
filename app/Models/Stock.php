@@ -23,7 +23,9 @@ class Stock extends Model
         'expiracao',
         'disponibilidade',
         'renovacao_automatica',
-        'bloqueada'
+        'bloqueada',
+        'uso_interno',
+        'finalidade_interna'
     ];
 
 
@@ -43,6 +45,7 @@ class Stock extends Model
     protected $casts = [
         'expiracao' => 'datetime',
         'bloqueada' => 'boolean',
+        'uso_interno' => 'boolean',
     ];
 
 }

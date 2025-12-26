@@ -111,6 +111,11 @@
         color: #b91c1c;
     }
 
+    .vps-proxy-status[data-status="uso_interno"] {
+        background: rgba(99, 102, 241, 0.14);
+        color: #4338ca;
+    }
+
     .vps-proxy-actions {
         display: flex;
         flex-direction: column;
@@ -164,6 +169,24 @@
     .vps-proxy-action-btn.danger:hover {
         color: #ef4444;
         border-color: rgba(239, 68, 68, 0.55);
+    }
+
+    /* Modais de uso interno - z-index maior que modais de VPS */
+    #usoInternoModal,
+    #removerUsoInternoModal {
+        z-index: 99999 !important;
+        background-color: rgba(15, 23, 42, 0.75) !important; /* Backdrop mais escuro */
+    }
+
+    #usoInternoModal.active,
+    #removerUsoInternoModal.active {
+        backdrop-filter: blur(4px);
+    }
+
+    #usoInternoModal .admin-modal,
+    #removerUsoInternoModal .admin-modal {
+        z-index: 100000 !important;
+        position: relative;
     }
 </style>
 
@@ -382,8 +405,9 @@
                 @php
                     $totalProxies = $farm->proxies->count();
                     $bloqueadas = $farm->proxies->where('bloqueada', true)->count();
-                    $disponiveis = $farm->proxies->where('bloqueada', false)->where('disponibilidade', true)->count();
-                    $vendidas = max(0, $totalProxies - $bloqueadas - $disponiveis);
+                    $usoInterno = $farm->proxies->where('uso_interno', true)->count();
+                    $disponiveis = $farm->proxies->where('bloqueada', false)->where('uso_interno', false)->where('disponibilidade', true)->count();
+                    $vendidas = max(0, $totalProxies - $bloqueadas - $usoInterno - $disponiveis);
                 @endphp
 
                 <button type="button" class="admin-card w-full text-left hover:shadow-md transition-shadow"
@@ -407,7 +431,7 @@
                         <span><i class="fas fa-clock"></i> Contratada em {{ $farm->contratada }}</span>
                     </div>
 
-                    <div class="mt-4 grid grid-cols-3 gap-2 text-xs">
+                    <div class="mt-4 grid grid-cols-4 gap-2 text-xs">
                         <div class="bg-slate-50 rounded-lg p-2 text-center">
                             <p class="text-slate-500">Disponíveis</p>
                             <p class="font-bold text-slate-900">{{ $disponiveis }}</p>
@@ -419,6 +443,10 @@
                         <div class="bg-slate-50 rounded-lg p-2 text-center">
                             <p class="text-slate-500">Vendidas</p>
                             <p class="font-bold text-slate-900">{{ $vendidas }}</p>
+                        </div>
+                        <div class="bg-indigo-50 rounded-lg p-2 text-center">
+                            <p class="text-indigo-600">Uso Interno</p>
+                            <p class="font-bold text-indigo-900">{{ $usoInterno }}</p>
                         </div>
                     </div>
                 </button>
@@ -481,6 +509,8 @@
                                         $statusId = "proxy-status-{$farm->id}-{$proxy->id}";
                                         if ($proxy->bloqueada) {
                                             $proxyStatus = 'bloqueada';
+                                        } elseif ($proxy->uso_interno) {
+                                            $proxyStatus = 'uso_interno';
                                         } elseif ($proxy->disponibilidade) {
                                             $proxyStatus = 'disponivel';
                                         } else {
@@ -495,13 +525,20 @@
                                                 {{ $proxyEndpoint }}</p>
                                             <span id="{{ $statusId }}" class="vps-proxy-status" data-status="{{ $proxyStatus }}">
                                                 @if($proxyStatus === 'disponivel')
-                                                    <span class="text-green-600  px-2 py-0.5 rounded">Disponível</span>
+                                                    <span class="text-green-600 px-2 py-0.5 rounded">Disponível</span>
                                                 @elseif($proxyStatus === 'bloqueada')
-                                                    <span class="text-red-600  px-2 py-0.5 rounded">Bloqueada</span>
+                                                    <span class="text-red-600 px-2 py-0.5 rounded">Bloqueada</span>
+                                                @elseif($proxyStatus === 'uso_interno')
+                                                    <span class="text-indigo-600 px-2 py-0.5 rounded">Uso Interno</span>
                                                 @else
-                                                    <span class="text-amber-600  px-2 py-0.5 rounded">Vendida</span>
+                                                    <span class="text-amber-600 px-2 py-0.5 rounded">Vendida</span>
                                                 @endif
                                             </span>
+                                            @if($proxy->uso_interno && $proxy->finalidade_interna)
+                                                <p class="text-xs text-indigo-600 mt-1">
+                                                    <i class="fas fa-briefcase"></i> {{ $proxy->finalidade_interna }}
+                                                </p>
+                                            @endif
                                         </div>
                                         <div class="vps-proxy-actions">
                                             <button type="button" class="vps-proxy-action-btn" data-action="copy-proxy"
@@ -515,14 +552,44 @@
                                                 <i class="fas fa-vial"></i>
                                                 <span>Testar proxy</span>
                                             </button>
-                                            <button type="button" class="vps-proxy-action-btn danger" data-toggle-port
-                                                data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}"
-                                                data-state="{{ $proxy->bloqueada ? 'blocked' : 'open' }}" data-ip="{{ $farm->ip }}"
-                                                data-porta="{{ $proxy->porta }}" data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
-                                                data-senha-ssh="{{ $farm->senha_ssh ?? '' }}">
-                                                <i class="fas {{ $proxy->bloqueada ? 'fa-unlock' : 'fa-ban' }}"></i>
-                                                <span data-btn-text>{{ $proxy->bloqueada ? 'Desbloquear' : 'Bloquear' }}</span>
-                                            </button>
+
+                                            @if($proxy->uso_interno)
+                                                {{-- Bot\u00e3o para REMOVER uso interno --}}
+                                                <button type="button" class="vps-proxy-action-btn" data-action="remover-uso-interno"
+                                                    data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}">
+                                                    <i class="fas fa-undo"></i>
+                                                    <span>Remover uso interno</span>
+                                                </button>
+                                            @elseif($proxy->disponibilidade && !$proxy->bloqueada)
+                                                {{-- Bot\u00e3o para MARCAR como uso interno (apenas para proxies dispon\u00edveis e n\u00e3o bloqueadas) --}}
+                                                <button type="button" class="vps-proxy-action-btn" data-action="marcar-uso-interno"
+                                                    data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}">
+                                                    <i class="fas fa-briefcase"></i>
+                                                    <span>Uso interno</span>
+                                                </button>
+                                            @endif
+
+                                            @if(!$proxy->bloqueada)
+                                                {{-- Bot\u00e3o para BLOQUEAR (apenas para proxies n\u00e3o bloqueadas) --}}
+                                                <button type="button" class="vps-proxy-action-btn danger" data-toggle-port
+                                                    data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}"
+                                                    data-state="open" data-ip="{{ $farm->ip }}"
+                                                    data-porta="{{ $proxy->porta }}" data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
+                                                    data-senha-ssh="{{ $farm->senha_ssh ?? '' }}">
+                                                    <i class="fas fa-ban"></i>
+                                                    <span data-btn-text>Bloquear</span>
+                                                </button>
+                                            @else
+                                                {{-- Bot\u00e3o para DESBLOQUEAR (apenas para proxies bloqueadas) --}}
+                                                <button type="button" class="vps-proxy-action-btn danger" data-toggle-port
+                                                    data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}"
+                                                    data-state="blocked" data-ip="{{ $farm->ip }}"
+                                                    data-porta="{{ $proxy->porta }}" data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
+                                                    data-senha-ssh="{{ $farm->senha_ssh ?? '' }}">
+                                                    <i class="fas fa-unlock"></i>
+                                                    <span data-btn-text>Desbloquear</span>
+                                                </button>
+                                            @endif
                                         </div>
                                     </div>
                                 @endforeach
@@ -601,6 +668,151 @@
                 </div>
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Conectando com a
                     VPS</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Uso Interno -->
+<div id="usoInternoModal" class="admin-modal-overlay hidden">
+    <div class="admin-modal" style="max-width: 500px;">
+        <div class="p-6">
+            <!-- Header -->
+            <div class="flex items-start justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-briefcase text-indigo-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900">Marcar como Uso Interno</h3>
+                        <p class="text-sm text-slate-500 mt-1">Esta proxy ficará indisponível para venda</p>
+                    </div>
+                </div>
+                <button type="button" class="text-slate-400 hover:text-slate-600 transition-colors" onclick="closeUsoInternoModal()">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form id="usoInternoForm" onsubmit="submitUsoInterno(event)">
+                <div class="mb-6">
+                    <label for="finalidadeInput" class="block text-sm font-semibold text-slate-700 mb-2">
+                        Finalidade do uso interno *
+                    </label>
+                    <input
+                        type="text"
+                        id="finalidadeInput"
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none"
+                        placeholder="Ex: Testes, Marketing, Monitoramento..."
+                        required
+                        autocomplete="off"
+                    >
+                    <p class="text-xs text-slate-500 mt-2">
+                        <i class="fas fa-info-circle"></i> Descreva para que esta proxy será utilizada internamente
+                    </p>
+                </div>
+
+                <!-- Sugestões rápidas -->
+                <div class="mb-6">
+                    <p class="text-xs font-semibold text-slate-600 mb-2">Sugestões rápidas:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="setFinalidade('Testes')"
+                            class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 text-slate-700 rounded-lg transition-colors">
+                            <i class="fas fa-flask"></i> Testes
+                        </button>
+                        <button type="button" onclick="setFinalidade('Marketing')"
+                            class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 text-slate-700 rounded-lg transition-colors">
+                            <i class="fas fa-bullhorn"></i> Marketing
+                        </button>
+                        <button type="button" onclick="setFinalidade('Monitoramento')"
+                            class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 text-slate-700 rounded-lg transition-colors">
+                            <i class="fas fa-chart-line"></i> Monitoramento
+                        </button>
+                        <button type="button" onclick="setFinalidade('Desenvolvimento')"
+                            class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 text-slate-700 rounded-lg transition-colors">
+                            <i class="fas fa-code"></i> Desenvolvimento
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Alerta informativo -->
+                <div class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <div class="flex gap-3">
+                        <i class="fas fa-exclamation-triangle text-amber-600 mt-0.5"></i>
+                        <div class="text-sm text-amber-800">
+                            <p class="font-semibold mb-1">Atenção:</p>
+                            <ul class="text-xs space-y-1 text-amber-700">
+                                <li>• A proxy será <strong>removida do estoque disponível</strong></li>
+                                <li>• Clientes <strong>não poderão comprá-la</strong></li>
+                                <li>• Apenas administradores verão esta proxy</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ações -->
+                <div class="flex gap-3">
+                    <button
+                        type="button"
+                        onclick="closeUsoInternoModal()"
+                        class="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button
+                        type="submit"
+                        class="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors">
+                        <i class="fas fa-check"></i> Confirmar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação - Remover Uso Interno -->
+<div id="removerUsoInternoModal" class="admin-modal-overlay hidden">
+    <div class="admin-modal" style="max-width: 450px;">
+        <div class="p-6">
+            <!-- Header -->
+            <div class="flex items-start gap-4 mb-6">
+                <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-undo text-amber-600 text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">Remover Uso Interno</h3>
+                    <p class="text-sm text-slate-600">Esta proxy voltará ao estoque disponível para venda aos clientes.</p>
+                </div>
+            </div>
+
+            <!-- Informações -->
+            <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <div class="flex gap-3">
+                    <i class="fas fa-info-circle text-blue-600 mt-0.5"></i>
+                    <div class="text-sm text-blue-800">
+                        <p class="font-semibold mb-1">O que acontecerá:</p>
+                        <ul class="text-xs space-y-1 text-blue-700">
+                            <li>✓ A proxy voltará para o <strong>estoque disponível</strong></li>
+                            <li>✓ Clientes <strong>poderão comprá-la</strong> normalmente</li>
+                            <li>✓ A finalidade interna será <strong>removida</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ações -->
+            <div class="flex gap-3">
+                <button
+                    type="button"
+                    onclick="closeRemoverUsoInternoModal()"
+                    class="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button
+                    type="button"
+                    onclick="confirmarRemoverUsoInterno()"
+                    class="flex-1 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors">
+                    <i class="fas fa-check"></i> Confirmar
+                </button>
             </div>
         </div>
     </div>
@@ -1228,6 +1440,290 @@
         }
     });
 
+    // ============================================
+    // MARCAR/REMOVER USO INTERNO
+    // ============================================
+
+    // Variáveis globais para o modal de uso interno
+    let currentStockId = null;
+    let currentTargetStatus = null;
+    let currentMarcarButton = null;
+
+    // Função para abrir modal de uso interno
+    function openUsoInternoModal(stockId, targetStatus, button) {
+        currentStockId = stockId;
+        currentTargetStatus = targetStatus;
+        currentMarcarButton = button;
+
+        const modal = document.getElementById('usoInternoModal');
+        const input = document.getElementById('finalidadeInput');
+
+        // Limpar input
+        input.value = '';
+
+        // Portal: mover modal para o body (garantir que fique acima de tudo)
+        if (modal.parentNode !== document.body) {
+            document.body.appendChild(modal);
+        }
+
+        // Mostrar modal
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+
+        // Focar no input
+        setTimeout(() => input.focus(), 100);
+
+        // Bloquear scroll da página
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Função para fechar modal de uso interno
+    function closeUsoInternoModal() {
+        const modal = document.getElementById('usoInternoModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('active');
+
+        // Desbloquear scroll da página
+        document.body.style.overflow = '';
+
+        // Limpar variáveis
+        currentStockId = null;
+        currentTargetStatus = null;
+        currentMarcarButton = null;
+    }
+
+    // Função para definir finalidade (botões de sugestão)
+    function setFinalidade(valor) {
+        document.getElementById('finalidadeInput').value = valor;
+    }
+
+    // Função para submeter o formulário de uso interno
+    async function submitUsoInterno(event) {
+        event.preventDefault();
+
+        const finalidade = document.getElementById('finalidadeInput').value.trim();
+
+        if (!finalidade) {
+            showToast('Finalidade não informada. Operação cancelada.', 'error');
+            return;
+        }
+
+        // IMPORTANTE: Armazenar valores ANTES de fechar a modal
+        // pois closeUsoInternoModal() limpa as variáveis globais
+        const stockId = currentStockId;
+        const targetStatus = currentTargetStatus;
+        const marcarButton = currentMarcarButton;
+
+        // Fechar modal
+        closeUsoInternoModal();
+
+        // Verificar se temos o stock_id
+        if (!stockId) {
+            showToast('Erro: ID da proxy não encontrado', 'error');
+            return;
+        }
+
+        // Desabilitar botão durante requisição
+        if (marcarButton) {
+            marcarButton.disabled = true;
+            const icon = marcarButton.querySelector('i');
+            const text = marcarButton.querySelector('span');
+            const originalIconClass = icon.className;
+            const originalText = text.textContent;
+
+            icon.className = 'fas fa-spinner fa-spin';
+            text.textContent = 'Processando...';
+
+            try {
+                const response = await fetch('/admin/proxy/uso-interno', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({
+                        stock_id: stockId,
+                        finalidade_interna: finalidade
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Atualizar status visual
+                    if (targetStatus) {
+                        targetStatus.dataset.status = 'uso_interno';
+                        targetStatus.innerHTML = '<span class="text-indigo-600 px-2 py-0.5 rounded">Uso Interno</span>';
+                    }
+
+                    showToast(`Proxy marcada como uso interno: ${finalidade}`, 'success');
+
+                    // Recarregar página após 1.5s para atualizar contadores e botões
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast(data.error || 'Erro ao marcar proxy como uso interno', 'error');
+                    icon.className = originalIconClass;
+                    text.textContent = originalText;
+                    marcarButton.disabled = false;
+                }
+            } catch (error) {
+                console.error('Erro ao enviar requisição:', error);
+                showToast('Erro ao conectar com o servidor', 'error');
+                icon.className = originalIconClass;
+                text.textContent = originalText;
+                marcarButton.disabled = false;
+            }
+        } else {
+            showToast('Erro: Botão não encontrado', 'error');
+        }
+    }
+
+    // Fechar modal ao clicar fora
+    document.getElementById('usoInternoModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeUsoInternoModal();
+        }
+    });
+
+    // Fechar modal com ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (!document.getElementById('usoInternoModal').classList.contains('hidden')) {
+                closeUsoInternoModal();
+            }
+            if (!document.getElementById('removerUsoInternoModal').classList.contains('hidden')) {
+                closeRemoverUsoInternoModal();
+            }
+        }
+    });
+
+    // ============================================
+    // REMOVER USO INTERNO - MODAL
+    // ============================================
+
+    let currentRemoverStockId = null;
+    let currentRemoverTargetStatus = null;
+    let currentRemoverButton = null;
+
+    function openRemoverUsoInternoModal(stockId, targetStatus, button) {
+        currentRemoverStockId = stockId;
+        currentRemoverTargetStatus = targetStatus;
+        currentRemoverButton = button;
+
+        const modal = document.getElementById('removerUsoInternoModal');
+
+        // Portal: mover modal para o body (garantir que fique acima de tudo)
+        if (modal.parentNode !== document.body) {
+            document.body.appendChild(modal);
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeRemoverUsoInternoModal() {
+        const modal = document.getElementById('removerUsoInternoModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+
+        currentRemoverStockId = null;
+        currentRemoverTargetStatus = null;
+        currentRemoverButton = null;
+    }
+
+    async function confirmarRemoverUsoInterno() {
+        // IMPORTANTE: Armazenar valores ANTES de fechar a modal
+        const stockId = currentRemoverStockId;
+        const targetStatus = currentRemoverTargetStatus;
+        const removerButton = currentRemoverButton;
+
+        // Fechar modal
+        closeRemoverUsoInternoModal();
+
+        if (!removerButton) return;
+
+        // Desabilitar botão durante requisição
+        removerButton.disabled = true;
+        const icon = removerButton.querySelector('i');
+        const text = removerButton.querySelector('span');
+        const originalIconClass = icon.className;
+        const originalText = text.textContent;
+
+        icon.className = 'fas fa-spinner fa-spin';
+        text.textContent = 'Processando...';
+
+        try {
+            const response = await fetch('/admin/proxy/remover-uso-interno', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify({ stock_id: stockId })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Atualizar status visual
+                if (targetStatus) {
+                    targetStatus.dataset.status = 'disponivel';
+                    targetStatus.innerHTML = '<span class="text-green-600 px-2 py-0.5 rounded">Disponível</span>';
+                }
+
+                showToast('Proxy removida do uso interno e voltou ao estoque', 'success');
+
+                // Recarregar página após 1.5s
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showToast(data.error || 'Erro ao remover uso interno', 'error');
+                icon.className = originalIconClass;
+                text.textContent = originalText;
+                removerButton.disabled = false;
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            showToast('Erro ao conectar com o servidor', 'error');
+            icon.className = originalIconClass;
+            text.textContent = originalText;
+            removerButton.disabled = false;
+        }
+    }
+
+    // Fechar modal ao clicar fora
+    document.getElementById('removerUsoInternoModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeRemoverUsoInternoModal();
+        }
+    });
+
+    document.addEventListener('click', async function(e) {
+        // MARCAR COMO USO INTERNO
+        const marcarButton = e.target.closest('[data-action="marcar-uso-interno"]');
+        if (marcarButton) {
+            e.preventDefault();
+
+            const stockId = marcarButton.dataset.stockId;
+            const targetStatus = document.querySelector(marcarButton.dataset.target);
+
+            // Abrir modal customizado ao invés de prompt
+            openUsoInternoModal(stockId, targetStatus, marcarButton);
+        }
+
+        // REMOVER USO INTERNO
+        const removerButton = e.target.closest('[data-action="remover-uso-interno"]');
+        if (removerButton) {
+            e.preventDefault();
+
+            const stockId = removerButton.dataset.stockId;
+            const targetStatus = document.querySelector(removerButton.dataset.target);
+
+            // Abrir modal de confirmação ao invés de confirm()
+            openRemoverUsoInternoModal(stockId, targetStatus, removerButton);
+        }
+    });
 
     //MASCARA DE VALOR
 

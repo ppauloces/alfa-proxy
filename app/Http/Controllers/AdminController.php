@@ -418,4 +418,157 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * Marcar proxy como uso interno
+     */
+    public function marcarUsoInterno(Request $request)
+    {
+        Log::info('marcarUsoInterno chamado', [
+            'request_data' => $request->all(),
+            'user_id' => Auth::id(),
+        ]);
+
+        try {
+            $validated = $request->validate([
+                'stock_id' => 'required|exists:stocks,id',
+                'finalidade_interna' => 'required|string|max:255',
+            ], [
+                'stock_id.required' => 'ID da proxy é obrigatório.',
+                'stock_id.exists' => 'Proxy não encontrada.',
+                'finalidade_interna.required' => 'A finalidade é obrigatória.',
+                'finalidade_interna.max' => 'A finalidade deve ter no máximo 255 caracteres.',
+            ]);
+
+            Log::info('Validação passou', ['validated' => $validated]);
+
+            $proxy = Stock::findOrFail($validated['stock_id']);
+
+            Log::info('Proxy encontrada', [
+                'proxy_id' => $proxy->id,
+                'bloqueada' => $proxy->bloqueada,
+                'disponibilidade' => $proxy->disponibilidade,
+                'uso_interno' => $proxy->uso_interno,
+            ]);
+
+            // Verificar se a proxy está bloqueada
+            if ($proxy->bloqueada) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Não é possível marcar uma proxy bloqueada como uso interno.',
+                ], 422);
+            }
+
+            // Verificar se a proxy está disponível (não vendida)
+            if (!$proxy->disponibilidade) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Não é possível marcar uma proxy vendida como uso interno.',
+                ], 422);
+            }
+
+            // Verificar se já está em uso interno
+            if ($proxy->uso_interno) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Esta proxy já está marcada como uso interno.',
+                ], 422);
+            }
+
+            // Marcar como uso interno
+            $proxy->update([
+                'uso_interno' => true,
+                'finalidade_interna' => $validated['finalidade_interna'],
+                'disponibilidade' => true, // Continua em estoque
+                'user_id' => null, // Não vincula a nenhum usuário
+            ]);
+
+            Log::info('Proxy marcada como uso interno', [
+                'stock_id' => $proxy->id,
+                'finalidade' => $validated['finalidade_interna'],
+                'ip' => $proxy->ip,
+                'porta' => $proxy->porta,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Proxy marcada como uso interno com sucesso!',
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->validator->errors()->first(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Erro ao marcar proxy como uso interno', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao processar requisição: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Remover proxy do uso interno
+     */
+    public function removerUsoInterno(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'stock_id' => 'required|exists:stocks,id',
+            ], [
+                'stock_id.required' => 'ID da proxy é obrigatório.',
+                'stock_id.exists' => 'Proxy não encontrada.',
+            ]);
+
+            $proxy = Stock::findOrFail($validated['stock_id']);
+
+            // Verificar se está em uso interno
+            if (!$proxy->uso_interno) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Esta proxy não está marcada como uso interno.',
+                ], 422);
+            }
+
+            // Remover uso interno
+            $proxy->update([
+                'uso_interno' => false,
+                'finalidade_interna' => null,
+                'disponibilidade' => true, // Volta para estoque disponível
+            ]);
+
+            Log::info('Proxy removida do uso interno', [
+                'stock_id' => $proxy->id,
+                'ip' => $proxy->ip,
+                'porta' => $proxy->porta,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Proxy removida do uso interno com sucesso!',
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->validator->errors()->first(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Erro ao remover proxy do uso interno', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao processar requisição: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }

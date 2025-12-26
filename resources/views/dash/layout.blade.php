@@ -244,6 +244,104 @@
             animation: modalSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* ===================================
+           RESPONSIVIDADE MOBILE & TABLET
+        =================================== */
+
+        /* Mobile - Até 640px */
+        @media (max-width: 640px) {
+            header .max-w-full {
+                padding: 0.75rem 1rem !important;
+                gap: 0.5rem !important;
+            }
+
+            header img {
+                height: 1.5rem !important;
+            }
+
+            header nav {
+                display: none !important;
+            }
+
+            header .flex.items-center.gap-4 {
+                gap: 0.5rem !important;
+            }
+
+            header button {
+                padding: 0.5rem !important;
+            }
+
+            .dashboard-shell {
+                padding: 80px 0 1.5rem !important;
+            }
+
+            .main-card {
+                padding: 1.5rem 1rem !important;
+            }
+
+            .sidebar-card {
+                width: 280px !important;
+            }
+
+            .admin-modal {
+                padding: 1.5rem !important;
+                border-radius: 24px !important;
+            }
+
+            .admin-modal-overlay {
+                padding: 1rem !important;
+            }
+
+            /* Botões mobile */
+            button {
+                font-size: 0.875rem !important;
+            }
+
+            /* Badges mobile */
+            .badge,
+            .badge-amber,
+            .badge-success,
+            .badge-pending {
+                font-size: 0.65rem !important;
+                padding: 0.25rem 0.5rem !important;
+            }
+        }
+
+        /* Tablet - 641px até 1024px */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .dashboard-shell {
+                padding: 100px 0 2rem !important;
+                padding-left: 0 !important;
+            }
+
+            .main-card {
+                padding: 2rem 1.5rem !important;
+            }
+
+            header {
+                left: 0 !important;
+            }
+        }
+
+        /* Ajustes gerais para telas pequenas */
+        @media (max-width: 768px) {
+            .grid.md\:grid-cols-2,
+            .grid.md\:grid-cols-3 {
+                grid-template-columns: 1fr !important;
+            }
+
+            .lg\:col-span-2 {
+                grid-column: span 1 !important;
+            }
+        }
+
+        /* Landscape mobile */
+        @media (max-height: 768px) and (orientation: landscape) {
+            .dashboard-shell {
+                padding-top: 70px !important;
+            }
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -294,12 +392,12 @@
         <div class="max-w-full mx-auto px-8 py-4 flex justify-between items-center gap-8">
             <!-- LOGO HORIZONTAL -->
             <a href="{{ route('dash.show') }}"
-                class="flex items-center gap-3 shrink-0 bg-white/90 backdrop-blur rounded-2xl border border-slate-100 shadow-sm px-4 py-2 hover:bg-white transition">
+                class="flex items-center gap-3 shrink-0 bg-white/90 backdrop-blur rounded-2xl border border-slate-100 shadow-sm px-3 sm:px-4 py-2 hover:bg-white transition">
                 {{-- Troque o src pelo caminho real da sua logo horizontal --}}
                 <img src="{{ asset('images/logoproxy1.webp') }}" alt="AlfaProxy"
-                    class="h-8 sm:h-9 w-auto object-contain">
+                    class="h-6 sm:h-8 lg:h-9 w-auto object-contain">
             </a>
-            <div class="flex items-center">
+            <div class="flex items-center flex-1 justify-end">
                 {{-- Espaçador para mobile --}}
                 <div class="lg:hidden w-10"></div>
             </div>

@@ -1,3 +1,123 @@
+<style>
+    /* Badge de desconto - tamanho ajustado */
+    .price-card > span.absolute {
+        font-size: 9px !important;
+        padding: 0.4rem 0.75rem !important;
+    }
+
+    /* Toast de validação */
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideOutRight {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+
+    .validation-toast {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 10000;
+        background: white;
+        border-radius: 20px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
+        border-left: 4px solid #ef4444;
+        max-width: 420px;
+        animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .validation-toast.closing {
+        animation: slideOutRight 0.3s ease forwards;
+    }
+
+    /* Responsividade para nova compra */
+    @media (max-width: 640px) {
+        .grid.lg\:grid-cols-3 {
+            grid-template-columns: 1fr !important;
+        }
+
+        .lg\:col-span-2 {
+            grid-column: span 1 !important;
+        }
+
+        .bg-white.p-8 {
+            padding: 1.25rem !important;
+        }
+
+        .grid.md\:grid-cols-2,
+        .grid.md\:grid-cols-3,
+        .grid.grid-cols-1.md\:grid-cols-3.lg\:grid-cols-5 {
+            grid-template-columns: 1fr !important;
+        }
+
+        .grid.grid-cols-2.sm\:grid-cols-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+
+        .price-card {
+            padding: 1rem !important;
+        }
+
+        /* Badge de desconto menor em mobile */
+        .price-card > span.absolute {
+            font-size: 8px !important;
+            padding: 0.35rem 0.6rem !important;
+        }
+
+        h1 {
+            font-size: 2rem !important;
+        }
+
+        h2 {
+            font-size: 1.125rem !important;
+        }
+
+        .payment-method {
+            padding: 0.75rem !important;
+        }
+
+        .sticky.top-28 {
+            position: relative !important;
+            top: 0 !important;
+        }
+
+        /* Toast responsivo */
+        .validation-toast {
+            top: 16px;
+            right: 16px;
+            left: 16px;
+            max-width: none;
+            padding: 1rem;
+        }
+    }
+
+    @media (min-width: 641px) and (max-width: 1024px) {
+        .grid.lg\:grid-cols-3 {
+            grid-template-columns: 1fr !important;
+        }
+
+        .grid.grid-cols-1.md\:grid-cols-3.lg\:grid-cols-5 {
+            grid-template-columns: repeat(3, 1fr) !important;
+        }
+    }
+</style>
+
 <div class="flex flex-col gap-6">
     {{-- Header da Seção --}}
     <div class="space-y-1">
@@ -35,7 +155,7 @@
                     <div class="grid md:grid-cols-2 gap-6">
                         <div class="form-group">
                             <label class="form-label block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 leading-none whitespace-nowrap">País</label>
-                            <x-ui.select name="pais" :value="old('pais')" placeholder="Selecione" :options="[
+                            <x-ui.select name="pais" :value="old('pais', 'Brasil')" placeholder="Selecione" :options="[
                                 'Brasil' => 'Brasil'
                             ]" />
                         </div>
@@ -89,7 +209,6 @@
                                             value="{{ $motivo['value'] }}"
                                             class="peer hidden"
                                             @checked(old('motivo') === $motivo['value'])
-                                            required
                                         >
                                         <div
                                             class="flex flex-col items-center justify-center gap-2 p-4 rounded-[1.25rem] border-2 border-slate-50 bg-white hover:border-slate-200 transition-all duration-300 peer-checked:border-blue-500 peer-checked:ring-2 peer-checked:ring-blue-500/40 [&_svg]:h-10 [&_svg]:w-10 [&_svg]:grayscale [&_svg]:opacity-50 [&_svg]:transition-all [&_svg]:duration-300 peer-checked:[&_svg]:grayscale-0 peer-checked:[&_svg]:opacity-100 [&_span]:text-xs [&_span]:font-bold [&_span]:text-slate-500 peer-checked:[&_span]:text-slate-900"
@@ -154,8 +273,7 @@
 
                                 <input type="number" name="quantidade" value="{{ old('quantidade', 1) }}" id="quantidade"
                                     min="1" max="100"
-                                    class="form-input bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] transition-all max-w-[120px] text-center font-bold"
-                                    required>
+                                    class="form-input bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] transition-all max-w-[120px] text-center font-bold">
 
                                 <button
                                     type="button"
@@ -227,6 +345,118 @@
                         qtyInput.addEventListener('input', updateBadge);
                         qtyInput.addEventListener('change', updateBadge);
                         updateBadge();
+
+                        // Validação do formulário antes de submeter
+                        form.addEventListener('submit', function(e) {
+                            let hasError = false;
+                            let errorMessages = [];
+
+                            // Verificar se selecionou motivo de uso
+                            const motivoSelecionado = form.querySelector('input[name="motivo"]:checked');
+                            if (!motivoSelecionado) {
+                                hasError = true;
+                                errorMessages.push('Selecione o motivo de uso');
+                            }
+
+                            // Verificar se selecionou período
+                            const periodoSelecionado = form.querySelector('input[name="periodo"]:checked');
+                            if (!periodoSelecionado) {
+                                hasError = true;
+                                errorMessages.push('Selecione o período de contratação');
+                            }
+
+                            // Verificar se selecionou método de pagamento
+                            const metodoPagamento = document.getElementById('orderPaymentMethod').value;
+                            if (!metodoPagamento) {
+                                hasError = true;
+                                errorMessages.push('Selecione a forma de pagamento');
+                            }
+
+                            if (hasError) {
+                                e.preventDefault();
+
+                                // Remover toast anterior se existir
+                                const oldToast = document.querySelector('.validation-toast');
+                                if (oldToast) oldToast.remove();
+
+                                // Criar toast
+                                const toast = document.createElement('div');
+                                toast.className = 'validation-toast';
+                                toast.innerHTML = `
+                                    <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                                        <div style="
+                                            width: 40px;
+                                            height: 40px;
+                                            border-radius: 50%;
+                                            background: linear-gradient(135deg, #ef4444, #dc2626);
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            color: white;
+                                            flex-shrink: 0;
+                                        ">
+                                            <i class="fas fa-exclamation-circle"></i>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 700; color: #0f172a; margin-bottom: 0.5rem; font-size: 0.9375rem;">
+                                                Campos obrigatórios
+                                            </div>
+                                            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.375rem;">
+                                                ${errorMessages.map(msg => `
+                                                    <li style="
+                                                        display: flex;
+                                                        align-items: center;
+                                                        gap: 0.5rem;
+                                                        color: #64748b;
+                                                        font-size: 0.8125rem;
+                                                        font-weight: 500;
+                                                    ">
+                                                        <i class="fas fa-circle" style="font-size: 4px; color: #ef4444;"></i>
+                                                        ${msg}
+                                                    </li>
+                                                `).join('')}
+                                            </ul>
+                                        </div>
+                                        <button onclick="this.closest('.validation-toast').classList.add('closing'); setTimeout(() => this.closest('.validation-toast').remove(), 300);" style="
+                                            background: none;
+                                            border: none;
+                                            color: #94a3b8;
+                                            cursor: pointer;
+                                            padding: 0.25rem;
+                                            font-size: 1rem;
+                                            line-height: 1;
+                                            transition: color 0.2s;
+                                        " onmouseover="this.style.color='#475569'" onmouseout="this.style.color='#94a3b8'">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                `;
+
+                                document.body.appendChild(toast);
+
+                                // Auto-fechar após 5 segundos
+                                setTimeout(() => {
+                                    if (toast.parentNode) {
+                                        toast.classList.add('closing');
+                                        setTimeout(() => toast.remove(), 300);
+                                    }
+                                }, 5000);
+
+                                // Scroll para o primeiro campo com erro
+                                setTimeout(() => {
+                                    if (!motivoSelecionado) {
+                                        const motivoSection = form.querySelector('input[name="motivo"]').closest('.form-group');
+                                        motivoSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    } else if (!periodoSelecionado) {
+                                        const periodoSection = form.querySelector('input[name="periodo"]').closest('.bg-white');
+                                        periodoSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    } else if (!metodoPagamento) {
+                                        const pagamentoSection = document.getElementById('orderPaymentMethod').closest('.bg-white');
+                                        pagamentoSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }
+                                }, 100);
+                            }
+                        });
                     })();
                 </script>
 
@@ -259,7 +489,6 @@
                                     data-price="{{ $period['price'] }}"
                                     class="peer hidden"
                                     @checked(old('periodo') == $period['days'])
-                                    required
                                 >
 
                                 <div class="price-card flex flex-col items-center text-center p-6 rounded-[1.8rem] border-2 border-slate-50 bg-white transition-all duration-300 peer-checked:border-blue-600 peer-checked:bg-blue-50/20 peer-checked:ring-4 peer-checked:ring-blue-600/5 group-hover:border-slate-200">
@@ -328,7 +557,7 @@
                         @endforeach
                     </div>
                     <input type="hidden" name="metodo_pagamento" id="orderPaymentMethod"
-                        value="{{ old('metodo_pagamento') }}" required>
+                        value="{{ old('metodo_pagamento') }}">
 
                     <!-- Campos de Cartão de Crédito -->
                     <div id="creditCardFields" class="mt-8 p-6 bg-slate-50 rounded-2xl"

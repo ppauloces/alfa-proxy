@@ -1889,4 +1889,190 @@
             transform: translateX(100%);
         }
     }
+
+    /* ===================================
+       RESPONSIVIDADE MOBILE & TABLET
+    =================================== */
+
+    /* Mobile - Até 640px */
+    @media (max-width: 640px) {
+        /* Modais VPS */
+        .admin-modal.vps-modal {
+            width: 95vw !important;
+            max-height: calc(100vh - 2rem) !important;
+        }
+
+        .admin-modal.vps-modal .vps-modal-header {
+            padding: 1.25rem !important;
+        }
+
+        .admin-modal.vps-modal .vps-modal-body {
+            padding: 1.25rem !important;
+        }
+
+        /* Cards de proxy */
+        .vps-proxy-card {
+            flex-direction: column !important;
+            gap: 1rem !important;
+            padding: 1rem !important;
+        }
+
+        .vps-proxy-actions {
+            width: 100% !important;
+        }
+
+        .vps-proxy-action-btn {
+            min-width: 100% !important;
+            font-size: 0.75rem !important;
+            height: 40px !important;
+        }
+
+        /* Grid de cards VPS */
+        .grid.sm\:grid-cols-2.xl\:grid-cols-3 {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* Grid dentro da modal */
+        .grid.grid-cols-1.lg\:grid-cols-2.xl\:grid-cols-3 {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* Formulário de cadastro */
+        .grid.md\:grid-cols-3 {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* Admin cards */
+        .admin-card {
+            padding: 1rem !important;
+        }
+
+        /* Títulos */
+        h1 {
+            font-size: 1.5rem !important;
+        }
+
+        h2 {
+            font-size: 1.125rem !important;
+        }
+
+        h3 {
+            font-size: 1rem !important;
+        }
+
+        /* Stats grid mobile */
+        .grid.grid-cols-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.5rem !important;
+        }
+
+        /* Toast container mobile */
+        #toastContainer {
+            right: 1rem !important;
+            max-width: calc(100vw - 2rem) !important;
+        }
+
+        /* VPS meta mobile */
+        .vps-meta {
+            font-size: 9px !important;
+        }
+
+        /* Badges mobile */
+        .badge-status {
+            font-size: 9px !important;
+            padding: 0.2rem 0.5rem !important;
+        }
+
+        /* Tabela admin mobile */
+        .admin-table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 0.5rem !important;
+            font-size: 0.75rem !important;
+        }
+
+        /* Form inputs mobile */
+        .form-input {
+            font-size: 0.875rem !important;
+        }
+
+        /* Modais menores mobile */
+        #usoInternoModal .admin-modal,
+        #removerUsoInternoModal .admin-modal,
+        #loadingModal .admin-modal {
+            max-width: 95vw !important;
+            padding: 1.25rem !important;
+        }
+
+        /* Status panel mobile */
+        #statusPanel .admin-card {
+            padding: 1rem !important;
+        }
+    }
+
+    /* Tablet - 641px até 1024px */
+    @media (min-width: 641px) and (max-width: 1024px) {
+        .admin-modal.vps-modal {
+            width: 90vw !important;
+        }
+
+        .grid.xl\:grid-cols-3 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+
+        .grid.grid-cols-1.lg\:grid-cols-2.xl\:grid-cols-3 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+
+        .vps-proxy-card {
+            flex-direction: column !important;
+        }
+
+        .vps-proxy-actions {
+            width: 100% !important;
+        }
+
+        .vps-proxy-action-btn {
+            min-width: 100% !important;
+        }
+    }
+
+    /* Ajustes gerais para telas pequenas */
+    @media (max-width: 768px) {
+        /* Esconder colunas menos importantes */
+        .admin-table th:nth-child(3),
+        .admin-table td:nth-child(3) {
+            display: none;
+        }
+
+        /* Checkboxes em coluna */
+        .flex.items-center.gap-3.mb-4 {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.75rem !important;
+        }
+
+        .flex.items-center.gap-3.mb-4 label:last-child {
+            margin-left: 0 !important;
+        }
+    }
+
+    /* Touch devices */
+    @media (hover: none) and (pointer: coarse) {
+        .vps-proxy-action-btn,
+        button,
+        .admin-card button {
+            min-height: 44px !important;
+        }
+
+        .form-input,
+        select {
+            min-height: 44px !important;
+        }
+    }
 </style>

@@ -83,6 +83,137 @@
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.15);
         }
+
+        /* ===================================
+           RESPONSIVIDADE MOBILE & TABLET
+        =================================== */
+
+        /* Mobile - Até 640px */
+        @media (max-width: 640px) {
+            /* Header mobile */
+            header .max-w-7xl {
+                padding: 1rem;
+            }
+
+            header img {
+                height: 2rem !important;
+            }
+
+            /* Ocultar texto do botão "Criar conta" em mobile */
+            header .flex.items-center.gap-3 a {
+                padding: 0.5rem !important;
+            }
+
+            header .flex.items-center.gap-3 a span {
+                display: none;
+            }
+
+            header .flex.items-center.gap-3 a i {
+                margin: 0 !important;
+            }
+
+            /* Main mobile */
+            main {
+                padding-top: 6rem !important;
+                padding-bottom: 3rem !important;
+            }
+
+            /* Glass card mobile */
+            .glass-card {
+                padding: 1.5rem !important;
+                border-radius: 20px !important;
+            }
+
+            /* Form mobile */
+            .form-shell {
+                order: 2;
+            }
+
+            /* Text section mobile */
+            .space-y-8 {
+                order: 1;
+                margin-bottom: 2rem;
+            }
+
+            h1 {
+                font-size: 1.5rem !important;
+            }
+
+            h2 {
+                font-size: 1.75rem !important;
+            }
+
+            /* Pill highlight - reduzir em mobile */
+            .pill-highlight {
+                inset: -30px -20px -30px 20px !important;
+                filter: blur(15px) !important;
+            }
+
+            /* Buttons mobile */
+            .google-btn {
+                font-size: 0.875rem !important;
+            }
+        }
+
+        /* Tablet - 641px até 1024px */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .glass-card {
+                padding: 2rem !important;
+            }
+
+            h2 {
+                font-size: 2.5rem !important;
+            }
+
+            main {
+                padding-top: 8rem !important;
+            }
+        }
+
+        /* Ajustes gerais para telas pequenas */
+        @media (max-width: 768px) {
+            .max-w-7xl {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+
+            .grid-cols-1 {
+                gap: 2rem !important;
+            }
+
+            /* Esconder menu hamburguer se não tiver funcionalidade */
+            button.md\:hidden {
+                display: none;
+            }
+        }
+
+        /* Landscape mobile */
+        @media (max-height: 768px) and (orientation: landscape) {
+            main {
+                padding-top: 4rem !important;
+                padding-bottom: 2rem !important;
+            }
+
+            .pill-highlight {
+                display: none;
+            }
+        }
+
+        /* Touch devices - melhorar áreas de toque */
+        @media (hover: none) and (pointer: coarse) {
+            button,
+            a {
+                min-height: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .input-field {
+                padding-top: 0.875rem !important;
+                padding-bottom: 0.875rem !important;
+            }
+        }
     </style>
 </head>
 
@@ -109,7 +240,7 @@
                 <div class="flex items-center gap-3">
                     <a href="{{ route('register.show') }}" class="flex items-center gap-2 text-white bg-white/15 border border-white/25 rounded-xl px-4 py-2 backdrop-blur-sm hover:bg-white/25 transition">
                         <i class="fas fa-user-plus"></i>
-                        Criar conta
+                        <span>Criar conta</span>
                     </a>
                     <button class="md:hidden text-white text-2xl">
                         <i class="fas fa-bars"></i>

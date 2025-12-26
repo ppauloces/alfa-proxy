@@ -291,15 +291,228 @@
             right: 0;
             background: linear-gradient(270deg, rgba(248, 250, 252, 1) 0%, rgba(248, 250, 252, 0) 100%);
         }
+
+        /* ===================================
+           RESPONSIVIDADE MOBILE & TABLET
+        =================================== */
+
+        /* Mobile - Até 640px */
+        @media (max-width: 640px) {
+            /* Header mobile */
+            header .container {
+                padding: 1rem;
+            }
+
+            header img {
+                width: 120px !important;
+                height: auto !important;
+            }
+
+            /* Hero Section mobile */
+            #alfaLogo {
+                width: 120px;
+                margin-bottom: 10px;
+                transform: translate(0, 0) !important;
+            }
+
+            #heroTitle {
+                font-size: 28px !important;
+                max-width: 100% !important;
+            }
+
+            #heroSubtitle {
+                font-size: 16px !important;
+                max-width: 100% !important;
+            }
+
+            /* Proxy Calculator mobile */
+            .proxy-calculator {
+                padding: 1rem !important;
+                border-radius: 20px !important;
+            }
+
+            .calculator-card {
+                min-height: auto !important;
+                padding: 0.75rem !important;
+            }
+
+            #priceDisplay {
+                font-size: 1.5rem !important;
+            }
+
+            .buy-proxy-btn {
+                font-size: 13px !important;
+                padding: 0.75rem 1.25rem !important;
+            }
+
+            /* Multilogin section mobile */
+            .logo-pill {
+                padding: 10px 14px !important;
+                gap: 8px !important;
+            }
+
+            .logo-mark {
+                width: 32px !important;
+                height: 32px !important;
+            }
+
+            .logo-pill span:last-child {
+                font-size: 12px !important;
+            }
+
+            /* Benefits cards mobile */
+            .group.rounded-\[2rem\] {
+                padding: 1.5rem !important;
+            }
+
+            /* FAQ mobile */
+            .faq-item p {
+                font-size: 14px !important;
+            }
+
+            .faq-answer p {
+                font-size: 13px !important;
+            }
+
+            /* Footer mobile */
+            footer {
+                padding: 2rem 0 !important;
+            }
+
+            footer .container {
+                padding: 0 1rem !important;
+            }
+        }
+
+        /* Tablet - 641px até 1024px */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            /* Header tablet */
+            header img {
+                width: 180px !important;
+            }
+
+            /* Hero Section tablet */
+            #alfaLogo {
+                width: 150px;
+            }
+
+            #heroTitle {
+                font-size: 40px !important;
+            }
+
+            #heroSubtitle {
+                font-size: 18px !important;
+            }
+
+            /* Proxy Calculator tablet */
+            .calculator-card {
+                min-width: 120px !important;
+            }
+
+            /* Multilogin section tablet */
+            .logo-pill {
+                padding: 12px 16px !important;
+            }
+        }
+
+        /* Landscape mobile - Até 768px altura */
+        @media (max-height: 768px) and (orientation: landscape) {
+            section[style*="min-height: 85vh"] {
+                min-height: auto !important;
+                padding-top: 80px !important;
+                padding-bottom: 60px !important;
+            }
+
+            #alfaLogo {
+                display: none;
+            }
+        }
+
+        /* Ajustes gerais para telas pequenas */
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+
+            h1, h2, h3 {
+                text-align: center;
+            }
+
+            .text-left {
+                text-align: center !important;
+            }
+
+            /* Centralizar conteúdo do hero em mobile */
+            .grid.grid-cols-1 {
+                text-align: center;
+            }
+
+            /* Esconder elementos decorativos em mobile */
+            .hidden.lg\:flex {
+                display: none !important;
+            }
+
+            /* Ajustar espaçamentos */
+            section {
+                padding-top: 3rem !important;
+                padding-bottom: 3rem !important;
+            }
+
+            /* Cards responsivos */
+            .grid.gap-6 {
+                gap: 1rem !important;
+            }
+
+            /* Ajustar bordas arredondadas em mobile */
+            .rounded-\[2rem\],
+            .rounded-\[2\.25rem\],
+            .rounded-\[1\.75rem\] {
+                border-radius: 1.25rem !important;
+            }
+        }
+
+        /* Extra small devices (phones em portrait) */
+        @media (max-width: 375px) {
+            #heroTitle {
+                font-size: 24px !important;
+            }
+
+            #heroSubtitle {
+                font-size: 14px !important;
+            }
+
+            .buy-proxy-btn {
+                font-size: 12px !important;
+                padding: 0.65rem 1rem !important;
+            }
+        }
+
+        /* Touch devices - melhorar áreas de toque */
+        @media (hover: none) and (pointer: coarse) {
+            button,
+            .cursor-pointer,
+            a {
+                min-height: 44px;
+                min-width: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .faq-item > div {
+                padding: 1rem !important;
+            }
+        }
     </style>
 </head>
 
 <body class="bg-gray-50 font-sans">
     <!-- Header Transparente -->
     <header class="absolute top-0 left-0 right-0 z-50 bg-transparent">
-        <div class="container mx-auto px-4 py-6 flex justify-between items-center gap-8">
+        <div class="container mx-auto px-4 py-4 md:py-6 flex justify-between items-center gap-4 md:gap-8">
             <div class="flex items-center">
-                <img src="{!! asset('images/logoproxy.webp') !!}" alt="Logo" height="200" width="250">
+                <img src="{!! asset('images/logoproxy.webp') !!}" alt="Logo" height="200" width="250" class="h-auto max-w-[120px] sm:max-w-[180px] md:max-w-[250px]">
             </div>
             <!-- Glass Pill Menu -->
             <!-- <nav
@@ -321,23 +534,20 @@
                     Suporte
                 </a>
             </nav> -->
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 md:gap-3">
                 @auth
                     <a href="{{ route('dash.show') }}" data-ripple-light="true"
-                        class="flex items-center text-base gap-2 select-none text-center text-white hover:text-white transition-all py-2 px-5 rounded-xl no-underline bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30"
+                        class="flex items-center text-sm md:text-base gap-1 md:gap-2 select-none text-center text-white hover:text-white transition-all py-2 px-3 md:px-5 rounded-xl no-underline bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30"
                         style="transition: all 0.3s; font-weight: 500;">
-                        <i class="fa-solid fa-door-open"></i> <span>Acessar conta</span>
+                        <i class="fa-solid fa-door-open text-sm md:text-base"></i> <span class="hidden sm:inline">Acessar conta</span><span class="sm:hidden">Entrar</span>
                     </a>
                 @else
                     <a href="{{ route('login') }}" data-ripple-light="true"
-                        class="flex items-center text-base gap-2 select-none text-center text-white hover:text-white transition-all py-2 px-5 rounded-xl no-underline bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30"
+                        class="flex items-center text-sm md:text-base gap-1 md:gap-2 select-none text-center text-white hover:text-white transition-all py-2 px-3 md:px-5 rounded-xl no-underline bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30"
                         style="transition: all 0.3s; font-weight: 500;">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Entrar</span>
+                        <i class="fas fa-user-plus text-sm md:text-base"></i>
+                        <span class="hidden sm:inline">Entrar</span><span class="sm:hidden">Login</span>
                     </a>
-                    <button class="md:hidden text-white">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
                 @endauth
             </div>
         </div>
@@ -345,12 +555,12 @@
 
     <!-- Hero Section -->
     <section class="relative flex items-start justify-center overflow-hidden"
-        style="background: linear-gradient(to right, #438ccb, #316fab, #306da8, #3066a0, #2a508a, #233a72); min-height: 85vh; padding-top: 120px;">
-        <div class="container mx-auto px-6">
-            <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-16 items-start">
+        style="background: linear-gradient(to right, #438ccb, #316fab, #306da8, #3066a0, #2a508a, #233a72); min-height: 85vh; padding-top: 100px;">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-8 md:gap-16 items-start">
 
                 <!-- Texto -->
-                <div class="text-left">
+                <div class="text-center lg:text-left">
                     <!-- SVG Animado -->
                     <svg id="alfaLogo" viewBox="0 0 600 250" class="inline-block transform -translate-x-7 translate-y-5"
                         xmlns="http://www.w3.org/2000/svg">
@@ -364,7 +574,7 @@
                             d="M 184.503906 128.6875 L 185.003906 128.675781 C 192.949219 128.550781 199.875 130.457031 207.058594 133.875 C 207.886719 134.269531 208.734375 134.621094 209.597656 134.933594 C 210.617188 135.308594 211.566406 135.769531 212.527344 136.277344 L 212.929688 136.488281 C 213.882812 137.003906 213.882812 137.003906 214.265625 137.398438 C 214.777344 137.898438 215.429688 138.152344 216.066406 138.449219 C 216.554688 138.679688 217.027344 138.914062 217.5 139.167969 L 217.707031 139.582031 L 218.097656 139.675781 L 218.542969 139.792969 L 218.824219 140.074219 C 219.21875 140.46875 219.625 140.726562 220.097656 141.019531 L 220.660156 141.371094 L 221.261719 141.746094 C 223.25 142.992188 225.15625 144.3125 227.042969 145.707031 C 227.507812 146.046875 227.976562 146.382812 228.449219 146.71875 C 230.429688 148.125 232.351562 149.605469 234.222656 151.160156 C 234.730469 151.578125 235.242188 151.992188 235.753906 152.410156 C 237.121094 153.527344 238.457031 154.679688 239.792969 155.832031 L 240.257812 156.234375 C 244.140625 159.597656 248.148438 163.105469 251.464844 167.03125 C 251.9375 167.570312 252.425781 168.089844 252.917969 168.613281 C 254.230469 170.003906 255.472656 171.421875 256.667969 172.917969 C 256.875 173.167969 257.082031 173.417969 257.289062 173.667969 C 263.042969 180.621094 268.773438 188.851562 271.042969 197.707031 L 271.160156 198.15625 C 271.40625 199.09375 271.5 199.871094 271.457031 200.832031 L 271.875 200.832031 C 272.042969 209.511719 270.730469 217.253906 266.667969 225 C 264.667969 228.601562 262.074219 231.683594 259.167969 234.582031 L 258.703125 235.066406 C 255.546875 238.339844 251.308594 241.214844 247.082031 242.917969 L 246.570312 243.125 C 244.363281 244.003906 242.15625 244.839844 239.84375 245.390625 L 239.375 245.503906 C 238.824219 245.625 238.265625 245.730469 237.707031 245.832031 C 237.566406 245.859375 237.425781 245.886719 237.28125 245.910156 C 234.714844 246.371094 232.21875 246.550781 229.613281 246.527344 C 229.042969 246.523438 228.472656 246.523438 227.898438 246.523438 C 226.050781 246.523438 224.308594 246.449219 222.5 246.042969 C 222.199219 245.992188 221.898438 245.949219 221.59375 245.910156 C 219.902344 245.664062 218.285156 245.320312 216.652344 244.804688 L 216.171875 244.652344 C 214.644531 244.148438 213.191406 243.488281 211.757812 242.761719 L 211.222656 242.488281 L 210.832031 242.292969 L 210.832031 241.875 L 210.324219 241.746094 C 207.71875 240.738281 205.4375 238.476562 203.320312 236.691406 L 202.988281 236.414062 C 202.304688 235.835938 201.667969 235.222656 201.042969 234.582031 C 200.792969 234.332031 200.542969 234.082031 200.292969 233.835938 L 198.664062 232.207031 L 198.277344 231.816406 C 197.964844 231.507812 197.65625 231.195312 197.347656 230.882812 C 196.9375 230.480469 196.511719 230.09375 196.066406 229.726562 C 195.339844 229.097656 194.726562 228.421875 194.109375 227.6875 C 193.761719 227.304688 193.40625 226.988281 193.007812 226.667969 C 192.339844 226.117188 191.875 225.507812 191.375 224.808594 C 190.898438 224.1875 190.34375 223.660156 189.78125 223.117188 C 189.292969 222.625 188.84375 222.105469 188.402344 221.570312 C 188.128906 221.246094 188.128906 221.246094 187.824219 220.949219 C 187.308594 220.433594 186.851562 219.875 186.378906 219.320312 C 186.0625 218.9375 186.0625 218.9375 185.625 218.75 L 185.363281 218.28125 C 185.015625 217.667969 185.015625 217.667969 184.375 217.1875 C 183.765625 216.679688 183.523438 216.289062 183.125 215.625 L 182.5 215.105469 C 181.875 214.582031 181.875 214.582031 181.625 214.136719 C 181.074219 213.257812 180.355469 212.554688 179.636719 211.808594 C 178.660156 210.792969 177.703125 209.765625 176.78125 208.699219 C 176.253906 208.101562 175.679688 207.5625 175.105469 207.011719 L 174.792969 206.667969 L 174.792969 206.25 L 174.375 206.25 C 174.085938 205.957031 174.085938 205.957031 173.746094 205.542969 C 172.851562 204.496094 171.890625 203.527344 170.917969 202.558594 L 170.347656 201.988281 C 169.953125 201.589844 169.554688 201.195312 169.160156 200.800781 C 168.65625 200.296875 168.152344 199.792969 167.652344 199.289062 C 167.164062 198.804688 166.679688 198.316406 166.191406 197.832031 L 165.652344 197.289062 C 164.636719 196.277344 163.585938 195.308594 162.5 194.375 C 162.265625 194.164062 162.027344 193.953125 161.792969 193.742188 C 157.8125 190.199219 153.078125 186.386719 147.855469 184.929688 C 144.652344 184.355469 141.394531 184.78125 138.332031 185.832031 C 136.265625 186.636719 134.441406 187.785156 132.707031 189.167969 L 132.34375 189.445312 C 130.105469 191.195312 128.371094 193.878906 127.214844 196.445312 C 126.027344 199.402344 125.585938 202.351562 125.613281 205.519531 L 125.613281 206.222656 C 125.617188 206.785156 125.621094 207.351562 125.625 207.917969 L 126.042969 208.125 C 126.109375 208.492188 126.109375 208.492188 126.136719 208.960938 C 126.230469 209.972656 126.46875 210.867188 126.796875 211.824219 L 126.964844 212.316406 C 127.847656 214.816406 129.179688 216.898438 130.832031 218.957031 L 131.171875 219.386719 C 134.113281 222.976562 138.632812 225.46875 142.914062 227.113281 C 146.324219 228.375 149.738281 229.242188 153.332031 229.792969 L 153.851562 229.875 C 161.691406 231.058594 169.921875 230.023438 177.335938 227.3125 C 178.476562 226.863281 179.558594 226.308594 180.636719 225.722656 C 181.25 225.417969 181.25 225.417969 181.875 225.417969 C 181.53125 226.5 180.867188 227.34375 180.207031 228.253906 L 179.53125 229.199219 C 179.429688 229.339844 179.332031 229.476562 179.230469 229.621094 C 178.996094 229.953125 178.765625 230.285156 178.542969 230.625 L 178.125 230.625 L 177.960938 230.992188 C 177.691406 231.488281 177.394531 231.859375 177.019531 232.277344 L 176.65625 232.6875 C 176.1875 233.195312 175.699219 233.679688 175.207031 234.167969 L 174.753906 234.644531 C 173.347656 236.097656 171.824219 237.332031 170.207031 238.542969 L 169.675781 238.945312 C 163.855469 243.1875 156.886719 245.566406 149.792969 246.457031 C 148.695312 246.507812 147.597656 246.507812 146.496094 246.511719 L 146.023438 246.511719 C 139.503906 246.5 132.925781 245.554688 127.082031 242.5 L 127.082031 242.082031 L 126.535156 242.019531 C 125.796875 241.867188 125.242188 241.609375 124.582031 241.25 L 124.582031 240.832031 L 123.957031 240.832031 L 123.957031 240.417969 L 122.917969 240.207031 L 122.917969 239.792969 L 122.566406 239.726562 C 121.984375 239.554688 121.539062 239.304688 121.042969 238.957031 L 121.042969 238.542969 L 120.417969 238.542969 C 120.132812 238.269531 119.855469 237.992188 119.582031 237.707031 C 119.234375 237.453125 118.878906 237.207031 118.515625 236.96875 C 118.109375 236.65625 117.757812 236.308594 117.398438 235.945312 C 117.023438 235.566406 116.640625 235.195312 116.257812 234.828125 C 113.746094 232.390625 111.25 229.78125 109.582031 226.667969 L 109.582031 226.25 L 109.167969 226.25 C 105.144531 218.960938 103.136719 211.519531 103.253906 203.1875 C 103.402344 195.8125 105.589844 188.84375 109.351562 182.503906 C 109.882812 181.644531 110.449219 180.816406 111.042969 180 L 111.3125 179.625 C 115.808594 173.480469 121.761719 168.820312 128.679688 165.683594 C 135.195312 162.839844 142.515625 161.703125 149.582031 162.464844 C 151.5 162.695312 153.394531 163.023438 155.285156 163.425781 L 155.867188 163.546875 C 157 163.800781 158.050781 164.148438 159.121094 164.601562 C 159.558594 164.78125 159.988281 164.921875 160.441406 165.050781 C 165.777344 166.808594 170.539062 170.617188 174.792969 174.167969 L 175.167969 174.480469 C 178.933594 177.621094 182.382812 181.097656 185.839844 184.5625 C 186.457031 185.179688 187.074219 185.796875 187.691406 186.414062 C 188.171875 186.894531 188.652344 187.375 189.132812 187.855469 L 189.816406 188.539062 C 190.917969 189.640625 192.003906 190.746094 193.015625 191.929688 C 193.5 192.484375 194.023438 193 194.550781 193.511719 L 195.222656 194.179688 C 195.566406 194.515625 195.910156 194.855469 196.253906 195.191406 C 197.585938 196.5 198.847656 197.8125 200.007812 199.28125 C 200.441406 199.820312 200.898438 200.335938 201.367188 200.847656 C 202.125 201.679688 202.835938 202.539062 203.535156 203.421875 C 204.136719 204.183594 204.75 204.929688 205.367188 205.675781 C 205.96875 206.414062 206.554688 207.164062 207.140625 207.917969 C 207.503906 208.378906 207.503906 208.378906 208.125 208.75 C 208.335938 209.097656 208.542969 209.445312 208.75 209.792969 C 209.121094 210.25 209.496094 210.703125 209.882812 211.144531 L 210.21875 211.53125 C 211.855469 213.414062 213.554688 215.238281 215.3125 217.003906 L 215.683594 217.378906 C 216.164062 217.855469 216.621094 218.300781 217.167969 218.703125 L 217.5 218.957031 L 217.5 219.375 L 217.859375 219.542969 C 218.355469 219.804688 218.78125 220.101562 219.230469 220.429688 C 222.007812 222.378906 224.476562 223.761719 227.917969 224.167969 C 231.769531 224.402344 235.472656 223.769531 238.957031 222.082031 C 239.53125 221.757812 240.074219 221.410156 240.625 221.042969 L 241.042969 221.042969 L 241.042969 220.625 L 241.667969 220.625 L 242.082031 219.792969 L 242.707031 219.792969 L 242.863281 219.429688 C 243.164062 218.886719 243.515625 218.511719 243.957031 218.074219 L 244.402344 217.628906 L 244.792969 217.292969 L 245.207031 217.292969 L 245.417969 216.457031 L 245.832031 216.457031 L 245.898438 216.109375 C 246.070312 215.527344 246.34375 215.085938 246.667969 214.570312 C 247.019531 214.007812 247.289062 213.546875 247.5 212.917969 L 247.917969 212.917969 C 248.304688 211.707031 248.628906 210.507812 248.847656 209.253906 C 248.957031 208.75 248.957031 208.75 249.167969 208.148438 C 249.742188 206.347656 249.667969 204.371094 249.328125 202.53125 C 248.132812 197.71875 244.691406 193.429688 241.648438 189.664062 C 241.128906 189.015625 240.621094 188.351562 240.113281 187.691406 C 239.816406 187.320312 239.503906 186.996094 239.167969 186.667969 L 238.332031 185.625 L 238.035156 185.324219 C 237.640625 184.929688 237.292969 184.5 236.941406 184.070312 C 236.699219 183.785156 236.4375 183.519531 236.171875 183.253906 C 235.722656 182.808594 235.308594 182.351562 234.894531 181.875 C 234.332031 181.226562 233.742188 180.601562 233.125 180 C 232.445312 179.320312 231.765625 178.640625 231.085938 177.957031 C 230.5625 177.429688 230.039062 176.902344 229.515625 176.378906 L 228.691406 175.550781 C 226.761719 173.597656 226.761719 173.597656 224.726562 171.757812 C 224.117188 171.238281 223.539062 170.679688 222.957031 170.128906 C 221.90625 169.148438 220.824219 168.210938 219.703125 167.3125 C 219.171875 166.878906 218.667969 166.425781 218.164062 165.964844 C 216.886719 164.804688 215.53125 163.757812 214.167969 162.707031 L 213.324219 162.054688 C 210.574219 159.933594 207.796875 157.851562 204.871094 155.976562 L 204.425781 155.6875 C 203.011719 154.800781 201.519531 154.074219 200.023438 153.339844 C 199.597656 153.132812 199.175781 152.921875 198.753906 152.714844 C 191.203125 148.980469 183.539062 146.527344 175.089844 145.808594 L 174.507812 145.753906 C 171.894531 145.523438 169.339844 145.640625 166.730469 145.898438 L 166.285156 145.941406 C 165.300781 146.039062 164.316406 146.144531 163.332031 146.25 L 162.769531 146.3125 C 157.832031 146.878906 152.839844 148.589844 148.332031 150.625 L 147.398438 151.03125 C 145.296875 151.96875 143.359375 153.117188 141.425781 154.351562 C 141.027344 154.589844 140.625 154.796875 140.207031 155 C 140.519531 154.101562 140.992188 153.378906 141.550781 152.617188 L 141.828125 152.230469 C 142.121094 151.832031 142.414062 151.4375 142.707031 151.042969 L 142.980469 150.675781 C 148.761719 142.933594 156.691406 136.894531 165.539062 133.054688 C 165.984375 132.867188 166.429688 132.683594 166.875 132.5 L 167.300781 132.328125 C 169.472656 131.445312 171.691406 130.796875 173.957031 130.207031 L 174.339844 130.105469 C 175.328125 129.875 176.332031 129.722656 177.332031 129.550781 C 177.742188 129.480469 178.152344 129.410156 178.5625 129.335938 L 179.359375 129.199219 L 180.078125 129.074219 C 181.554688 128.847656 183.011719 128.714844 184.503906 128.6875 " />
                     </svg>
 
-                    <h1 id="heroTitle" class="text-white font-bold mb-6"
+                    <h1 id="heroTitle" class="text-white font-bold mb-4 mx-auto lg:mx-0"
                         style="font-family: 'Onest', sans-serif; font-size: 52px; line-height: 1.2; max-width: 650px;">
                         <span class="hero-main">Proxies Premium de</span><br>
                         <span class="hero-highlight"
@@ -372,9 +582,9 @@
                             Performance</span>
                     </h1>
 
-                    <p id="heroSubtitle" class="text-white text-xl mb-10"
+                    <p id="heroSubtitle" class="text-white text-xl mb-8 md:mb-10 mx-auto lg:mx-0"
                         style="font-family: 'Onest', sans-serif; font-weight: 400; max-width: 550px; opacity: 0.95;">
-                        Velocidade, segurança e preços acessíveis. <br>
+                        Velocidade, segurança e preços acessíveis. <br class="hidden sm:block">
                         Conquiste resultados com a <strong style="color: #e8eef5;">AlfaProxy</strong>
                     </p>
 
@@ -487,7 +697,7 @@
                 </div>
 
                 <!-- Globo 3D Three.js -->
-                <div class="hidden lg:flex items-center justify-end pr-8">
+                <div class="hidden lg:flex items-center justify-end pr-6 mb-8">
                     <canvas id="globeCanvas" style="width: 550px; height: 550px;"></canvas>
                 </div>
             </div>
@@ -509,16 +719,19 @@
     </section>
 
     <!-- Multilogins (overlap + continuidade visual) -->
-    <section class="relative -mt-24 pb-20 overflow-hidden bg-gradient-to-b from-transparent via-gray-50/70 to-gray-50">
-        <div class="container mx-auto px-6">
+    <section class="relative -mt-12 md:-mt-24 pb-12 md:pb-20 overflow-hidden bg-gradient-to-b from-transparent via-gray-50/70 to-gray-50">
+        <div class="container mx-auto px-4 md:px-6">
             <div
-                class="relative rounded-[2.25rem] border border-white/30 bg-white/35 backdrop-blur-2xl shadow-[0_28px_70px_rgba(15,23,42,0.18)] overflow-hidden">
-                <div class="px-6 sm:px-10 pt-10 pb-6">
+                class="relative rounded-[1.25rem] md:rounded-[2.25rem] border border-white/30 bg-white/35 backdrop-blur-2xl shadow-[0_28px_70px_rgba(15,23,42,0.18)] overflow-hidden">
+                <div class="px-4 sm:px-6 md:px-10 pt-6 md:pt-10 pb-4 md:pb-6">
                     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
                         <div class="max-w-3xl">
                             <p class="text-[10px] font-black uppercase tracking-[0.35em] text-slate-500">Integrações</p>
                             <h2 class="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                                Funciona com 99.9% dos multilogins do mercado
+                                Compatível com <span class="relative inline-block group">
+    <span class="relative z-10 font-black text-[#23366f] transition-colors group-hover:text-[#4F8BFF]">todos</span>
+    <span class="absolute bottom-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#4F8BFF] to-[#2055dd] rounded-full transform transition-transform group-hover:scale-105"></span>
+</span> os multilogins do mercado.
                             </h2>
                             <p class="mt-2 text-slate-500 font-medium">
                                 Você compra aqui e usa nos seus perfis imediatamente.
@@ -527,11 +740,11 @@
                     </div>
                 </div>
 
-                <div class="px-4 sm:px-10 pb-10">
+                <div class="px-2 sm:px-4 md:px-10 pb-6 md:pb-10">
                     <div
-                        class="relative rounded-[1.75rem] border border-slate-200 bg-white/75 backdrop-blur-xl overflow-hidden">
-                        <div class="logo-marquee py-6">
-                            <div class="logo-marquee-track px-6">
+                        class="relative rounded-xl md:rounded-[1.75rem] border border-slate-200 bg-white/75 backdrop-blur-xl overflow-hidden">
+                        <div class="logo-marquee py-4 md:py-6">
+                            <div class="logo-marquee-track px-4 md:px-6">
                                 @php
                                     $multilogins = [
                                         ['name' => 'Lauth App', 'logo' => 'lauth.webp', 'bg' => '#000002'],
@@ -572,9 +785,9 @@
     </section>
 
     <!-- Benefícios rápidos -->
-    <section class="relative py-16 bg-gradient-to-b from-gray-50 to-slate-100">
-        <div class="container mx-auto px-6">
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
+    <section class="relative py-12 md:py-16 bg-gradient-to-b from-gray-50 to-slate-100">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6 mb-8 md:mb-10">
                 <div class="max-w-2xl">
                     <p class="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Benefícios</p>
                     <h2 class="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
@@ -586,9 +799,9 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 <div
-                    class="group rounded-[2rem] border border-slate-200 bg-white/70 backdrop-blur-xl p-8 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all">
+                    class="group rounded-xl md:rounded-[2rem] border border-slate-200 bg-white/70 backdrop-blur-xl p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all">
                     <div
                         class="w-12 h-12 rounded-2xl bg-[#23366f]/10 text-[#23366f] flex items-center justify-center mb-5">
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
@@ -602,7 +815,7 @@
                 </div>
 
                 <div
-                    class="group rounded-[2rem] border border-slate-200 bg-white/70 backdrop-blur-xl p-8 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all">
+                    class="group rounded-xl md:rounded-[2rem] border border-slate-200 bg-white/70 backdrop-blur-xl p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all">
                     <div
                         class="w-12 h-12 rounded-2xl bg-[#23366f]/10 text-[#23366f] flex items-center justify-center mb-5">
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
@@ -617,7 +830,7 @@
                 </div>
 
                 <div
-                    class="group rounded-[2rem] border border-slate-200 bg-white/70 backdrop-blur-xl p-8 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all">
+                    class="group rounded-xl md:rounded-[2rem] border border-slate-200 bg-white/70 backdrop-blur-xl p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all">
                     <div
                         class="w-12 h-12 rounded-2xl bg-[#23366f]/10 text-[#23366f] flex items-center justify-center mb-5">
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
@@ -635,10 +848,101 @@
         </div>
     </section>
 
+    <!-- FAQ Section -->
+    <section class="relative py-12 md:py-16 bg-slate-100">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-8 md:mb-12">
+                    <p class="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Suporte</p>
+                    <h2 class="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                        Perguntas Frequentes
+                    </h2>
+                    <p class="mt-2 text-slate-500 font-medium">
+                        Respostas rápidas para dúvidas comuns sobre nossos serviços.
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-xl md:rounded-[2rem] border border-slate-200 p-4 md:p-8 shadow-sm">
+                    <div class="space-y-2 md:space-y-3">
+                        <div class="faq-item">
+                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all" onclick="toggleFaq(this)">
+                                <p class="font-semibold text-sm md:text-base text-slate-900">Como funciona o proxy SOCKS5?</p>
+                                <i class="fas fa-chevron-down faq-icon text-slate-400 transition-transform"></i>
+                            </div>
+                            <div class="faq-answer hidden px-2 pb-3 md:pb-4">
+                                <p class="text-sm md:text-base text-slate-600">O SOCKS5 é um protocolo de proxy que permite rotear qualquer tipo de tráfego através de um servidor intermediário, oferecendo maior privacidade e segurança. Ele suporta autenticação e pode lidar com diversos protocolos, incluindo HTTP, HTTPS e FTP.</p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-100"></div>
+
+                        <div class="faq-item">
+                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all" onclick="toggleFaq(this)">
+                                <p class="font-semibold text-sm md:text-base text-slate-900">Quanto tempo leva para ativar meu proxy?</p>
+                                <i class="fas fa-chevron-down faq-icon text-slate-400 transition-transform"></i>
+                            </div>
+                            <div class="faq-answer hidden px-2 pb-3 md:pb-4">
+                                <p class="text-sm md:text-base text-slate-600">Após a confirmação do pagamento, seus proxies são ativados automaticamente em até 5 minutos. Você receberá um e-mail com as credenciais de acesso.</p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-100"></div>
+
+                        <div class="faq-item">
+                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all" onclick="toggleFaq(this)">
+                                <p class="font-semibold text-sm md:text-base text-slate-900">Posso trocar o país do meu proxy?</p>
+                                <i class="fas fa-chevron-down faq-icon text-slate-400 transition-transform"></i>
+                            </div>
+                            <div class="faq-answer hidden px-2 pb-3 md:pb-4">
+                                <p class="text-sm md:text-base text-slate-600">Sim! Entre em contato com nosso suporte e faremos a troca sem custo adicional, sujeito à disponibilidade de IPs no país desejado.</p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-100"></div>
+
+                        <div class="faq-item">
+                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all" onclick="toggleFaq(this)">
+                                <p class="font-semibold text-sm md:text-base text-slate-900">O que é renovação automática?</p>
+                                <i class="fas fa-chevron-down faq-icon text-slate-400 transition-transform"></i>
+                            </div>
+                            <div class="faq-answer hidden px-2 pb-3 md:pb-4">
+                                <p class="text-sm md:text-base text-slate-600">A renovação automática garante que seu proxy seja renovado automaticamente antes do vencimento, evitando interrupções no serviço. Você pode ativar/desativar essa opção a qualquer momento.</p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-100"></div>
+
+                        <div class="faq-item">
+                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all" onclick="toggleFaq(this)">
+                                <p class="font-semibold text-sm md:text-base text-slate-900">Quais formas de pagamento são aceitas?</p>
+                                <i class="fas fa-chevron-down faq-icon text-slate-400 transition-transform"></i>
+                            </div>
+                            <div class="faq-answer hidden px-2 pb-3 md:pb-4">
+                                <p class="text-sm md:text-base text-slate-600">Aceitamos PIX, cartão de crédito/débito e criptomoedas (Bitcoin, USDT, Litecoin e BNB). Todas as transações são processadas de forma segura.</p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-100"></div>
+
+                        <div class="faq-item">
+                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all" onclick="toggleFaq(this)">
+                                <p class="font-semibold text-sm md:text-base text-slate-900">Posso solicitar reembolso?</p>
+                                <i class="fas fa-chevron-down faq-icon text-slate-400 transition-transform"></i>
+                            </div>
+                            <div class="faq-answer hidden px-2 pb-3 md:pb-4">
+                                <p class="text-sm md:text-base text-slate-600">Sim, oferecemos garantia de reembolso de 7 dias para novos clientes. Se não estiver satisfeito com nosso serviço, entre em contato e processaremos o reembolso.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
         <!-- Footer -->
-        <footer class="text-white py-12" style="background: linear-gradient(to right, #438ccb, #316fab, #306da8, #3066a0, #2a508a, #233a72);">
+        <footer class="text-white py-8 md:py-12" style="background: linear-gradient(to right, #438ccb, #316fab, #306da8, #3066a0, #2a508a, #233a72);">
         <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
                 <div>
                     <img src="{{ asset('images/logoproxy.webp') }}" alt="AlfaProxy" class="h-8 w-auto mb-4">
                     <p class="text-white">A solução mais confiável para proxies SOCKS5 premium com suporte técnico
@@ -651,15 +955,15 @@
                     <h4 class="text-lg font-bold mb-4 text-white">Contato</h4>
                     <ul class="space-y-2">
                         <li class="flex items-center text-white"><i class="fas fa-envelope mr-2"></i>
-                            contato@alfaproxy.com</li>
-                        <li class="flex items-center text-white"><i class="fas fa-phone mr-2"></i> +55 11 98765-4321
+                            contato@alfaproxy.io</li>
+                        <li class="flex items-center text-white"><i class="fas fa-phone mr-2"></i> +55 73 9835-6817
                         </li>
                     </ul>
                 </div>
             </div>
 
-            <div class="border-t border-white/30 mt-12 pt-8 text-center text-white">
-                <p>&copy; {{ date('Y') }} AlfaProxy. Todos os direitos reservados.</p>
+            <div class="border-t border-white/30 mt-8 md:mt-12 pt-6 md:pt-8 text-center text-white">
+                <p class="text-sm md:text-base">&copy; {{ date('Y') }} AlfaProxy. Todos os direitos reservados.</p>
             </div>
         </div>
     </footer>
@@ -955,6 +1259,20 @@
         });
     </script>
 
+    <!-- FAQ Toggle Script -->
+    <script>
+        function toggleFaq(element) {
+            const faqItem = element.parentElement;
+            const answer = faqItem.querySelector('.faq-answer');
+            const icon = element.querySelector('.faq-icon');
+
+            // Toggle the answer visibility
+            answer.classList.toggle('hidden');
+
+            // Rotate the icon
+            icon.classList.toggle('rotate-180');
+        }
+    </script>
 
     <!-- Material Tailwind Ripple Effect -->
     <script async src="https://unpkg.com/@material-tailwind/html@latest/scripts/ripple.js"></script>

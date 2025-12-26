@@ -49,6 +49,7 @@ class AdminController extends Controller
             'data_contratacao' => 'required|date',
             'apelido' => 'nullable|string|max:255',
             'rodar_script' => 'nullable|boolean',
+            'vps_paga' => 'nullable|boolean',
             'quantidade_proxies' => 'nullable|integer|min:1|max:1000',
         ], [
             'ip.required' => 'O IP da VPS é obrigatório.',
@@ -85,6 +86,25 @@ class AdminController extends Controller
             'status_geracao' => 'pending',
         ]);
 
+        // IMPORTANTE: Registrar despesa ANTES de retornar (se checkbox estiver marcado)
+        if ($request->has('vps_paga') && $request->vps_paga) {
+            Despesa::create([
+                'vps_id' => $vps->id,
+                'tipo' => 'compra',
+                'valor' => $validated['valor'],
+                'descricao' => 'VPS ' . $vps->apelido . ' paga',
+                'data_vencimento' => $validated['data_contratacao'],
+                'data_pagamento' => $validated['data_contratacao'],
+                'status' => 'pago',
+            ]);
+
+            Log::info('Despesa de VPS registrada', [
+                'vps_id' => $vps->id,
+                'valor' => $validated['valor'],
+                'descricao' => 'VPS ' . $vps->apelido . ' paga',
+            ]);
+        }
+
         // Se o checkbox estiver marcado, despachar Job para gerar proxies em background
         if ($request->has('rodar_script') && $request->rodar_script) {
             // Atualizar status da VPS para 'pending' (aguardando processamento)
@@ -105,20 +125,6 @@ class AdminController extends Controller
             return redirect()
                 ->route('admin.proxies')
                 ->with('success', 'VPS cadastrada! A geração de proxies está sendo processada em background.');
-        }
-
-        if ($request->has('vps_paga') && $request->vps_paga) {
-
-            // Criar a despesa
-            Despesa::create([
-                'vps_id' => $vps->id,
-                'tipo' => 'compra',
-                'valor' => $validated['valor'],
-                'descricao' => 'VPS ' . $vps->apelido . ' paga',
-                'data_vencimento' => $validated['data_contratacao'],
-                'data_pagamento' => $validated['data_contratacao'],
-                'status' => 'pago',
-            ]);
         }
 
         // Se for requisição AJAX sem script, retornar JSON

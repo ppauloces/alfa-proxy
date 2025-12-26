@@ -1,10 +1,10 @@
-<aside class="sidebar bg-white w-64 min-h-screen shadow-md fixed md:relative" id="sidebar">
-            <div class="p-4 border-b border-gray-200">
+<aside class="sidebar bg-white dark:bg-gray-800 w-64 min-h-screen shadow-md fixed md:relative transition-colors" id="sidebar">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center space-x-3">
                     <img src="{{ Auth::user()->foto_perfil }}" alt="User" class="w-10 h-10 rounded-full">
                     <div>
-                        <h3 class="font-medium text-gray-800">{{ Auth::user()->username }}</h3>
-                        <p class="text-xs text-gray-500">Plano: {{ $usuario->plano }}</p>
+                        <h3 class="font-medium text-gray-800 dark:text-gray-100">{{ Auth::user()->username }}</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Plano: {{ $usuario->plano }}</p>
                     </div>
                 </div>
             </div>

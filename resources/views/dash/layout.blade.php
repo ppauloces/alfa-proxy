@@ -6,6 +6,34 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'AlfaProxy - Dashboard')</title>
+
+    <!-- Dark Mode Script - Must be in head to prevent flash -->
+    <script>
+        // Inicializar dark mode imediatamente
+        (function() {
+            const isDark = localStorage.getItem('darkMode') === 'true' ||
+                          (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+
+        // Função global para toggle
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+
+            if (isDark) {
+                html.classList.remove('dark');
+                localStorage.setItem('darkMode', 'false');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('darkMode', 'true');
+            }
+        }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -25,6 +53,16 @@
             min-height: 100vh;
             margin: 0;
             color: var(--sf-dark);
+        }
+
+        /* Dark mode transitions */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .dark body {
+            background: #0f172a;
+            color: #e2e8f0;
         }
 
 
@@ -50,6 +88,10 @@
             display: flex;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background: #f8fafc;
+        }
+
+        .dark .dashboard-shell {
+            background: #0f172a;
         }
 
         @media (min-width: 1024px) {
@@ -83,6 +125,12 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
+        }
+
+        .dark .sidebar-card {
+            background: #1e293b;
+            border-right-color: rgba(51, 65, 85, 0.8);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
         }
 
         @media (max-width: 1023px) {
@@ -145,13 +193,31 @@
             color: var(--sf-blue);
         }
 
+        .dark .nav-pill {
+            color: #94a3b8;
+        }
+
+        .dark .nav-pill:hover {
+            background: #334155;
+            color: #60a5fa;
+        }
+
         .nav-pill.active {
             background: #eff6ff;
             color: var(--sf-blue);
         }
 
+        .dark .nav-pill.active {
+            background: #1e3a8a;
+            color: #93c5fd;
+        }
+
         .nav-pill.active i {
             color: var(--sf-blue);
+        }
+
+        .dark .nav-pill.active i {
+            color: #93c5fd;
         }
 
         .sidebar-toggle {
@@ -226,6 +292,10 @@
             animation: fadeIn 0.3s ease;
         }
 
+        .dark .admin-modal-overlay {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
         .admin-modal-overlay.active {
             display: flex;
         }
@@ -242,6 +312,218 @@
             overflow-y: auto;
             position: relative;
             animation: modalSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dark .admin-modal {
+            background: #1e293b;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ===================================
+           DARK MODE - GLOBAL STYLES
+        =================================== */
+
+        /* Cards & Containers */
+        .dark .admin-card,
+        .dark .support-card,
+        .dark .finance-card,
+        .dark .contact-method,
+        .dark .faq-item,
+        .dark .timeline-item {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+        }
+
+        /* Text Colors */
+        .dark h1,
+        .dark h2,
+        .dark h3,
+        .dark h4,
+        .dark h5,
+        .dark h6 {
+            color: #f1f5f9 !important;
+        }
+
+        .dark p,
+        .dark span:not(.badge):not(.badge-amber):not(.badge-success):not(.badge-pending):not([class*="text-red"]):not([class*="text-green"]):not([class*="text-emerald"]):not([class*="text-blue"]):not([class*="text-indigo"]):not([class*="text-amber"]) {
+            color: #cbd5e1 !important;
+        }
+
+        .dark .text-slate-900 {
+            color: #f1f5f9 !important;
+        }
+
+        .dark .text-slate-800 {
+            color: #e2e8f0 !important;
+        }
+
+        .dark .text-slate-700 {
+            color: #cbd5e1 !important;
+        }
+
+        .dark .text-slate-600 {
+            color: #94a3b8 !important;
+        }
+
+        .dark .text-slate-500 {
+            color: #64748b !important;
+        }
+
+        .dark .text-slate-400 {
+            color: #475569 !important;
+        }
+
+        /* Background Colors */
+        .dark .bg-white {
+            background-color: #1e293b !important;
+        }
+
+        .dark .bg-slate-50 {
+            background-color: #334155 !important;
+        }
+
+        .dark .bg-slate-100 {
+            background-color: #475569 !important;
+        }
+
+        .dark .bg-gray-50 {
+            background-color: #334155 !important;
+        }
+
+        .dark .bg-gray-100 {
+            background-color: #475569 !important;
+        }
+
+        /* Borders */
+        .dark .border-slate-100,
+        .dark .border-slate-200 {
+            border-color: #334155 !important;
+        }
+
+        .dark .border-gray-200,
+        .dark .border-gray-300 {
+            border-color: #334155 !important;
+        }
+
+        /* Forms */
+        .dark .form-input,
+        .dark .form-textarea,
+        .dark input[type="text"],
+        .dark input[type="email"],
+        .dark input[type="password"],
+        .dark input[type="number"],
+        .dark textarea,
+        .dark select {
+            background-color: #334155 !important;
+            border-color: #475569 !important;
+            color: #f1f5f9 !important;
+        }
+
+        .dark .form-input::placeholder,
+        .dark .form-textarea::placeholder,
+        .dark input::placeholder,
+        .dark textarea::placeholder {
+            color: #64748b !important;
+        }
+
+        .dark .form-label,
+        .dark label {
+            color: #e2e8f0 !important;
+        }
+
+        /* Tables */
+        .dark .admin-table,
+        .dark table {
+            color: #e2e8f0;
+        }
+
+        .dark .admin-table thead,
+        .dark table thead {
+            background-color: #334155 !important;
+        }
+
+        .dark .admin-table th,
+        .dark table th {
+            color: #f1f5f9 !important;
+            border-color: #475569 !important;
+        }
+
+        .dark .admin-table td,
+        .dark table td {
+            color: #cbd5e1 !important;
+            border-color: #334155 !important;
+        }
+
+        .dark .admin-table tbody tr:hover,
+        .dark table tbody tr:hover {
+            background-color: #334155 !important;
+        }
+
+        /* Buttons */
+        .dark .btn-secondary {
+            background-color: #334155 !important;
+            color: #e2e8f0 !important;
+            border-color: #475569 !important;
+        }
+
+        .dark .btn-secondary:hover {
+            background-color: #475569 !important;
+        }
+
+        /* Chart Bars */
+        .dark .chart-bar {
+            background-color: #334155 !important;
+        }
+
+        .dark .chart-bar span {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa) !important;
+        }
+
+        /* Select Components */
+        .dark [data-ui-select] {
+            background-color: #334155 !important;
+            border-color: #475569 !important;
+        }
+
+        .dark [data-ui-select-label] {
+            color: #e2e8f0 !important;
+        }
+
+        .dark [data-ui-select-panel] {
+            background-color: #1e293b !important;
+            border-color: #475569 !important;
+        }
+
+        .dark [data-ui-select-option]:hover {
+            background-color: #334155 !important;
+        }
+
+        /* Sidebar Account Info */
+        .dark .account-info p {
+            color: #94a3b8 !important;
+        }
+
+        .dark .account-info p.text-slate-800 {
+            color: #e2e8f0 !important;
+        }
+
+        /* Scrollbar Dark Mode */
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* Logo containers */
+        .dark header a.flex.items-center {
+            background-color: #1e293b/90 !important;
+            border-color: #334155 !important;
+        }
+
+        .dark header a.flex.items-center:hover {
+            background-color: #1e293b !important;
         }
 
         /* ===================================
@@ -384,11 +666,11 @@
     </style>
 </head>
 
-<body class="antialiased">
+<body class="antialiased bg-white dark:bg-gray-900">
 
     <div class="grid-overlay"></div>
 
-    <header class="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-100">
+    <header class="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-slate-100 dark:border-slate-700">
         <div class="max-w-full mx-auto px-8 py-4 flex justify-between items-center gap-8">
             <!-- LOGO HORIZONTAL -->
             <a href="{{ route('dash.show') }}"
@@ -401,15 +683,15 @@
                 {{-- Espaçador para mobile --}}
                 <div class="lg:hidden w-10"></div>
             </div>
-            <nav class="hidden xl:flex items-center bg-slate-100/50 rounded-full px-2 py-1">
+            <nav class="hidden xl:flex items-center bg-slate-100/50 dark:bg-slate-700/50 rounded-full px-2 py-1">
                 <a href="{{ route('inicial') }}"
-                    class="px-5 py-2 rounded-full text-slate-600 text-sm font-semibold hover:text-[#23366f] hover:bg-white transition-all">Inicio</a>
+                    class="px-5 py-2 rounded-full text-slate-600 dark:text-slate-300 text-sm font-semibold hover:text-[#23366f] dark:hover:text-blue-400 hover:bg-white dark:hover:bg-slate-600 transition-all">Inicio</a>
                 <a href="{{ route('inicial') }}"
-                    class="px-5 py-2 rounded-full text-slate-600 text-sm font-semibold hover:text-[#23366f] hover:bg-white transition-all">Planos</a>
+                    class="px-5 py-2 rounded-full text-slate-600 dark:text-slate-300 text-sm font-semibold hover:text-[#23366f] dark:hover:text-blue-400 hover:bg-white dark:hover:bg-slate-600 transition-all">Planos</a>
                 <a href="{{ route('inicial') }}"
-                    class="px-5 py-2 rounded-full text-slate-600 text-sm font-semibold hover:text-[#23366f] hover:bg-white transition-all">API</a>
+                    class="px-5 py-2 rounded-full text-slate-600 dark:text-slate-300 text-sm font-semibold hover:text-[#23366f] dark:hover:text-blue-400 hover:bg-white dark:hover:bg-slate-600 transition-all">API</a>
                 <a href="{{ route('duvidas.show') }}"
-                    class="px-5 py-2 rounded-full text-slate-600 text-sm font-semibold hover:text-[#23366f] hover:bg-white transition-all">Suporte</a>
+                    class="px-5 py-2 rounded-full text-slate-600 dark:text-slate-300 text-sm font-semibold hover:text-[#23366f] dark:hover:text-blue-400 hover:bg-white dark:hover:bg-slate-600 transition-all">Suporte</a>
             </nav>
             <div class="flex items-center gap-4">
                 @auth
@@ -428,11 +710,17 @@
                                 </button>
                             </div> -->
 
-                    <div class="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
+                    <div class="h-8 w-[1px] bg-slate-200 dark:bg-slate-600 hidden sm:block"></div>
+
+                    <!-- Dark Mode Toggle -->
+                    <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-600 transition-all cursor-pointer" title="Alternar modo escuro">
+                        <i class="fas fa-moon dark:hidden"></i>
+                        <i class="fa-solid fa-sun hidden dark:block"></i>
+                    </button>
 
                     <form action="{{ route('logout.perform') }}" method="GET" class="inline">
                         <button type="submit"
-                            class="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer">
+                            class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-400 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900 transition-all cursor-pointer">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
                     </form>

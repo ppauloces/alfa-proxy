@@ -42,6 +42,11 @@
         animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
+    .dark .validation-toast {
+        background: #1e293b;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
     .validation-toast.closing {
         animation: slideOutRight 0.3s ease forwards;
     }

@@ -33,6 +33,11 @@
             animation: slideInScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
+        .dark .proxy-test-notification {
+            background: #1e293b;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+        }
+
         .proxy-test-notification.success {
             border: 2px solid #10b981;
         }
@@ -91,12 +96,20 @@
             color: #0f172a;
         }
 
+        .dark .notification-title {
+            color: #f1f5f9;
+        }
+
         .notification-details {
             background: rgba(148, 163, 184, 0.1);
             border-radius: 12px;
             padding: 1rem;
             margin: 1rem 0;
             font-size: 0.875rem;
+        }
+
+        .dark .notification-details {
+            background: rgba(71, 85, 105, 0.2);
         }
 
         .notification-detail-item {
@@ -121,6 +134,10 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
+        .dark .notification-detail-value {
+            color: #f1f5f9;
+        }
+
         .notification-message {
             text-align: center;
             color: #64748b;
@@ -129,6 +146,10 @@
             padding: 0.75rem;
             background: rgba(148, 163, 184, 0.05);
             border-radius: 8px;
+        }
+
+        .dark .notification-message {
+            background: rgba(71, 85, 105, 0.15);
         }
 
         .notification-close-btn {
@@ -179,6 +200,11 @@
             cursor: pointer;
         }
 
+        .dark .tab-btn {
+            background: rgba(51, 65, 85, 0.7);
+            color: #e2e8f0;
+        }
+
         .tab-btn.active {
             background: linear-gradient(120deg, var(--sf-blue-light), var(--sf-blue));
             color: #fff;
@@ -197,6 +223,18 @@
             border: 1px solid rgba(226, 232, 240, 0.9);
             padding: 1.5rem;
             box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+        }
+
+        .dark .proxy-card,
+        .dark .profile-card,
+        .dark .order-card,
+        .dark .transactions-card,
+        .dark .recharge-card,
+        .dark .support-card,
+        .dark .settings-card {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         .proxy-table,
@@ -466,6 +504,11 @@
             border: 1px solid rgba(226, 232, 240, 0.9);
         }
 
+        .dark .summary-card {
+            background: #334155;
+            border-color: #475569;
+        }
+
         .stat-card {
             background: linear-gradient(120deg, var(--sf-blue-light), var(--sf-blue));
             color: white;
@@ -495,6 +538,12 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
+        }
+
+        .dark .filter-tab {
+            background: #334155;
+            border-color: #475569;
+            color: #e2e8f0;
         }
 
         .filter-tab.active {
@@ -713,6 +762,14 @@
             border: 1px solid rgba(226, 232, 240, 0.9);
             padding: 1.5rem;
             box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        .dark .admin-card,
+        .dark .vps-card,
+        .dark .finance-card {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
         }
 
         .admin-card h2 {

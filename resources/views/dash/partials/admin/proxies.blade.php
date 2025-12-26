@@ -47,6 +47,11 @@
         flex-shrink: 0;
     }
 
+    .dark .admin-modal.vps-modal .vps-modal-header {
+        background: #1e293b;
+        border-bottom-color: #334155;
+    }
+
     .admin-modal.vps-modal .vps-modal-body {
         flex: 1;
         overflow-y: auto;
@@ -75,10 +80,20 @@
         transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
     }
 
+    .dark .vps-proxy-card {
+        background: #334155;
+        border-color: #475569;
+    }
+
     .vps-proxy-card:hover {
         border-color: rgba(35, 54, 111, 0.35);
         box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
         transform: translateY(-1px);
+    }
+
+    .dark .vps-proxy-card:hover {
+        border-color: rgba(96, 165, 250, 0.5);
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
     }
 
     .vps-proxy-info p {
@@ -142,10 +157,22 @@
         font-weight: 700;
     }
 
+    .dark .vps-proxy-action-btn {
+        background: #1e293b;
+        border-color: #475569;
+        color: #94a3b8;
+    }
+
     .vps-proxy-action-btn:hover {
         color: #23366f;
         border-color: rgba(35, 54, 111, 0.35);
         box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+    }
+
+    .dark .vps-proxy-action-btn:hover {
+        color: #60a5fa;
+        border-color: rgba(96, 165, 250, 0.5);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
 
     .vps-proxy-action-btn:active {
@@ -178,6 +205,11 @@
         background-color: rgba(15, 23, 42, 0.75) !important; /* Backdrop mais escuro */
     }
 
+    .dark #usoInternoModal,
+    .dark #removerUsoInternoModal {
+        background-color: rgba(0, 0, 0, 0.85) !important;
+    }
+
     #usoInternoModal.active,
     #removerUsoInternoModal.active {
         backdrop-filter: blur(4px);
@@ -187,6 +219,73 @@
     #removerUsoInternoModal .admin-modal {
         z-index: 100000 !important;
         position: relative;
+    }
+
+    /* Dark mode para status panel e cards internos */
+    .dark #statusPanel .admin-card {
+        background: linear-gradient(to right, #1e3a5f, #2d1b69) !important;
+        border-color: #3b5998 !important;
+    }
+
+    .dark .vps-card {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+    }
+
+    /* Loading Modal dark mode */
+    .dark #loadingModal .admin-modal {
+        background: #1e293b !important;
+    }
+
+    /* Input fields dark mode nos modais */
+    .dark #finalidadeInput,
+    .dark input[type="text"],
+    .dark input[type="date"],
+    .dark input[type="password"],
+    .dark select {
+        background-color: #334155 !important;
+        border-color: #475569 !important;
+        color: #f1f5f9 !important;
+    }
+
+    /* Botões nos modais dark mode */
+    .dark .bg-slate-100 {
+        background-color: #334155 !important;
+    }
+
+    .dark .bg-slate-100:hover {
+        background-color: #475569 !important;
+    }
+
+    .dark .text-slate-700 {
+        color: #cbd5e1 !important;
+    }
+
+    /* Alertas dark mode */
+    .dark .bg-amber-50 {
+        background-color: rgba(217, 119, 6, 0.15) !important;
+    }
+
+    .dark .bg-blue-50 {
+        background-color: rgba(59, 130, 246, 0.15) !important;
+    }
+
+    .dark .border-amber-200 {
+        border-color: rgba(217, 119, 6, 0.3) !important;
+    }
+
+    .dark .border-blue-200 {
+        border-color: rgba(59, 130, 246, 0.3) !important;
+    }
+
+    .dark .text-amber-800,
+    .dark .text-amber-700 {
+        color: #fbbf24 !important;
+    }
+
+    .dark .text-blue-800,
+    .dark .text-blue-700 {
+        color: #93c5fd !important;
     }
 </style>
 

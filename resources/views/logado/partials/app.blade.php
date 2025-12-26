@@ -35,10 +35,15 @@
         .sidebar-link:hover {
             background-color: rgba(59, 130, 246, 0.1);
         }
-        
+
         .sidebar-link.active {
             background-color: rgba(59, 130, 246, 0.2);
             border-left: 3px solid #3b82f6;
+        }
+
+        /* Dark mode transitions */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
         
         .dropdown-content {
@@ -98,6 +103,11 @@
             border-radius: 6px;
             position: relative;
         }
+
+        .dark .token-display {
+            background-color: #374151;
+            border-color: #4b5563;
+        }
         
         .copy-btn {
             position: absolute;
@@ -131,7 +141,7 @@
     </style>
     @vite(['resources/css/app.css', 'resources/js/app.js']) {{-- ou seus assets --}}
 </head>
-<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+<body class="bg-gray-100 dark:bg-gray-900 font-sans leading-normal tracking-normal">
 
     <div class="overlay" id="overlay"></div>
 

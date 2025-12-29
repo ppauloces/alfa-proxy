@@ -36,6 +36,8 @@ class LogadoController extends Controller
             'media_proxies_por_vps' => 0,
         ];
         $generatedProxies = [];
+        // Stats internos (mantém compatibilidade caso alguma view/compact espere essa variável)
+        $usoInternoStats = [];
 
         // Variáveis para seções admin
         $financeCards = [];
@@ -395,6 +397,7 @@ class LogadoController extends Controller
             'forecast',
             'soldProxyCards',
             'soldProxies',
+            'usoInternoStats',
         ));
     }
 

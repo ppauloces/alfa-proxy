@@ -879,6 +879,186 @@
             margin-top: 0.75rem;
             background: rgba(248, 250, 252, 0.8);
         }
+
+        /* ===================================
+           RESPONSIVIDADE MOBILE & TABLET
+        =================================== */
+
+        /* Mobile - Até 640px */
+        @media (max-width: 640px) {
+            /* Typography mobile */
+            h1 {
+                font-size: 1.75rem !important;
+            }
+
+            h2 {
+                font-size: 1.25rem !important;
+            }
+
+            /* Cards mobile */
+            .proxy-card,
+            .profile-card,
+            .order-card,
+            .transactions-card,
+            .recharge-card,
+            .support-card,
+            .settings-card,
+            .admin-card,
+            .vps-card,
+            .finance-card {
+                padding: 1rem !important;
+                border-radius: 20px !important;
+            }
+
+            /* Table mobile - scroll horizontal */
+            .proxy-table,
+            .transactions-table,
+            .admin-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .proxy-table th,
+            .proxy-table td,
+            .transactions-table th,
+            .transactions-table td,
+            .admin-table th,
+            .admin-table td {
+                padding: 0.5rem !important;
+                font-size: 0.75rem !important;
+            }
+
+            /* Address chip mobile */
+            .address-chip {
+                font-size: 0.65rem !important;
+                padding: 0.3rem 0.5rem !important;
+            }
+
+            /* Action buttons mobile */
+            .action-btn {
+                padding: 0.25rem 0.6rem !important;
+                font-size: 0.65rem !important;
+            }
+
+            /* Stats grid mobile */
+            .grid.md\:grid-cols-3 {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            /* Tabs mobile */
+            .tab-btn {
+                padding: 0.5rem 1rem !important;
+                font-size: 0.75rem !important;
+            }
+
+            /* Balance card mobile */
+            .balance-card {
+                padding: 1.5rem !important;
+            }
+
+            .balance-card::before {
+                width: 200px !important;
+                height: 200px !important;
+            }
+
+            /* Modal notificação mobile */
+            .proxy-test-notification {
+                min-width: 90vw !important;
+                padding: 1.5rem !important;
+            }
+
+            /* Filter tabs mobile */
+            .filter-tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+
+            .filter-tab {
+                white-space: nowrap;
+            }
+
+            /* VPS header mobile */
+            .vps-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+
+            /* Payment method mobile */
+            .payment-method {
+                padding: 0.75rem !important;
+            }
+
+            /* Summary card mobile */
+            .summary-card {
+                padding: 1rem !important;
+            }
+
+            /* Amount buttons mobile */
+            .amount-btn {
+                padding: 0.75rem !important;
+                font-size: 0.875rem !important;
+            }
+        }
+
+        /* Tablet - 641px até 1024px */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            h1 {
+                font-size: 2.5rem !important;
+            }
+
+            .proxy-card,
+            .order-card {
+                padding: 1.25rem !important;
+            }
+
+            .grid.lg\:grid-cols-2 {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* Ajustes para telas pequenas */
+        @media (max-width: 768px) {
+            /* Esconder colunas menos importantes em mobile */
+            .proxy-table th:nth-child(4),
+            .proxy-table td:nth-child(4) {
+                display: none;
+            }
+
+            /* Switch tabs mobile */
+            .switch-tab {
+                padding: 0.5rem 0.75rem !important;
+                font-size: 0.75rem !important;
+            }
+
+            /* Timeline mobile */
+            .timeline-item {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 0.5rem;
+            }
+
+            /* Contact method mobile */
+            .contact-method {
+                padding: 1rem !important;
+            }
+
+            /* FAQ item mobile */
+            .faq-item {
+                padding: 1rem !important;
+            }
+        }
+
+        /* Touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            .tab-btn,
+            .action-btn,
+            .filter-tab,
+            button {
+                min-height: 44px;
+            }
+        }
     </style>
 @endsection
 
@@ -1351,18 +1531,7 @@
 
     quantityInput.addEventListener('input', updateSummary);
 
-    orderForm.addEventListener('submit', (event) => {
-    refreshSelectedPeriod();
-    if (!selectedPeriod) {
-    event.preventDefault();
-    alert('Por favor, selecione um periodo de contratacao.');
-    return;
-    }
-    if (!paymentInput.value) {
-    event.preventDefault();
-    alert('Por favor, selecione uma forma de pagamento.');
-    }
-    });
+    // Validação do formulário removida - agora está em nova-compra.blade.php
 
     refreshFromDefaults();
     })();

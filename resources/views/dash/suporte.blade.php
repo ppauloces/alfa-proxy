@@ -109,16 +109,16 @@
                 <i class="fas fa-envelope"></i>
             </div>
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">E-mail</p>
-            <p class="text-lg font-black text-slate-900 mb-2">suporte@alfaproxy.com</p>
+            <p class="text-lg font-black text-slate-900 mb-2">suporte@alfaproxy.io</p>
             <p class="text-xs text-slate-400 font-medium">Resposta em até 24 horas úteis.</p>
         </a>
 
-        <a href="https://wa.me/5511999999999" target="_blank" class="group bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:border-green-500 transition-all">
+        <a href="https://wa.me/557398356817" target="_blank" class="group bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:border-green-500 transition-all">
             <div class="w-14 h-14 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
                 <i class="fab fa-whatsapp"></i>
             </div>
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">WhatsApp</p>
-            <p class="text-lg font-black text-slate-900 mb-2">+55 11 99999-9999</p>
+                <p class="text-lg font-black text-slate-900 mb-2">+55 73 9835-6817</p>
             <p class="text-xs text-slate-400 font-medium">Atendimento em tempo real.</p>
         </a>
 

@@ -16,7 +16,7 @@
                 <p class="text-xs text-slate-500">Resposta em até 24h</p>
             </div>
         </div>
-        <a href="mailto:contato@alfaproxy.com" class="text-[#4F8BFF] font-semibold text-sm">contato@alfaproxy.com</a>
+        <a href="mailto:contato@alfaproxy.io" class="text-[#4F8BFF] font-semibold text-sm">contato@alfaproxy.io</a>
     </div>
 
     <div class="contact-method">
@@ -29,7 +29,7 @@
                 <p class="text-xs text-slate-500">Atendimento rápido</p>
             </div>
         </div>
-        <a href="https://wa.me/5511999999999" target="_blank" class="text-[#25D366] font-semibold text-sm">+55 11 99999-9999</a>
+        <a href="https://wa.me/557398356817" target="_blank" class="text-[#25D366] font-semibold text-sm">+55 73 9835-6817</a>
     </div>
 
     <div class="contact-method">

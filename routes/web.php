@@ -105,6 +105,10 @@ Route::middleware(AdminMiddleware::class)->group(function () {
     Route::post('/admin/proxy/bloquear', [AdminController::class, 'bloquearProxy'])->name('proxy.bloquear');
     Route::post('/admin/proxy/desbloquear', [AdminController::class, 'desbloquearProxy'])->name('proxy.desbloquear');
 
+    // Gerenciamento de uso interno
+    Route::post('/admin/proxy/uso-interno', [AdminController::class, 'marcarUsoInterno'])->name('proxy.uso-interno');
+    Route::post('/admin/proxy/remover-uso-interno', [AdminController::class, 'removerUsoInterno'])->name('proxy.remover-uso-interno');
+
     // Atualizar apelido da VPS
     Route::post('/admin/vps/atualizar-apelido', [AdminController::class, 'atualizarApelidoVps'])->name('vps.atualizar-apelido');
 });

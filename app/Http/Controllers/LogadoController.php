@@ -220,7 +220,9 @@ class LogadoController extends Controller
                 360 => 120.00,
             ];
 
-            $proxiesDisponiveis = Stock::where('disponibilidade', true)->count();
+            $proxiesDisponiveis = Stock::where('disponibilidade', true)
+                ->where('uso_interno', false)
+                ->count();
             $precoMedio = array_sum($precosPorPeriodo) / count($precosPorPeriodo);
             $potencialVenda = $proxiesDisponiveis * $precoMedio;
 
@@ -240,6 +242,25 @@ class LogadoController extends Controller
                     'value' => 'R$ ' . number_format($saldoDisponivel, 2, ',', '.'),
                     'detail' => 'Saldo total dos usuários',
                 ],
+            ];
+
+            // ===== DADOS DE USO INTERNO =====
+            $usoInternoProxies = Stock::where('uso_interno', true)
+                ->with('vps')
+                ->orderBy('updated_at', 'desc')
+                ->get()
+                ->map(function ($stock) {
+                    return [
+                        'endereco' => ($stock->vps->ip ?? $stock->ip ?? 'N/A') . ':' . $stock->porta,
+                        'finalidade' => $stock->finalidade_interna ?? 'Não especificada',
+                        'vps' => $stock->vps->apelido ?? 'N/A',
+                        'data' => $stock->updated_at->format('d/m/Y H:i'),
+                    ];
+                });
+
+            $usoInternoStats = [
+                'total' => Stock::where('uso_interno', true)->count(),
+                'proxies' => $usoInternoProxies,
             ];
 
             // ===== DADOS PARA TRANSAÇÕES (VENDAS) =====

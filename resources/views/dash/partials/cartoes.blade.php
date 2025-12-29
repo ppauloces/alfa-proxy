@@ -100,16 +100,16 @@
     <div class="bg-[#23366f]/5 border border-[#23366f]/10 rounded-[2.5rem] p-10 mt-6">
         <div class="flex flex-col md:flex-row items-center gap-10">
             <div class="w-24 h-24 rounded-3xl bg-white flex items-center justify-center text-[#23366f] text-4xl shadow-xl shadow-blue-900/5">
-                <i class="fas fa-shield-check"></i>
+            <i class="fas fa-shield-alt"></i>
             </div>
             <div class="flex-1 text-center md:text-left">
-                <h3 class="text-xl font-black text-[#23366f] mb-3">Seus dados estão 100% seguros</h3>
+                <h3 class="text-xl font-black text-[#23366f] mb-3"><i class="fas fa-lock"></i> Seus dados estão 100% seguros</h3>
                 <p class="text-slate-500 font-medium leading-relaxed mb-6">
                     Utilizamos tecnologia de tokenização de ponta. Seus dados sensíveis nunca tocam nossos servidores, sendo processados com criptografia bancária PCI-DSS Level 1.
                 </p>
                 <div class="flex flex-wrap justify-center md:justify-start gap-6">
                     <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        <i class="fas fa-lock text-green-500"></i> SSL 256-bit
+                    <i class="fa-brands fa-expeditedssl text-green-500 text-xs"></i> SSL 256-bit
                     </div>
                     <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                         <i class="fas fa-check-circle text-green-500"></i> Tokenização AES

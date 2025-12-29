@@ -269,8 +269,25 @@
                     @endif
 
                     @if (session('error'))
+                        <div class="border border-rose-400/40 bg-rose-500/10 text-rose-200 rounded-2xl px-4 py-3 text-sm flex items-start gap-3">
+                            <i class="fas fa-exclamation-circle text-rose-400 mt-0.5"></i>
+                            <span>{{ session('error') }}</span>
+                        </div>
+                    @endif
+
+                    @if ($errors->any() && !$errors->has('username') && !$errors->has('password'))
                         <div class="border border-rose-400/40 bg-rose-500/10 text-rose-200 rounded-2xl px-4 py-3 text-sm">
-                            {{ session('error') }}
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-exclamation-circle text-rose-400 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="font-semibold mb-1">Erros encontrados:</p>
+                                    <ul class="list-disc list-inside space-y-1">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     @endif
 
@@ -290,8 +307,14 @@
                             @if ($errors->has('password'))
                                 <p class="text-rose-300 text-xs mb-1">{{ $errors->first('password') }}</p>
                             @endif
-                            <input id="password" name="password" type="password" required
-                                class="input-field w-full py-3 px-4" placeholder="••••••••">
+                            <div class="relative">
+                                <input id="password" name="password" type="password" required
+                                    class="input-field w-full py-3 px-4 pr-12" placeholder="••••••••">
+                                <button type="button" onclick="togglePassword('password', this)"
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="flex flex-wrap items-center justify-between gap-3 text-sm text-white/70">
@@ -348,6 +371,23 @@
             </div>
         </main>
     </div>
+
+    <script>
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            const icon = button.querySelector('i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </body>
 
 </html>

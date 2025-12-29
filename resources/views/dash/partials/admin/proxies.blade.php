@@ -298,7 +298,16 @@
             <label class="flex flex-col gap-2">
                 <span class="text-slate-500 font-semibold">País*</span>
                 <x-ui.select name="pais" :value="old('pais')" placeholder="Selecione" :options="[
-                    'Brasil' => 'Brasil'
+                    'Brasil' => 'Brasil',
+                    'Estados Unidos' => 'Estados Unidos',
+                    'Reino Unido' => 'Reino Unido',
+                    'Alemanha' => 'Alemanha',
+                    'França' => 'França',
+                    'Itália' => 'Itália',
+                    'Espanha' => 'Espanha',
+                    'Portugal' => 'Portugal',
+                    'Canadá' => 'Canadá',
+                    'Austrália' => 'Austrália'
                 ]" required>
                 </x-ui.select>
                 @error('pais')
@@ -469,8 +478,14 @@
                                     <i class="fas fa-pen text-xs"></i>
                                 </button>
                             </div>
-                            <p class="text-xs lg:text-sm text-slate-400 font-medium truncate">{{ $farm->ip }} &middot;
-                                {{ $farm->pais }} &middot; {{ $farm->hospedagem }}</p>
+                            <p class="text-xs lg:text-sm text-slate-400 font-medium truncate">
+                                {{ $farm->ip }} &middot;
+                                <span id="vps-pais-{{ $farm->id }}" class="inline-flex items-center gap-1 cursor-pointer hover:text-slate-600 transition-colors" data-edit-pais="{{ $farm->id }}" title="Clique para editar o país">
+                                    {{ $farm->pais }}
+                                    <i class="fas fa-pen text-[8px] opacity-50"></i>
+                                </span>
+                                &middot; {{ $farm->hospedagem }}
+                            </p>
                             <div
                                 class="vps-meta mt-3 flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
                                 <span class="flex items-center gap-1.5"><i class="fas fa-wallet text-[#448ccb]"></i>
@@ -1872,6 +1887,160 @@
 
         // Salvar ao perder o foco
         input.addEventListener('blur', saveApelido);
+    });
+
+    // ============================================
+    // EDITAR PAÍS DA VPS
+    // ============================================
+
+    document.addEventListener('click', async function(e) {
+        const editButton = e.target.closest('[data-edit-pais]');
+        if (!editButton) return;
+
+        e.preventDefault();
+
+        const vpsId = editButton.dataset.editPais;
+        const paisElement = document.getElementById(`vps-pais-${vpsId}`);
+        const currentPais = paisElement.textContent.trim();
+
+        // Lista de países disponíveis
+        const paises = [
+            'Brasil',
+            'Estados Unidos',
+            'Reino Unido',
+            'Alemanha',
+            'França',
+            'Itália',
+            'Espanha',
+            'Portugal',
+            'Canadá',
+            'Austrália'
+        ];
+
+        // Criar select para edição inline
+        const select = document.createElement('select');
+        select.className = 'text-xs lg:text-sm text-slate-600 font-medium border-2 border-blue-500 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white';
+
+        // Adicionar opções ao select
+        paises.forEach(pais => {
+            const option = document.createElement('option');
+            option.value = pais;
+            option.textContent = pais;
+            if (pais === currentPais) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+
+        // Substituir span por select
+        paisElement.replaceWith(select);
+        select.focus();
+
+        // Função para salvar
+        const savePais = async () => {
+            const novoPais = select.value.trim();
+
+            // Se não mudou, apenas restaurar
+            if (novoPais === currentPais) {
+                const span = document.createElement('span');
+                span.id = `vps-pais-${vpsId}`;
+                span.className = 'inline-flex items-center gap-1 cursor-pointer hover:text-slate-600 transition-colors';
+                span.setAttribute('data-edit-pais', vpsId);
+                span.setAttribute('title', 'Clique para editar o país');
+                span.innerHTML = `${currentPais} <i class="fas fa-pen text-[8px] opacity-50"></i>`;
+                select.replaceWith(span);
+                return;
+            }
+
+            // Desabilitar select durante salvamento
+            select.disabled = true;
+            select.className = select.className.replace('border-blue-500', 'border-gray-300');
+
+            try {
+                const response = await fetch('{{ route("vps.atualizar-pais") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({
+                        vps_id: vpsId,
+                        pais: novoPais
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Restaurar span com novo país
+                    const span = document.createElement('span');
+                    span.id = `vps-pais-${vpsId}`;
+                    span.className = 'inline-flex items-center gap-1 cursor-pointer hover:text-slate-600 transition-colors';
+                    span.setAttribute('data-edit-pais', vpsId);
+                    span.setAttribute('title', 'Clique para editar o país');
+                    span.innerHTML = `${data.pais} <i class="fas fa-pen text-[8px] opacity-50"></i>`;
+                    select.replaceWith(span);
+
+                    // Mostrar notificação de sucesso
+                    showToast('País atualizado com sucesso!', 'success');
+
+                    // Atualizar também no card da lista (se existir)
+                    const cardPais = document.querySelector(`[data-open-vps-modal="vpsModal-${vpsId}"] .text-slate-400`);
+                    if (cardPais) {
+                        // Atualizar apenas o país, mantendo os outros elementos
+                        const cardText = cardPais.textContent;
+                        if (cardText.includes('·')) {
+                            const parts = cardText.split('·').map(part => part.trim());
+                            parts[0] = data.pais; // Assumindo que o país é a primeira parte
+                            cardPais.textContent = parts.join(' · ');
+                        }
+                    }
+                } else {
+                    // Restaurar valor anterior
+                    const span = document.createElement('span');
+                    span.id = `vps-pais-${vpsId}`;
+                    span.className = 'inline-flex items-center gap-1 cursor-pointer hover:text-slate-600 transition-colors';
+                    span.setAttribute('data-edit-pais', vpsId);
+                    span.setAttribute('title', 'Clique para editar o país');
+                    span.innerHTML = `${currentPais} <i class="fas fa-pen text-[8px] opacity-50"></i>`;
+                    select.replaceWith(span);
+
+                    showToast(data.error || 'Erro ao atualizar país', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar país:', error);
+
+                // Restaurar valor anterior
+                const span = document.createElement('span');
+                span.id = `vps-pais-${vpsId}`;
+                span.className = 'inline-flex items-center gap-1 cursor-pointer hover:text-slate-600 transition-colors';
+                span.setAttribute('data-edit-pais', vpsId);
+                span.setAttribute('title', 'Clique para editar o país');
+                span.innerHTML = `${currentPais} <i class="fas fa-pen text-[8px] opacity-50"></i>`;
+                select.replaceWith(span);
+
+                showToast('Erro ao conectar com o servidor', 'error');
+            }
+        };
+
+        // Salvar ao mudar a seleção
+        select.addEventListener('change', savePais);
+
+        // Cancelar edição ao pressionar Escape
+        select.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const span = document.createElement('span');
+                span.id = `vps-pais-${vpsId}`;
+                span.className = 'inline-flex items-center gap-1 cursor-pointer hover:text-slate-600 transition-colors';
+                span.setAttribute('data-edit-pais', vpsId);
+                span.setAttribute('title', 'Clique para editar o país');
+                span.innerHTML = `${currentPais} <i class="fas fa-pen text-[8px] opacity-50"></i>`;
+                select.replaceWith(span);
+            }
+        });
+
+        // Salvar ao perder o foco
+        select.addEventListener('blur', savePais);
     });
 </script>
 

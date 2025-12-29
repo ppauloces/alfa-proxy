@@ -43,7 +43,7 @@ class AdminController extends Controller
             'usuario_ssh' => 'required|string|max:255',
             'senha_ssh' => 'required|string',
             'valor' => 'required|numeric|min:0',
-            'pais' => 'required|string|in:Brasil,Estados Unidos,Portugal,Alemanha',
+            'pais' => 'required|string|in:Brasil,Estados Unidos,Reino Unido,Alemanha,França,Itália,Espanha,Portugal,Canadá,Austrália',
             'hospedagem' => 'required|string|max:255',
             'periodo_dias' => 'required|integer|in:30,60,90,180',
             'data_contratacao' => 'required|date',
@@ -206,8 +206,14 @@ class AdminController extends Controller
         $prefixos = [
             'Brasil' => 'BR',
             'Estados Unidos' => 'US',
-            'Portugal' => 'PT',
+            'Reino Unido' => 'GB',
             'Alemanha' => 'DE',
+            'França' => 'FR',
+            'Itália' => 'IT',
+            'Espanha' => 'ES',
+            'Portugal' => 'PT',
+            'Canadá' => 'CA',
+            'Austrália' => 'AU',
         ];
 
         $prefixo = $prefixos[$pais] ?? 'XX';
@@ -420,6 +426,83 @@ class AdminController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => 'Erro ao atualizar apelido: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Atualizar país da VPS e de todas as proxies vinculadas
+     */
+    public function atualizarPaisVps(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'vps_id' => 'required|exists:vps,id',
+                'pais' => 'required|string|in:Brasil,Estados Unidos,Reino Unido,Alemanha,França,Itália,Espanha,Portugal,Canadá,Austrália',
+            ], [
+                'vps_id.required' => 'ID da VPS é obrigatório.',
+                'vps_id.exists' => 'VPS não encontrada.',
+                'pais.required' => 'O país é obrigatório.',
+                'pais.in' => 'País selecionado é inválido.',
+            ]);
+
+            $vps = Vps::findOrFail($validated['vps_id']);
+            $paisAntigo = $vps->pais;
+
+            // Atualizar país da VPS
+            $vps->update(['pais' => $validated['pais']]);
+
+            // Obter código do país usando o mesmo mapeamento
+            $paisesMap = [
+                'Brasil' => 'BR',
+                'Estados Unidos' => 'US',
+                'Reino Unido' => 'GB',
+                'Alemanha' => 'DE',
+                'França' => 'FR',
+                'Itália' => 'IT',
+                'Espanha' => 'ES',
+                'Portugal' => 'PT',
+                'Canadá' => 'CA',
+                'Austrália' => 'AU',
+            ];
+            $codigoPais = $paisesMap[$validated['pais']] ?? 'XX';
+
+            // Atualizar país e código de todas as proxies dessa VPS
+            $proxiesAtualizadas = Stock::where('vps_id', $validated['vps_id'])
+                ->update([
+                    'pais' => $validated['pais'],
+                    'codigo_pais' => $codigoPais,
+                ]);
+
+            Log::info('País da VPS e proxies atualizados', [
+                'vps_id' => $vps->id,
+                'pais_antigo' => $paisAntigo,
+                'pais_novo' => $validated['pais'],
+                'codigo_pais' => $codigoPais,
+                'proxies_atualizadas' => $proxiesAtualizadas,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'País atualizado com sucesso!',
+                'pais' => $validated['pais'],
+                'proxies_atualizadas' => $proxiesAtualizadas,
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->validator->errors()->first(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Erro ao atualizar país da VPS', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao atualizar país: ' . $e->getMessage(),
             ], 500);
         }
     }

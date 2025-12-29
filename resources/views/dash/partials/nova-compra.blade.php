@@ -156,7 +156,16 @@
                         <div class="form-group">
                             <label class="form-label block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 leading-none whitespace-nowrap">País</label>
                             <x-ui.select name="pais" :value="old('pais', 'Brasil')" placeholder="Selecione" :options="[
-                                'Brasil' => 'Brasil'
+                                'Brasil' => 'Brasil',
+                                'Estados Unidos' => 'Estados Unidos',
+                                'Reino Unido' => 'Reino Unido',
+                                'Alemanha' => 'Alemanha',
+                                'França' => 'França',
+                                'Itália' => 'Itália',
+                                'Espanha' => 'Espanha',
+                                'Portugal' => 'Portugal',
+                                'Canadá' => 'Canadá',
+                                'Austrália' => 'Austrália',
                             ]" />
                         </div>
 

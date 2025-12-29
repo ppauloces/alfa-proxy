@@ -19,13 +19,14 @@ class ProxyAllocationService
      */
     public function allocateProxies(int $userId, array $purchaseData): array
     {
-        $paisCodigo = $purchaseData['pais'];
+        $paisInput = $purchaseData['pais'];
         $quantidade = $purchaseData['quantidade'];
         $periodoDias = $purchaseData['periodo_dias'];
         $motivo = $purchaseData['motivo'];
 
-        // Converter código do país para nome completo
-        $paisNome = $this->getPaisNome($paisCodigo);
+        // Converter para nome e código
+        $paisNome = $this->getPaisNome($paisInput);
+        $paisCodigo = $this->getPaisCodigo($paisInput);
 
         // Buscar proxies DISPONÍVEIS no estoque do país solicitado
         // Proxies disponíveis = user_id é NULL (não vendidas ainda) e disponibilidade = true
@@ -55,7 +56,7 @@ class ProxyAllocationService
         foreach ($proxiesDisponiveis as $proxy) {
             $proxy->update([
                 'user_id' => $userId,
-                'codigo_pais' => $paisCodigo,
+                'codigo_pais' => $paisCodigo, // Salvar o código (BR, US, etc.)
                 'motivo_uso' => $motivo,
                 'periodo_dias' => $periodoDias,
                 'expiracao' => $expiracao,
@@ -95,27 +96,76 @@ class ProxyAllocationService
     }
 
     /**
-     * Retorna o nome completo do país baseado no código
+     * Mapeamento de países (nome completo => código)
      *
-     * @param string $codigo
+     * @return array
+     */
+    private function getPaisesMap(): array
+    {
+        return [
+            'Brasil' => 'BR',
+            'Estados Unidos' => 'US',
+            'Reino Unido' => 'GB',
+            'Alemanha' => 'DE',
+            'França' => 'FR',
+            'Itália' => 'IT',
+            'Espanha' => 'ES',
+            'Portugal' => 'PT',
+            'Canadá' => 'CA',
+            'Austrália' => 'AU',
+        ];
+    }
+
+    /**
+     * Retorna o nome completo do país baseado no nome ou código
+     * Se receber "Brasil" retorna "Brasil"
+     * Se receber "BR" retorna "Brasil"
+     *
+     * @param string $paisInput
      * @return string
      */
-    private function getPaisNome(string $codigo): string
+    private function getPaisNome(string $paisInput): string
     {
-        $paises = [
-            'BR' => 'Brasil',
-            'US' => 'Estados Unidos',
-            'UK' => 'Reino Unido',
-            'DE' => 'Alemanha',
-            'FR' => 'França',
-            'ES' => 'Espanha',
-            'IT' => 'Itália',
-            'PT' => 'Portugal',
-            'CA' => 'Canadá',
-            'AU' => 'Austrália',
-        ];
+        $paisesMap = $this->getPaisesMap();
 
-        return $paises[$codigo] ?? $codigo;
+        // Se já é um nome completo
+        if (isset($paisesMap[$paisInput])) {
+            return $paisInput;
+        }
+
+        // Se é um código, buscar o nome
+        $codigoParaNome = array_flip($paisesMap);
+        if (isset($codigoParaNome[$paisInput])) {
+            return $codigoParaNome[$paisInput];
+        }
+
+        return $paisInput;
+    }
+
+    /**
+     * Retorna o código do país baseado no nome ou código
+     * Se receber "Brasil" retorna "BR"
+     * Se receber "BR" retorna "BR"
+     *
+     * @param string $paisInput
+     * @return string
+     */
+    private function getPaisCodigo(string $paisInput): string
+    {
+        $paisesMap = $this->getPaisesMap();
+
+        // Se é um nome completo
+        if (isset($paisesMap[$paisInput])) {
+            return $paisesMap[$paisInput];
+        }
+
+        // Se já é um código
+        $codigoParaNome = array_flip($paisesMap);
+        if (isset($codigoParaNome[$paisInput])) {
+            return $paisInput;
+        }
+
+        return $paisInput;
     }
 
     /**

@@ -283,6 +283,36 @@
                             <p class="text-white/70 text-sm">Preencha os dados abaixo para começar.</p>
                         </div>
 
+                        @if (session('success'))
+                            <div class="border border-emerald-400/40 bg-emerald-500/10 text-emerald-200 rounded-2xl px-4 py-3 text-sm flex items-start gap-3">
+                                <i class="fas fa-check-circle text-emerald-400 mt-0.5"></i>
+                                <span>{{ session('success') }}</span>
+                            </div>
+                        @endif
+
+                        @if (session('error'))
+                            <div class="border border-rose-400/40 bg-rose-500/10 text-rose-200 rounded-2xl px-4 py-3 text-sm flex items-start gap-3">
+                                <i class="fas fa-exclamation-circle text-rose-400 mt-0.5"></i>
+                                <span>{{ session('error') }}</span>
+                            </div>
+                        @endif
+
+                        @if ($errors->any())
+                            <div class="border border-rose-400/40 bg-rose-500/10 text-rose-200 rounded-2xl px-4 py-3 text-sm">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-exclamation-circle text-rose-400 mt-0.5"></i>
+                                    <div class="flex-1">
+                                        <p class="font-semibold mb-2">Por favor, corrija os seguintes erros:</p>
+                                        <ul class="list-disc list-inside space-y-1">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
                         <form class="space-y-6" method="POST" action="{{ route('register.perform') }}">
                             @csrf
                             <div class="relative">
@@ -305,14 +335,22 @@
 
                             <div class="relative">
                                 <i class="fas fa-lock form-icon"></i>
-                                <input name="password" type="password" required
-                                    class="input-field" placeholder="Senha">
+                                <input id="password" name="password" type="password" required
+                                    class="input-field pr-12" placeholder="Senha (mínimo 8 caracteres)">
+                                <button type="button" onclick="togglePassword('password', this)"
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
 
                             <div class="relative">
                                 <i class="fas fa-lock form-icon"></i>
-                                <input name="password_confirmation" type="password" required
-                                    class="input-field" placeholder="Confirmar senha">
+                                <input id="password_confirmation" name="password_confirmation" type="password" required
+                                    class="input-field pr-12" placeholder="Confirmar senha">
+                                <button type="button" onclick="togglePassword('password_confirmation', this)"
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
 
                             <button type="submit" class="w-full py-3 rounded-2xl font-semibold bg-gradient-to-r from-[#4F8BFF] to-[#2055dd] shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 transition">
@@ -329,6 +367,23 @@
             </div>
         </main>
     </div>
+
+    <script>
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            const icon = button.querySelector('i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </body>
 
 </html>

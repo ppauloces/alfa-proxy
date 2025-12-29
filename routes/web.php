@@ -111,4 +111,7 @@ Route::middleware(AdminMiddleware::class)->group(function () {
 
     // Atualizar apelido da VPS
     Route::post('/admin/vps/atualizar-apelido', [AdminController::class, 'atualizarApelidoVps'])->name('vps.atualizar-apelido');
+
+    // Atualizar país da VPS
+    Route::post('/admin/vps/atualizar-pais', [AdminController::class, 'atualizarPaisVps'])->name('vps.atualizar-pais');
 });

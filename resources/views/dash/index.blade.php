@@ -1102,29 +1102,9 @@
         $totalValor = $totalValor ?? $pagamentos_aprovados->sum('valor');
         $transacoes = $transacoes ?? $pagamentos;
         $currentSection = $activeSection ?? 'proxies';
-        $clientLeads = [];
-        $collaborators = [];
-
-        if (Auth::user()?->isAdmin()) {
-            $clientLeads = User::where('cargo', 'usuario')->get();
-            $vpsFarm = $vpsFarm ?? collect();
-            $vpsHistorico = $vpsHistorico ?? collect();
-            $estatisticas = $estatisticas ?? [
-                'total_vps' => 0,
-                'vps_ativas' => 0,
-                'vps_expiradas' => 0,
-                'total_gasto' => 0,
-                'total_proxies_geradas' => 0,
-                'media_proxies_por_vps' => 0,
-            ];
-            $generatedProxies = $generatedProxies ?? [];
-            $soldProxyCards = $soldProxyCards ?? [];
-            $soldProxies = $soldProxies ?? [];
-            $financeCards = $financeCards ?? [];
-            $financeExtract = $financeExtract ?? ['saida' => [], 'entrada' => []];
-            $forecast = $forecast ?? [];
-            $couponCampaigns = $couponCampaigns ?? [];
-        }
+        $couponCampaigns = $couponCampaigns ?? collect();
+        $clientLeads = $clientLeads ?? collect();
+        $statsCompraProxy = $statsCompraProxy ?? collect();
     @endphp
 
     <div class="space-y-10" data-sections-wrapper>

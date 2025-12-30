@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/card/2.5.4/card.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css'])
     <style>
         :root {
@@ -450,7 +451,7 @@
                 <div class="flex items-center gap-3 mb-10 px-2">
                     <div class="relative">
                         <div
-                            class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#448ccb] to-[#23366f] flex items-center justify-center text-white font-bold shadow-lg shadow-blue-900/20">
+                            class="w-12 h-12 rounded-2xl bg-gradient-to-br {{ Auth::user()->isRevendedor() ? 'from-amber-400 to-orange-600' : 'from-[#448ccb] to-[#23366f]' }} flex items-center justify-center text-white font-bold shadow-lg {{ Auth::user()->isRevendedor() ? 'shadow-amber-500/20' : 'shadow-blue-900/20' }}">
                             {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}{{ strtoupper(substr(explode(' ', Auth::user()->name ?? 'U')[1] ?? '', 0, 1)) }}
                         </div>
                         <div
@@ -458,11 +459,18 @@
                         </div>
                     </div>
                     <div class="account-info">
-                        <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold leading-tight">Painel
-                            Cliente</p>
+                        <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold leading-tight">
+                            Painel {{ Auth::user()->isRevendedor() ? 'Revendedor' : 'Cliente' }}
+                        </p>
                         <p class="text-sm font-extrabold text-slate-800 truncate max-w-[140px]">
                             {{ Auth::user()->name ?? 'Usuario' }}
                         </p>
+                        @if(Auth::user()->isRevendedor())
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 rounded-full mt-1">
+                                <i class="fas fa-crown text-[8px] text-amber-600"></i>
+                                <span class="text-[8px] font-black text-amber-700 uppercase tracking-wider">Revendedor</span>
+                            </span>
+                        @endif
                     </div>
                 </div>
 

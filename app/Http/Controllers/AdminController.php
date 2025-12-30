@@ -660,4 +660,49 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * Atualizar cargo do usuário
+     */
+    public function atualizarCargo(Request $request, $id)
+    {
+        try {
+            $validated = $request->validate([
+                'cargo' => 'required|string|in:usuario,admin,super,revendedor',
+            ], [
+                'cargo.required' => 'O cargo é obrigatório.',
+                'cargo.in' => 'Cargo inválido. Valores aceitos: usuario, admin, super, revendedor.',
+            ]);
+
+            $user = User::findOrFail($id);
+            $cargoAntigo = $user->cargo;
+
+            // Atualizar cargo do usuário
+            $user->update(['cargo' => $validated['cargo']]);
+
+            Log::info('Cargo do usuário atualizado', [
+                'user_id' => $user->id,
+                'cargo_antigo' => $cargoAntigo,
+                'cargo_novo' => $validated['cargo'],
+                'atualizado_por' => Auth::id(),
+            ]);
+
+            return redirect()->back()->with('success', 'Cargo atualizado com sucesso!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors(['error' => $e->validator->errors()->first()]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao atualizar cargo do usuário', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->back()->withErrors(['error' => 'Erro ao atualizar cargo: ' . $e->getMessage()]);
+        }
+    }
+
+    public function usuarios(Request $request)
+    {
+        return redirect()->route('dash.show', ['section' => $request->query('section', 'admin-usuarios')]);
+    }
+
 }

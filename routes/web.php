@@ -114,4 +114,7 @@ Route::middleware(AdminMiddleware::class)->group(function () {
 
     // Atualizar país da VPS
     Route::post('/admin/vps/atualizar-pais', [AdminController::class, 'atualizarPaisVps'])->name('vps.atualizar-pais');
+
+    // Atualizar cargo do usuário
+    Route::patch('/admin/usuarios/{id}/cargo', [AdminController::class, 'atualizarCargo'])->name('usuarios.atualizar-cargo');
 });

@@ -110,4 +110,40 @@ public function isUser()
     return $this->cargo === 'usuario';
 }
 
+/**
+ * Verifica se o usuário é revendedor
+ */
+public function isRevendedor()
+{
+    return $this->cargo === 'revendedor';
+}
+
+/**
+ * Retorna o preço base do proxy baseado no cargo do usuário
+ */
+public function getPrecoBase($periodo)
+{
+    $precosUsuario = [
+        30 => 20.00,
+        60 => 35.00,
+        90 => 45.00,
+        180 => 80.00,
+        360 => 120.00,
+    ];
+
+    $precosRevendedor = [
+        30 => 10.00,
+        60 => 18.00,
+        90 => 23.00,
+        180 => 40.00,
+        360 => 60.00,
+    ];
+
+    if ($this->isRevendedor()) {
+        return $precosRevendedor[$periodo] ?? 10.00;
+    }
+
+    return $precosUsuario[$periodo] ?? 20.00;
+}
+
 }

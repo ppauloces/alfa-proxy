@@ -38,6 +38,9 @@ class LogadoController extends Controller
         $generatedProxies = [];
         // Stats internos (mantém compatibilidade caso alguma view/compact espere essa variável)
         $usoInternoStats = [];
+        // Usuários + stats (admin - datatable)
+        $clientLeads = collect();
+        $statsCompraProxy = collect();
 
         // Variáveis para seções admin
         $financeCards = [];
@@ -47,6 +50,47 @@ class LogadoController extends Controller
         $soldProxies = [];
 
         if ($usuario->isAdmin()) {
+            // ===== CLIENTES & LEADS (com busca + paginação) =====
+            $usersQ = trim((string) $request->query('users_q', ''));
+            $usersPerPage = (int) $request->query('users_per_page', 10);
+            $usersPerPage = max(5, min(100, $usersPerPage));
+
+            $clientLeads = User::query()
+                ->whereIn('cargo', ['usuario', 'revendedor', 'super'])
+                ->when($usersQ !== '', function ($q) use ($usersQ) {
+                    $q->where(function ($qq) use ($usersQ) {
+                        $qq->where('name', 'like', '%' . $usersQ . '%')
+                            ->orWhere('email', 'like', '%' . $usersQ . '%');
+                    });
+                })
+                ->orderBy('created_at', 'desc')
+                ->paginate($usersPerPage, ['*'], 'users_page')
+                ->withQueryString();
+
+            // Stats agregadas das compras aprovadas (tipo compra_proxy): proxies (metadata.quantidade) + gasto (valor)
+            $clientLeadIds = $clientLeads->getCollection()->pluck('id')->values();
+            $statsCompraProxy = collect();
+            if ($clientLeadIds->isNotEmpty()) {
+                $qtyExpr = "CAST(JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.quantidade')) AS UNSIGNED)";
+
+                $statsCompraProxy = Transaction::query()
+                    ->where('tipo', 'compra_proxy')
+                    ->where('status', 1)
+                    ->whereIn('user_id', $clientLeadIds)
+                    ->select('user_id')
+                    ->selectRaw('SUM(valor) as gasto')
+                    ->selectRaw("SUM(COALESCE($qtyExpr, 0)) as proxies")
+                    ->groupBy('user_id')
+                    ->get()
+                    ->keyBy('user_id')
+                    ->map(function ($row) {
+                        return [
+                            'proxies' => (int) ($row->proxies ?? 0),
+                            'gasto' => (float) ($row->gasto ?? 0),
+                        ];
+                    });
+            }
+
             $vpsList = \App\Models\Vps::with('proxies')->orderBy('created_at', 'desc')->get();
 
             $vpsFarm = $vpsList->map(function ($vps) {
@@ -419,6 +463,8 @@ class LogadoController extends Controller
             'soldProxyCards',
             'soldProxies',
             'usoInternoStats',
+            'clientLeads',
+            'statsCompraProxy',
         ));
     }
 
@@ -528,16 +574,9 @@ class LogadoController extends Controller
             'installments' => 'nullable|integer|min:1|max:12',
         ]);
 
-        // Calcular valor baseado no período
-        $precos = [
-            30 => 20.00,
-            60 => 35.00,
-            90 => 45.00,
-            180 => 80.00,
-            360 => 120.00,
-        ];
-
-        $valorUnitario = $precos[$request->periodo] ?? 20.00;
+        // Obter usuário e calcular valor baseado no cargo
+        $usuario = User::find(Auth::id());
+        $valorUnitario = $usuario->getPrecoBase($request->periodo);
         $valorTotal = $valorUnitario * $request->quantidade;
 
         // Verificar se há proxies disponíveis no estoque
@@ -549,8 +588,6 @@ class LogadoController extends Controller
 
         try {
             DB::beginTransaction();
-
-            $usuario = User::find(Auth::id());
 
             // Criar transação de compra
             $transacao = Transaction::create([

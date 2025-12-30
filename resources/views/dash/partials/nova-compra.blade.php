@@ -121,10 +121,23 @@
 <div class="flex flex-col gap-6">
     {{-- Header da Seção --}}
     <div class="space-y-1">
-        <p class="text-[10px] font-bold text-[#448ccb] uppercase tracking-[0.3em]">Adquirir proxies</p>
+        <div class="flex items-center gap-3">
+            <p class="text-[10px] font-bold text-[#448ccb] uppercase tracking-[0.3em]">Adquirir proxies</p>
+            @if(Auth::user()->isRevendedor())
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full shadow-md shadow-amber-500/20">
+                    <i class="fas fa-crown text-xs text-white"></i>
+                    <span class="text-xs font-black text-white uppercase tracking-wider">Revendedor - Preços Especiais</span>
+                </span>
+            @endif
+        </div>
         <h1 class="text-4xl font-black text-slate-900 tracking-tight">Nova <span class="text-[#23366f]">Compra</span>
         </h1>
-        <p class="text-slate-500 font-medium max-w-xl">Configure e adquira novos proxies para suas necessidades.</p>
+        <p class="text-slate-500 font-medium max-w-xl">
+            Configure e adquira novos proxies para suas necessidades.
+            @if(Auth::user()->isRevendedor())
+                <span class="text-amber-600 font-bold">Você tem acesso a preços exclusivos de revendedor!</span>
+            @endif
+        </p>
     </div>
 
     @if($errors->novaCompra->any())
@@ -476,16 +489,23 @@
                             class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-sm font-bold">02</span>
                         Período de Contratação
                     </h2>
-                    <p class="text-sm text-slate-500 mb-8 ml-11">Quanto maior o período, melhor o preço por proxy!</p>
+                    <p class="text-sm text-slate-500 mb-8 ml-11">Quanto maior o período, melhor o preço por proxy!
+                        @if(Auth::user()->isRevendedor())
+                            <span class="inline-flex items-center gap-1 ml-2 px-2 py-1 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 rounded-lg">
+                                <i class="fas fa-crown text-xs text-amber-600"></i>
+                                <span class="text-xs font-black text-amber-700">Preços Especiais de Revendedor</span>
+                            </span>
+                        @endif
+                    </p>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                         @php
                             $periods = [
-                                ['days' => 30, 'price' => 20.00, 'badge' => null],
-                                ['days' => 60, 'price' => 35.00, 'badge' => '-12%'],
-                                ['days' => 90, 'price' => 45.00, 'badge' => '-25%'],
-                                ['days' => 180, 'price' => 80.00, 'badge' => '-33%'],
-                                ['days' => 360, 'price' => 120.00, 'badge' => 'Melhor Preço'],
+                                ['days' => 30, 'price' => Auth::user()->getPrecoBase(30), 'badge' => null],
+                                ['days' => 60, 'price' => Auth::user()->getPrecoBase(60), 'badge' => '-12%'],
+                                ['days' => 90, 'price' => Auth::user()->getPrecoBase(90), 'badge' => '-25%'],
+                                ['days' => 180, 'price' => Auth::user()->getPrecoBase(180), 'badge' => '-33%'],
+                                ['days' => 360, 'price' => Auth::user()->getPrecoBase(360), 'badge' => 'Melhor Preço'],
                             ];
                         @endphp
 

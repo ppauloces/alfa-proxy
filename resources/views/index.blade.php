@@ -718,8 +718,55 @@
         </div>
     </section>
 
+    @php
+        $dataLimitePromocao = \Carbon\Carbon::create(2026, 2, 2, 23, 59, 59);
+        $emPromocao = now()->lte($dataLimitePromocao);
+      
+    @endphp
+
+    <!-- Banner de Promoção -->
+    @if($emPromocao)
+    <section class="relative -mt-12 md:-mt-24 pb-8 md:pb-12 bg-gradient-to-b from-transparent via-gray-50/70 to-gray-50">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="relative rounded-[1.25rem] md:rounded-[2rem] overflow-hidden bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 shadow-2xl shadow-orange-500/30 border-2 border-white/30">
+                <div class="px-6 md:px-10 py-6 md:py-8 relative">
+                    <!-- Efeito de brilho animado -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+
+                    <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="text-center md:text-left">
+                            <div class="flex items-center justify-center md:justify-start gap-2 mb-2">
+                                <i class="fas fa-fire text-white text-xl md:text-2xl animate-pulse"></i>
+                                <span class="inline-flex items-center px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full">
+                                    <span class="text-xs md:text-sm font-black text-red-600 uppercase tracking-wider">Promoção Limitada</span>
+                                </span>
+                                <i class="fas fa-fire text-white text-xl md:text-2xl animate-pulse"></i>
+                            </div>
+                            <h3 class="text-2xl md:text-4xl font-black text-white mb-1 drop-shadow-lg">
+                                Proxies por apenas R$ 15,00
+                            </h3>
+                            <p class="text-white/95 font-medium text-sm md:text-base">
+                                Válido até <strong class="font-black">02 de Fevereiro de 2025</strong> para novos clientes
+                            </p>
+                        </div>
+                        <div class="flex flex-col items-center gap-3">
+                            <div class="bg-white/90 backdrop-blur-sm px-6 py-3 rounded-xl shadow-lg">
+                                <div class="text-center">
+                                    <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">De R$ 20,00 por</div>
+                                    <div class="text-3xl md:text-4xl font-black text-red-600">R$ 15,00</div>
+                                    <div class="text-xs font-bold text-green-600 uppercase tracking-wider">25% OFF</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    @endif
+
     <!-- Multilogins (overlap + continuidade visual) -->
-    <section class="relative -mt-12 md:-mt-24 pb-12 md:pb-20 overflow-hidden bg-gradient-to-b from-transparent via-gray-50/70 to-gray-50">
+    <section class="relative {{ $emPromocao ? 'pt-8 md:pt-12' : '-mt-12 md:-mt-24' }} pb-12 md:pb-20 overflow-hidden bg-gradient-to-b from-transparent via-gray-50/70 to-gray-50">
         <div class="container mx-auto px-4 md:px-6">
             <div
                 class="relative rounded-[1.25rem] md:rounded-[2.25rem] border border-white/30 bg-white/35 backdrop-blur-2xl shadow-[0_28px_70px_rgba(15,23,42,0.18)] overflow-hidden">

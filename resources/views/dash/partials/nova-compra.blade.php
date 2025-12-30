@@ -140,6 +140,42 @@
         </p>
     </div>
 
+    @php
+        $dataLimitePromocao = \Carbon\Carbon::create(2026, 2, 2, 23, 59, 59);
+        $emPromocao = now()->lte($dataLimitePromocao) && !Auth::user()->isRevendedor();
+    @endphp
+
+    {{-- Banner de Promoção --}}
+    @if($emPromocao)
+        <div class="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-[2rem] p-6 shadow-lg shadow-orange-500/20 border border-white/20">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-fire text-white text-3xl animate-pulse"></i>
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="inline-flex items-center px-2.5 py-0.5 bg-white/90 backdrop-blur-sm rounded-full">
+                                <span class="text-xs font-black text-red-600 uppercase tracking-wider">Promoção Ativa</span>
+                            </span>
+                        </div>
+                        <h3 class="text-xl md:text-2xl font-black text-white drop-shadow-lg">
+                            Proxies de 30 dias por R$ 15,00
+                        </h3>
+                        <p class="text-white/90 text-sm font-medium">
+                            Válido até <strong>02 de Fevereiro de 2025</strong>
+                        </p>
+                    </div>
+                </div>
+                <div class="bg-white/90 backdrop-blur-sm px-5 py-3 rounded-xl shadow-lg">
+                    <div class="text-center">
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Economia</div>
+                        <div class="text-2xl md:text-3xl font-black text-red-600">25% OFF</div>
+                        <div class="text-[10px] font-bold text-green-600">R$ 5,00 de desconto</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @if($errors->novaCompra->any())
         <div
             class="alert alert-error bg-red-50 text-red-700 border-red-100 rounded-2xl p-4 font-semibold flex items-center gap-3">

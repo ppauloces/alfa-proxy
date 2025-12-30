@@ -139,6 +139,21 @@ public function getPrecoBase($periodo)
         360 => 60.00,
     ];
 
+    // Promoção até 02/02/2025 - apenas para usuários normais
+    $dataLimitePromocao = \Carbon\Carbon::create(2026, 2, 2, 23, 59, 59);
+    $emPromocao = now()->lte($dataLimitePromocao) && !$this->isRevendedor();
+
+    if ($emPromocao) {
+        $precosPromocao = [
+            30 => 15.00,
+            60 => 26.00,
+            90 => 33.00,
+            180 => 60.00,
+            360 => 90.00,
+        ];
+        return $precosPromocao[$periodo] ?? 15.00;
+    }
+
     if ($this->isRevendedor()) {
         return $precosRevendedor[$periodo] ?? 10.00;
     }

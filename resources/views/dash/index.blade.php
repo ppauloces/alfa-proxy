@@ -1130,6 +1130,49 @@
                     </div>
                 </div>
 
+                @php
+                    $dataLimitePromocao = \Carbon\Carbon::create(2026, 2, 2, 23, 59, 59);
+                    $emPromocao = now()->lte($dataLimitePromocao) && !Auth::user()->isRevendedor();
+                @endphp
+
+                {{-- Banner de Promoção --}}
+                @if($emPromocao)
+                    <div class="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-[2rem] p-6 shadow-lg shadow-orange-500/20 border border-white/20">
+                        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div class="flex items-center gap-3 flex-1">
+                                <i class="fas fa-fire text-white text-3xl md:text-4xl animate-pulse"></i>
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 bg-white/90 backdrop-blur-sm rounded-full">
+                                            <span class="text-xs font-black text-red-600 uppercase tracking-wider">Promoção Ativa</span>
+                                        </span>
+                                    </div>
+                                    <h3 class="text-xl md:text-2xl font-black text-white drop-shadow-lg">
+                                        Proxies de 30 dias por R$ 15,00
+                                    </h3>
+                                    <p class="text-white/90 text-sm font-medium">
+                                        Aproveite até <strong>02 de Fevereiro de 2025</strong>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="bg-white/90 backdrop-blur-sm px-5 py-3 rounded-xl shadow-lg">
+                                    <div class="text-center">
+                                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Economia</div>
+                                        <div class="text-2xl md:text-3xl font-black text-red-600">25% OFF</div>
+                                        <div class="text-[10px] font-bold text-green-600">R$ 5,00 menos</div>
+                                    </div>
+                                </div>
+                                <button type="button" data-section-link="nova-compra"
+                                    class="group relative px-5 py-2.5 rounded-xl bg-white text-red-600 text-sm font-bold hover:shadow-lg transition-all whitespace-nowrap">
+                                    Aproveitar agora
+                                    <i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 {{-- Status Geral --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">

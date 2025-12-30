@@ -1277,6 +1277,19 @@
     <!-- Material Tailwind Ripple Effect -->
     <script async src="https://unpkg.com/@material-tailwind/html@latest/scripts/ripple.js"></script>
 
+    <!-- Aviso de Cookies -->
+    <script src="https://www.drcode.com.br/nofollow/aviso-cookies/drcode.cookies.js"></script>
+    <script>
+        avisoCookiesDrcode({
+            message: 'Utilizamos cookies para que você tenha a melhor experiência em nosso site. Para saber mais acesse nossa página de Política de Privacidade',
+            backgroundColor: 'rgba(35, 54, 111, 0.98)',
+            textColor: '#ffffff',
+            buttonBackgoundColor: '#4F8BFF',
+            buttonHoverBackgoundColor: '#3677B3',
+            buttonTextColor: '#ffffff'
+        })
+    </script>
+
 </body>
 
 </html>

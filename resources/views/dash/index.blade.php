@@ -1763,7 +1763,7 @@
                     <div class="flex justify-between items-start mb-6">
                         <div class="flex items-center gap-4">
                             <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#23366f] flex items-center justify-center text-xl">
-                                <i class="fas fa-qrcode"></i>
+                            <i class="fa-brands fa-pix"></i>
                             </div>
                             <div>
                                 <h3 class="text-xl font-black text-slate-900 tracking-tight">Pagamento PIX</h3>

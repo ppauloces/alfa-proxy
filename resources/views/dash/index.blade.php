@@ -1227,7 +1227,7 @@
                                                                 <i class="fas fa-bolt mr-1.5"></i> Testar proxy
                                                             </button>
                                                             <button class="action-btn px-4 py-2 rounded-xl border border-slate-200 text-[11px] font-bold hover:bg-[#23366f] hover:!text-white hover:border-[#23366f] transition-all"
-                                                                onclick="copyToClipboard('{{ $proxy['ip'] }}:{{ $proxy['port'] }}:{{ $proxy['user'] }}:{{ $proxy['password'] }}')">
+                                                                onclick="copyToClipboard('socks5://{{ $proxy['ip'] }}:{{ $proxy['port'] }}:{{ $proxy['user'] }}:{{ $proxy['password'] }}')">
                                                                 <i class="fas fa-copy mr-1.5"></i> Copiar
                                                             </button>
                                                         </div>

@@ -174,6 +174,15 @@ class LogadoController extends Controller
             $saldoDisponivel = User::sum('saldo');
             $lucroLiquido = $totalEntradas - $totalSaidas;
 
+            // Estatísticas de revendedores
+            $revendedoresIds = User::where('cargo', 'revendedor')->pluck('id');
+            $totalEntradasRevendedores = Transaction::where('status', 1)
+                ->whereIn('user_id', $revendedoresIds)
+                ->sum('valor');
+            $proxiesVendidasRevendedores = Stock::whereIn('user_id', $revendedoresIds)
+                ->where('disponibilidade', false)
+                ->count();
+
             $financeCards = [
                 [
                     'label' => 'Total Entradas',
@@ -192,6 +201,12 @@ class LogadoController extends Controller
                     'value' => 'R$ ' . number_format($lucroLiquido, 2, ',', '.'),
                     'trend' => $lucroLiquido >= 0 ? 'Positivo' : 'Negativo',
                     'bar' => $totalEntradas > 0 ? ($lucroLiquido / $totalEntradas) * 100 : 0,
+                ],
+                [
+                    'label' => 'Vendas Revendedores',
+                    'value' => 'R$ ' . number_format($totalEntradasRevendedores, 2, ',', '.'),
+                    'trend' => $proxiesVendidasRevendedores . ' ' . ($proxiesVendidasRevendedores === 1 ? 'proxy vendida' : 'proxies vendidas'),
+                    'bar' => $totalEntradas > 0 ? ($totalEntradasRevendedores / $totalEntradas) * 100 : 0,
                 ],
             ];
 
@@ -242,13 +257,19 @@ class LogadoController extends Controller
                         default => ucfirst($metodo),
                     };
 
-                    $descricao = $tipoLabel . ' - ' . ($transacao->user->username ?? 'Usuário');
+                    // Identificar se é revendedor
+                    $isRevendedor = $transacao->user && $transacao->user->cargo === 'revendedor';
+                    $username = $transacao->user->username ?? 'Usuário';
+
+                    $descricao = $tipoLabel . ' - ' . $username;
 
                     return [
                         'descricao' => $descricao,
                         'categoria' => $metodoLabel,
                         'data' => $transacao->created_at->format('d/m/Y'),
                         'valor' => '+ R$ ' . number_format((float) $transacao->valor, 2, ',', '.'),
+                        'is_revendedor' => $isRevendedor,
+                        'user_id' => $transacao->user_id,
                     ];
                 });
 
@@ -372,7 +393,7 @@ class LogadoController extends Controller
         }
 
         // Buscar proxies do usuário agrupados por tipo
-        $stocks = Stock::where('user_id', Auth::id())->get();
+        $stocks = Stock::where('user_id', Auth::id())->orderBy('updated_at', 'desc')->get();
 
         $proxyGroups = [
             'SOCKS5' => [],
@@ -394,7 +415,7 @@ class LogadoController extends Controller
                 'password' => $stock->senha,
                 'country' => $stock->pais ?? 'Brasil',
                 'country_code' => $stock->codigo_pais ?? 'BR',
-                'purchased_at' => $stock->created_at,
+                'purchased_at' => $stock->updated_at,
                 'expires_at' => $stock->expiracao,
                 'remaining' => Carbon::parse($stock->expiracao)->diffForHumans(),
                 'auto_renew' => $stock->renovacao_automatica ?? false,

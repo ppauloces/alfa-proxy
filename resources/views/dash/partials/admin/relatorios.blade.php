@@ -6,14 +6,19 @@
 </div>
 
 {{-- Cards Financeiros --}}
-<div class="grid md:grid-cols-4 gap-4 mb-8">
+<div class="grid md:grid-cols-5 gap-4 mb-8">
     @foreach($financeCards as $card)
-        <div class="finance-card admin-card">
-            <p class="text-xs uppercase tracking-[0.3em] text-slate-400">{{ $card['label'] }}</p>
-            <p class="text-2xl font-bold text-slate-900 mt-2">{{ $card['value'] }}</p>
-            <p class="text-sm {{ str_contains($card['trend'], 'Negativo') ? 'text-red-500' : 'text-emerald-500' }} mt-1">{{ $card['trend'] }}</p>
-            <div class="chart-bar mt-3">
-                <span style="width: {{ min(100, max(0, $card['bar'])) }}%"></span>
+        <div class="finance-card admin-card {{ $card['label'] === 'Vendas Revendedores' ? 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200' : '' }}">
+            <p class="text-xs uppercase tracking-[0.3em] {{ $card['label'] === 'Vendas Revendedores' ? 'text-amber-600 font-bold' : 'text-slate-400' }}">{{ $card['label'] }}</p>
+            <p class="text-2xl font-bold {{ $card['label'] === 'Vendas Revendedores' ? 'text-amber-900' : 'text-slate-900' }} mt-2">{{ $card['value'] }}</p>
+            <p class="text-sm {{ $card['label'] === 'Vendas Revendedores' ? 'text-amber-600' : (str_contains($card['trend'], 'Negativo') ? 'text-red-500' : 'text-emerald-500') }} mt-1 {{ $card['label'] === 'Vendas Revendedores' ? 'flex items-center gap-1' : '' }}">
+                @if($card['label'] === 'Vendas Revendedores')
+                    <i class="fas fa-crown"></i>
+                @endif
+                {{ $card['trend'] }}
+            </p>
+            <div class="chart-bar mt-3 {{ $card['label'] === 'Vendas Revendedores' ? 'bg-amber-100' : '' }}">
+                <span class="{{ $card['label'] === 'Vendas Revendedores' ? 'bg-amber-500' : '' }}" style="width: {{ min(100, max(0, $card['bar'])) }}%"></span>
             </div>
         </div>
     @endforeach
@@ -37,7 +42,10 @@
     {{-- Extrato de Saídas --}}
     <div class="admin-card">
         <div class="flex items-center justify-between mb-3">
-            <h2 class="text-xl font-semibold text-slate-900">Extrato de saídas</h2>
+            <div>
+                <h2 class="text-xl font-semibold text-slate-900">Extrato de saídas</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Últimas 25 despesas registradas</p>
+            </div>
             <button type="button" class="btn-secondary text-xs px-3 py-2" onclick="alert('Funcionalidade em desenvolvimento')">
                 <i class="fas fa-plus"></i> Despesa manual
             </button>
@@ -73,7 +81,10 @@
     {{-- Extrato de Entradas --}}
     <div class="admin-card">
         <div class="flex items-center justify-between mb-3">
-            <h2 class="text-xl font-semibold text-slate-900">Extrato de entradas</h2>
+            <div>
+                <h2 class="text-xl font-semibold text-slate-900">Extrato de entradas</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Últimas 25 transações aprovadas</p>
+            </div>
             <button type="button" class="btn-secondary text-xs px-3 py-2" onclick="alert('Funcionalidade em desenvolvimento')">
                 <i class="fas fa-file-invoice-dollar"></i> Gerar recibos
             </button>
@@ -84,7 +95,15 @@
                 @foreach($financeExtract['entrada'] as $entrada)
                     <div class="timeline-item">
                         <div>
-                            <p class="font-semibold text-slate-900">{{ $entrada['descricao'] }}</p>
+                            <div class="flex items-center gap-2">
+                                <p class="font-semibold text-slate-900">{{ $entrada['descricao'] }}</p>
+                                @if($entrada['is_revendedor'] ?? false)
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 rounded-full">
+                                        <i class="fas fa-crown text-[8px] text-amber-600"></i>
+                                        <span class="text-[9px] font-black text-amber-700 uppercase tracking-wider">Revendedor</span>
+                                    </span>
+                                @endif
+                            </div>
                             <p class="text-xs text-slate-500">{{ $entrada['categoria'] }} • {{ $entrada['data'] }}</p>
                         </div>
                         <span class="text-emerald-500 font-semibold">{{ $entrada['valor'] }}</span>

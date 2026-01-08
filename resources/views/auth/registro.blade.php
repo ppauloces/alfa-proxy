@@ -9,6 +9,26 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css'])
+
+    <!-- Meta Pixel Code -->
+    <script>
+        !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return; n = f.fbq = function () {
+                n.callMethod ?
+                n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+            n.queue = []; t = b.createElement(e); t.async = !0;
+            t.src = v; s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '1162827325630978');
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+            src="https://www.facebook.com/tr?id=1162827325630978&ev=PageView&noscript=1" /></noscript>
+    <!-- End Meta Pixel Code -->
     <style>
         :root {
             --sf-blue: #2055dd;
@@ -32,7 +52,7 @@
             position: absolute;
             inset: -60px -40px -60px 40px;
             background: radial-gradient(circle at top, rgba(255, 255, 255, 0.25), transparent 60%),
-                        linear-gradient(120deg, rgba(79, 139, 255, 0.35), rgba(32, 85, 221, 0.15));
+                linear-gradient(120deg, rgba(79, 139, 255, 0.35), rgba(32, 85, 221, 0.15));
             border-radius: 180px;
             opacity: 0.8;
             filter: blur(25px);
@@ -84,6 +104,7 @@
 
         /* Mobile - Até 640px */
         @media (max-width: 640px) {
+
             /* Header mobile */
             header .max-w-7xl {
                 padding: 1rem;
@@ -206,6 +227,7 @@
 
         /* Touch devices - melhorar áreas de toque */
         @media (hover: none) and (pointer: coarse) {
+
             button,
             a {
                 min-height: 44px;
@@ -232,7 +254,8 @@
         <header class="relative z-10">
             <div class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center gap-8">
                 <div class="flex items-center">
-                    <a href="{{ route('inicial') }}" class="hover:opacity-80 transition-opacity">   <img src="{!! asset('images/logoproxy.webp') !!}" alt="Logo AlfaProxy" class="h-12 w-auto"></a>
+                    <a href="{{ route('inicial') }}" class="hover:opacity-80 transition-opacity"> <img
+                            src="{!! asset('images/logoproxy.webp') !!}" alt="Logo AlfaProxy" class="h-12 w-auto"></a>
                 </div>
                 <!-- <nav class="hidden md:flex items-center bg-white/15 backdrop-blur-xl border border-white/20 rounded-full px-6 py-3 shadow-lg shadow-black/5">
                     <a href="{{ route('inicial') }}" class="px-6 py-2 rounded-full text-white hover:text-[#2055dd] transition-all hover:bg-white/15">Início</a>
@@ -241,7 +264,8 @@
                     <a href="{{ route('duvidas.show') }}" class="px-6 py-2 rounded-full text-white hover:text-[#2055dd] transition-all hover:bg-white/15">Suporte</a>
                 </nav> -->
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('login') }}" class="flex items-center gap-2 text-white bg-white/15 border border-white/25 rounded-xl px-4 py-2 backdrop-blur-sm hover:bg-white/25 transition">
+                    <a href="{{ route('login') }}"
+                        class="flex items-center gap-2 text-white bg-white/15 border border-white/25 rounded-xl px-4 py-2 backdrop-blur-sm hover:bg-white/25 transition">
                         <i class="fas fa-arrow-left"></i>
                         <span>Voltar ao login</span>
                     </a>
@@ -261,7 +285,8 @@
                         Bem-vindo à plataforma de proxies premium
                     </h2>
                     <p class="text-lg text-white/80 max-w-xl">
-                        Crie sua conta, configure suas compras em segundos e acompanhe o dashboard completo em um único lugar.
+                        Crie sua conta, configure suas compras em segundos e acompanhe o dashboard completo em um único
+                        lugar.
                     </p>
                     <div class="grid grid-cols-2 gap-3 text-white text-sm">
                         <div class="stats-pill px-3 py-2">
@@ -284,21 +309,24 @@
                         </div>
 
                         @if (session('success'))
-                            <div class="border border-emerald-400/40 bg-emerald-500/10 text-emerald-200 rounded-2xl px-4 py-3 text-sm flex items-start gap-3">
+                            <div
+                                class="border border-emerald-400/40 bg-emerald-500/10 text-emerald-200 rounded-2xl px-4 py-3 text-sm flex items-start gap-3">
                                 <i class="fas fa-check-circle text-emerald-400 mt-0.5"></i>
                                 <span>{{ session('success') }}</span>
                             </div>
                         @endif
 
                         @if (session('error'))
-                            <div class="border border-rose-400/40 bg-rose-500/10 text-rose-200 rounded-2xl px-4 py-3 text-sm flex items-start gap-3">
+                            <div
+                                class="border border-rose-400/40 bg-rose-500/10 text-rose-200 rounded-2xl px-4 py-3 text-sm flex items-start gap-3">
                                 <i class="fas fa-exclamation-circle text-rose-400 mt-0.5"></i>
                                 <span>{{ session('error') }}</span>
                             </div>
                         @endif
 
                         @if ($errors->any())
-                            <div class="border border-rose-400/40 bg-rose-500/10 text-rose-200 rounded-2xl px-4 py-3 text-sm">
+                            <div
+                                class="border border-rose-400/40 bg-rose-500/10 text-rose-200 rounded-2xl px-4 py-3 text-sm">
                                 <div class="flex items-start gap-3">
                                     <i class="fas fa-exclamation-circle text-rose-400 mt-0.5"></i>
                                     <div class="flex-1">
@@ -317,14 +345,14 @@
                             @csrf
                             <div class="relative">
                                 <i class="fas fa-user form-icon"></i>
-                                <input name="name" type="text" required value="{{ old('name') }}"
-                                    class="input-field" placeholder="Nome completo">
+                                <input name="name" type="text" required value="{{ old('name') }}" class="input-field"
+                                    placeholder="Nome completo">
                             </div>
 
                             <div class="relative">
                                 <i class="fas fa-envelope form-icon"></i>
-                                <input name="email" type="email" required value="{{ old('email') }}"
-                                    class="input-field" placeholder="Seu e-mail">
+                                <input name="email" type="email" required value="{{ old('email') }}" class="input-field"
+                                    placeholder="Seu e-mail">
                             </div>
 
                             <div class="relative">
@@ -335,8 +363,8 @@
 
                             <div class="relative">
                                 <i class="fas fa-lock form-icon"></i>
-                                <input id="password" name="password" type="password" required
-                                    class="input-field pr-12" placeholder="Senha (mínimo 8 caracteres)">
+                                <input id="password" name="password" type="password" required class="input-field pr-12"
+                                    placeholder="Senha (mínimo 8 caracteres)">
                                 <button type="button" onclick="togglePassword('password', this)"
                                     class="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors">
                                     <i class="fas fa-eye"></i>
@@ -353,14 +381,16 @@
                                 </button>
                             </div>
 
-                            <button type="submit" class="w-full py-3 rounded-2xl font-semibold bg-gradient-to-r from-[#4F8BFF] to-[#2055dd] shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 transition">
+                            <button type="submit"
+                                class="w-full py-3 rounded-2xl font-semibold bg-gradient-to-r from-[#4F8BFF] to-[#2055dd] shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 transition">
                                 <i class="fas fa-user-plus mr-2"></i>
                                 Criar conta
                             </button>
                         </form>
 
                         <div class="text-center text-white/60 text-sm">
-                            Já tem conta? <a href="{{ route('login') }}" class="text-[#60a5fa] hover:text-white font-medium">Faça login</a>
+                            Já tem conta? <a href="{{ route('login') }}"
+                                class="text-[#60a5fa] hover:text-white font-medium">Faça login</a>
                         </div>
                     </div>
                 </div>

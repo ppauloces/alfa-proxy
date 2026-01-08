@@ -11,6 +11,26 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/card/2.5.4/card.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Meta Pixel Code -->
+    <script>
+        !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return; n = f.fbq = function () {
+                n.callMethod ?
+                n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+            n.queue = []; t = b.createElement(e); t.async = !0;
+            t.src = v; s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '1162827325630978');
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+            src="https://www.facebook.com/tr?id=1162827325630978&ev=PageView&noscript=1" /></noscript>
+    <!-- End Meta Pixel Code -->
     @vite(['resources/css/app.css'])
     <style>
         :root {
@@ -326,6 +346,7 @@
 
         /* Ajustes gerais para telas pequenas */
         @media (max-width: 768px) {
+
             .grid.md\:grid-cols-2,
             .grid.md\:grid-cols-3 {
                 grid-template-columns: 1fr !important;
@@ -415,19 +436,19 @@
             <div class="flex items-center gap-4">
                 @auth
                     <!-- <div class="flex items-center gap-3 bg-[#23366f]/5 px-4 py-2 rounded-2xl border border-[#23366f]/10">
-                                <div class="w-8 h-8 rounded-lg bg-[#23366f] flex items-center justify-center text-white text-xs">
-                                    <i class="fas fa-wallet"></i>
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="text-[9px] uppercase tracking-widest text-slate-400 font-bold leading-none mb-1">Saldo Disponível</span>
-                                    <span class="text-sm font-extrabold text-[#23366f] leading-none">
-                                        R$ {{ number_format(Auth::user()->saldo ?? 0, 2, ',', '.') }}
-                                    </span>
-                                </div>
-                                <button type="button" data-section-link="saldo" class="ml-2 w-6 h-6 rounded-md bg-white flex items-center justify-center text-[#23366f] hover:bg-[#23366f] hover:text-white transition-all shadow-sm">
-                                    <i class="fas fa-plus text-[10px]"></i>
-                                </button>
-                            </div> -->
+                                    <div class="w-8 h-8 rounded-lg bg-[#23366f] flex items-center justify-center text-white text-xs">
+                                        <i class="fas fa-wallet"></i>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-[9px] uppercase tracking-widest text-slate-400 font-bold leading-none mb-1">Saldo Disponível</span>
+                                        <span class="text-sm font-extrabold text-[#23366f] leading-none">
+                                            R$ {{ number_format(Auth::user()->saldo ?? 0, 2, ',', '.') }}
+                                        </span>
+                                    </div>
+                                    <button type="button" data-section-link="saldo" class="ml-2 w-6 h-6 rounded-md bg-white flex items-center justify-center text-[#23366f] hover:bg-[#23366f] hover:text-white transition-all shadow-sm">
+                                        <i class="fas fa-plus text-[10px]"></i>
+                                    </button>
+                                </div> -->
 
                     <div class="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
 
@@ -466,9 +487,11 @@
                             {{ Auth::user()->name ?? 'Usuario' }}
                         </p>
                         @if(Auth::user()->isRevendedor())
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 rounded-full mt-1">
+                            <span
+                                class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 rounded-full mt-1">
                                 <i class="fas fa-crown text-[8px] text-amber-600"></i>
-                                <span class="text-[8px] font-black text-amber-700 uppercase tracking-wider">Revendedor</span>
+                                <span
+                                    class="text-[8px] font-black text-amber-700 uppercase tracking-wider">Revendedor</span>
                             </span>
                         @endif
                     </div>

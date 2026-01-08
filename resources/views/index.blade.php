@@ -11,6 +11,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrambleTextPlugin.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Meta Pixel Code -->
+    <script>
+        !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return; n = f.fbq = function () {
+                n.callMethod ?
+                n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+            n.queue = []; t = b.createElement(e); t.async = !0;
+            t.src = v; s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '1162827325630978');
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+            src="https://www.facebook.com/tr?id=1162827325630978&ev=PageView&noscript=1" /></noscript>
+    <!-- End Meta Pixel Code -->
     <style>
         .dropdown {
             position: relative;
@@ -298,6 +318,7 @@
 
         /* Mobile - Até 640px */
         @media (max-width: 640px) {
+
             /* Header mobile */
             header .container {
                 padding: 1rem;
@@ -386,6 +407,7 @@
 
         /* Tablet - 641px até 1024px */
         @media (min-width: 641px) and (max-width: 1024px) {
+
             /* Header tablet */
             header img {
                 width: 180px !important;
@@ -435,7 +457,9 @@
                 padding-right: 1rem !important;
             }
 
-            h1, h2, h3 {
+            h1,
+            h2,
+            h3 {
                 text-align: center;
             }
 
@@ -490,6 +514,7 @@
 
         /* Touch devices - melhorar áreas de toque */
         @media (hover: none) and (pointer: coarse) {
+
             button,
             .cursor-pointer,
             a {
@@ -500,7 +525,7 @@
                 justify-content: center;
             }
 
-            .faq-item > div {
+            .faq-item>div {
                 padding: 1rem !important;
             }
         }
@@ -512,7 +537,8 @@
     <header class="absolute top-0 left-0 right-0 z-50 bg-transparent">
         <div class="container mx-auto px-4 py-4 md:py-6 flex justify-between items-center gap-4 md:gap-8">
             <div class="flex items-center">
-                <img src="{!! asset('images/logoproxy.webp') !!}" alt="Logo" height="200" width="250" class="h-auto max-w-[120px] sm:max-w-[180px] md:max-w-[250px]">
+                <img src="{!! asset('images/logoproxy.webp') !!}" alt="Logo" height="200" width="250"
+                    class="h-auto max-w-[120px] sm:max-w-[180px] md:max-w-[250px]">
             </div>
             <!-- Glass Pill Menu -->
             <!-- <nav
@@ -539,7 +565,8 @@
                     <a href="{{ route('dash.show') }}" data-ripple-light="true"
                         class="flex items-center text-sm md:text-base gap-1 md:gap-2 select-none text-center text-white hover:text-white transition-all py-2 px-3 md:px-5 rounded-xl no-underline bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/30"
                         style="transition: all 0.3s; font-weight: 500;">
-                        <i class="fa-solid fa-door-open text-sm md:text-base"></i> <span class="hidden sm:inline">Acessar conta</span><span class="sm:hidden">Entrar</span>
+                        <i class="fa-solid fa-door-open text-sm md:text-base"></i> <span class="hidden sm:inline">Acessar
+                            conta</span><span class="sm:hidden">Entrar</span>
                     </a>
                 @else
                     <a href="{{ route('login') }}" data-ripple-light="true"
@@ -721,52 +748,62 @@
     @php
         $dataLimitePromocao = \Carbon\Carbon::create(2026, 2, 2, 23, 59, 59);
         $emPromocao = now()->lte($dataLimitePromocao);
-      
+
     @endphp
 
     <!-- Banner de Promoção -->
     @if($emPromocao)
-    <section class="relative -mt-12 md:-mt-24 pb-8 md:pb-12 bg-gradient-to-b from-transparent via-gray-50/70 to-gray-50">
-        <div class="container mx-auto px-4 md:px-6">
-            <div class="relative rounded-[1.25rem] md:rounded-[2rem] overflow-hidden bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 shadow-2xl shadow-orange-500/30 border-2 border-white/30">
-                <div class="px-6 md:px-10 py-6 md:py-8 relative">
-                    <!-- Efeito de brilho animado -->
-                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-
-                    <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div class="text-center md:text-left">
-                            <div class="flex items-center justify-center md:justify-start gap-2 mb-2">
-                                <i class="fas fa-fire text-white text-xl md:text-2xl animate-pulse"></i>
-                                <span class="inline-flex items-center px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full">
-                                    <span class="text-xs md:text-sm font-black text-red-600 uppercase tracking-wider">Promoção Limitada</span>
-                                </span>
-                                <i class="fas fa-fire text-white text-xl md:text-2xl animate-pulse"></i>
-                            </div>
-                            <h3 class="text-2xl md:text-4xl font-black text-white mb-1 drop-shadow-lg">
-                                Proxies por apenas R$ 15,00
-                            </h3>
-                            <p class="text-white/95 font-medium text-sm md:text-base">
-                                Válido até <strong class="font-black">02 de Fevereiro de 2025</strong> para novos clientes
-                            </p>
+        <section
+            class="relative -mt-12 md:-mt-24 pb-8 md:pb-12 bg-gradient-to-b from-transparent via-gray-50/70 to-gray-50">
+            <div class="container mx-auto px-4 md:px-6">
+                <div
+                    class="relative rounded-[1.25rem] md:rounded-[2rem] overflow-hidden bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 shadow-2xl shadow-orange-500/30 border-2 border-white/30">
+                    <div class="px-6 md:px-10 py-6 md:py-8 relative">
+                        <!-- Efeito de brilho animado -->
+                        <div
+                            class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer">
                         </div>
-                        <div class="flex flex-col items-center gap-3">
-                            <div class="bg-white/90 backdrop-blur-sm px-6 py-3 rounded-xl shadow-lg">
-                                <div class="text-center">
-                                    <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">De R$ 20,00 por</div>
-                                    <div class="text-3xl md:text-4xl font-black text-red-600">R$ 15,00</div>
-                                    <div class="text-xs font-bold text-green-600 uppercase tracking-wider">25% OFF</div>
+
+                        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div class="text-center md:text-left">
+                                <div class="flex items-center justify-center md:justify-start gap-2 mb-2">
+                                    <i class="fas fa-fire text-white text-xl md:text-2xl animate-pulse"></i>
+                                    <span
+                                        class="inline-flex items-center px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full">
+                                        <span
+                                            class="text-xs md:text-sm font-black text-red-600 uppercase tracking-wider">Promoção
+                                            Limitada</span>
+                                    </span>
+                                    <i class="fas fa-fire text-white text-xl md:text-2xl animate-pulse"></i>
+                                </div>
+                                <h3 class="text-2xl md:text-4xl font-black text-white mb-1 drop-shadow-lg">
+                                    Proxies por apenas R$ 15,00
+                                </h3>
+                                <p class="text-white/95 font-medium text-sm md:text-base">
+                                    Válido até <strong class="font-black">02 de Fevereiro de 2025</strong> para novos
+                                    clientes
+                                </p>
+                            </div>
+                            <div class="flex flex-col items-center gap-3">
+                                <div class="bg-white/90 backdrop-blur-sm px-6 py-3 rounded-xl shadow-lg">
+                                    <div class="text-center">
+                                        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">De R$ 20,00
+                                            por</div>
+                                        <div class="text-3xl md:text-4xl font-black text-red-600">R$ 15,00</div>
+                                        <div class="text-xs font-bold text-green-600 uppercase tracking-wider">25% OFF</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
     @endif
 
     <!-- Multilogins (overlap + continuidade visual) -->
-    <section class="relative {{ $emPromocao ? 'pt-8 md:pt-12' : '-mt-12 md:-mt-24' }} pb-12 md:pb-20 overflow-hidden bg-gradient-to-b from-transparent via-gray-50/70 to-gray-50">
+    <section
+        class="relative {{ $emPromocao ? 'pt-8 md:pt-12' : '-mt-12 md:-mt-24' }} pb-12 md:pb-20 overflow-hidden bg-gradient-to-b from-transparent via-gray-50/70 to-gray-50">
         <div class="container mx-auto px-4 md:px-6">
             <div
                 class="relative rounded-[1.25rem] md:rounded-[2.25rem] border border-white/30 bg-white/35 backdrop-blur-2xl shadow-[0_28px_70px_rgba(15,23,42,0.18)] overflow-hidden">
@@ -776,9 +813,11 @@
                             <p class="text-[10px] font-black uppercase tracking-[0.35em] text-slate-500">Integrações</p>
                             <h2 class="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                                 Compatível com <span class="relative inline-block group">
-    <span class="relative z-10 font-black text-[#23366f] transition-colors group-hover:text-[#4F8BFF]">todos</span>
-    <span class="absolute bottom-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#4F8BFF] to-[#2055dd] rounded-full transform transition-transform group-hover:scale-105"></span>
-</span> os multilogins do mercado.
+                                    <span
+                                        class="relative z-10 font-black text-[#23366f] transition-colors group-hover:text-[#4F8BFF]">todos</span>
+                                    <span
+                                        class="absolute bottom-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#4F8BFF] to-[#2055dd] rounded-full transform transition-transform group-hover:scale-105"></span>
+                                </span> os multilogins do mercado.
                             </h2>
                             <p class="mt-2 text-slate-500 font-medium">
                                 Você compra aqui e usa nos seus perfis imediatamente.
@@ -912,72 +951,97 @@
                 <div class="bg-white rounded-xl md:rounded-[2rem] border border-slate-200 p-4 md:p-8 shadow-sm">
                     <div class="space-y-2 md:space-y-3">
                         <div class="faq-item">
-                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all" onclick="toggleFaq(this)">
-                                <p class="font-semibold text-sm md:text-base text-slate-900">Como funciona o proxy SOCKS5?</p>
+                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all"
+                                onclick="toggleFaq(this)">
+                                <p class="font-semibold text-sm md:text-base text-slate-900">Como funciona o proxy
+                                    SOCKS5?</p>
                                 <i class="fas fa-chevron-down faq-icon text-slate-400 transition-transform"></i>
                             </div>
                             <div class="faq-answer hidden px-2 pb-3 md:pb-4">
-                                <p class="text-sm md:text-base text-slate-600">O SOCKS5 é um protocolo de proxy que permite rotear qualquer tipo de tráfego através de um servidor intermediário, oferecendo maior privacidade e segurança. Ele suporta autenticação e pode lidar com diversos protocolos, incluindo HTTP, HTTPS e FTP.</p>
+                                <p class="text-sm md:text-base text-slate-600">O SOCKS5 é um protocolo de proxy que
+                                    permite rotear qualquer tipo de tráfego através de um servidor intermediário,
+                                    oferecendo maior privacidade e segurança. Ele suporta autenticação e pode lidar com
+                                    diversos protocolos, incluindo HTTP, HTTPS e FTP.</p>
                             </div>
                         </div>
 
                         <div class="border-t border-slate-100"></div>
 
                         <div class="faq-item">
-                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all" onclick="toggleFaq(this)">
-                                <p class="font-semibold text-sm md:text-base text-slate-900">Quanto tempo leva para ativar meu proxy?</p>
+                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all"
+                                onclick="toggleFaq(this)">
+                                <p class="font-semibold text-sm md:text-base text-slate-900">Quanto tempo leva para
+                                    ativar meu proxy?</p>
                                 <i class="fas fa-chevron-down faq-icon text-slate-400 transition-transform"></i>
                             </div>
                             <div class="faq-answer hidden px-2 pb-3 md:pb-4">
-                                <p class="text-sm md:text-base text-slate-600">Após a confirmação do pagamento, seus proxies são ativados automaticamente em até 5 minutos. Você receberá um e-mail com as credenciais de acesso.</p>
+                                <p class="text-sm md:text-base text-slate-600">Após a confirmação do pagamento, seus
+                                    proxies são ativados automaticamente em até 5 minutos. Você receberá um e-mail com
+                                    as credenciais de acesso.</p>
                             </div>
                         </div>
 
                         <div class="border-t border-slate-100"></div>
 
                         <div class="faq-item">
-                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all" onclick="toggleFaq(this)">
-                                <p class="font-semibold text-sm md:text-base text-slate-900">Posso trocar o país do meu proxy?</p>
+                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all"
+                                onclick="toggleFaq(this)">
+                                <p class="font-semibold text-sm md:text-base text-slate-900">Posso trocar o país do meu
+                                    proxy?</p>
                                 <i class="fas fa-chevron-down faq-icon text-slate-400 transition-transform"></i>
                             </div>
                             <div class="faq-answer hidden px-2 pb-3 md:pb-4">
-                                <p class="text-sm md:text-base text-slate-600">Sim! Entre em contato com nosso suporte e faremos a troca sem custo adicional, sujeito à disponibilidade de IPs no país desejado.</p>
+                                <p class="text-sm md:text-base text-slate-600">Sim! Entre em contato com nosso suporte e
+                                    faremos a troca sem custo adicional, sujeito à disponibilidade de IPs no país
+                                    desejado.</p>
                             </div>
                         </div>
 
                         <div class="border-t border-slate-100"></div>
 
                         <div class="faq-item">
-                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all" onclick="toggleFaq(this)">
-                                <p class="font-semibold text-sm md:text-base text-slate-900">O que é renovação automática?</p>
+                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all"
+                                onclick="toggleFaq(this)">
+                                <p class="font-semibold text-sm md:text-base text-slate-900">O que é renovação
+                                    automática?</p>
                                 <i class="fas fa-chevron-down faq-icon text-slate-400 transition-transform"></i>
                             </div>
                             <div class="faq-answer hidden px-2 pb-3 md:pb-4">
-                                <p class="text-sm md:text-base text-slate-600">A renovação automática garante que seu proxy seja renovado automaticamente antes do vencimento, evitando interrupções no serviço. Você pode ativar/desativar essa opção a qualquer momento.</p>
+                                <p class="text-sm md:text-base text-slate-600">A renovação automática garante que seu
+                                    proxy seja renovado automaticamente antes do vencimento, evitando interrupções no
+                                    serviço. Você pode ativar/desativar essa opção a qualquer momento.</p>
                             </div>
                         </div>
 
                         <div class="border-t border-slate-100"></div>
 
                         <div class="faq-item">
-                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all" onclick="toggleFaq(this)">
-                                <p class="font-semibold text-sm md:text-base text-slate-900">Quais formas de pagamento são aceitas?</p>
+                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all"
+                                onclick="toggleFaq(this)">
+                                <p class="font-semibold text-sm md:text-base text-slate-900">Quais formas de pagamento
+                                    são aceitas?</p>
                                 <i class="fas fa-chevron-down faq-icon text-slate-400 transition-transform"></i>
                             </div>
                             <div class="faq-answer hidden px-2 pb-3 md:pb-4">
-                                <p class="text-sm md:text-base text-slate-600">Aceitamos PIX, cartão de crédito/débito e criptomoedas (Bitcoin, USDT, Litecoin e BNB). Todas as transações são processadas de forma segura.</p>
+                                <p class="text-sm md:text-base text-slate-600">Aceitamos PIX, cartão de crédito/débito e
+                                    criptomoedas (Bitcoin, USDT, Litecoin e BNB). Todas as transações são processadas de
+                                    forma segura.</p>
                             </div>
                         </div>
 
                         <div class="border-t border-slate-100"></div>
 
                         <div class="faq-item">
-                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all" onclick="toggleFaq(this)">
-                                <p class="font-semibold text-sm md:text-base text-slate-900">Posso solicitar reembolso?</p>
+                            <div class="flex items-center justify-between cursor-pointer py-3 md:py-4 px-2 hover:bg-slate-50 rounded-lg transition-all"
+                                onclick="toggleFaq(this)">
+                                <p class="font-semibold text-sm md:text-base text-slate-900">Posso solicitar reembolso?
+                                </p>
                                 <i class="fas fa-chevron-down faq-icon text-slate-400 transition-transform"></i>
                             </div>
                             <div class="faq-answer hidden px-2 pb-3 md:pb-4">
-                                <p class="text-sm md:text-base text-slate-600">Sim, oferecemos garantia de reembolso de 7 dias para novos clientes. Se não estiver satisfeito com nosso serviço, entre em contato e processaremos o reembolso.</p>
+                                <p class="text-sm md:text-base text-slate-600">Sim, oferecemos garantia de reembolso de
+                                    7 dias para novos clientes. Se não estiver satisfeito com nosso serviço, entre em
+                                    contato e processaremos o reembolso.</p>
                             </div>
                         </div>
                     </div>
@@ -986,8 +1050,9 @@
         </div>
     </section>
 
-        <!-- Footer -->
-        <footer class="text-white py-8 md:py-12" style="background: linear-gradient(to right, #438ccb, #316fab, #306da8, #3066a0, #2a508a, #233a72);">
+    <!-- Footer -->
+    <footer class="text-white py-8 md:py-12"
+        style="background: linear-gradient(to right, #438ccb, #316fab, #306da8, #3066a0, #2a508a, #233a72);">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
                 <div>

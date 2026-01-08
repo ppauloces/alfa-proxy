@@ -27,11 +27,11 @@ class MetaConversionService
         ];
 
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . env('META_ACCESS_TOKEN'),
+            'Authorization' => 'Bearer ' . "EAADECCGDUOoBQdJE3ZAfWxBBiZBiupPcIMwZBqI3vIosHxEQqX45jd5GRk5I24FHR37h7V2fxNObhSyYpQKXiNS8mqwGVe5CCfFRJMnHUXIxMH7v4rYzp5Q794WBAz0MtvweW8WyrDLs30RhgfpyWVu1Lowmb5JpjQI0ZBBiISIXJOZAyFtSEdnApzBEe5BaKxQZDZD",
             'Content-Type' => 'application/json',
         ])
             ->post(
-                'https://graph.facebook.com/v24.0/' . env('META_PIXEL_ID') . '/events',
+                'https://graph.facebook.com/v24.0/' . '1162827325630978' . '/events',
                 $payload
             );
 

@@ -29,10 +29,10 @@
                 <p class="text-xs text-slate-500">Atendimento rápido</p>
             </div>
         </div>
-        <a href="https://wa.me/557398356817" target="_blank" class="text-[#25D366] font-semibold text-sm">+55 73 9835-6817</a>
+        <a href="https://wa.me/5511921655260" target="_blank" class="text-[#25D366] font-semibold text-sm">+55 11 92165-5260</a>
     </div>
 
-    <div class="contact-method">
+    <!-- <div class="contact-method">
         <div class="flex items-center gap-3 mb-3">
             <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7289DA] to-[#5865F2] flex items-center justify-center">
                 <i class="fab fa-discord text-white text-xl"></i>
@@ -43,7 +43,7 @@
             </div>
         </div>
         <a href="https://discord.gg/alfaproxy" target="_blank" class="text-[#7289DA] font-semibold text-sm">discord.gg/alfaproxy</a>
-    </div>
+    </div> -->
 </div>
 
 <div class="grid lg:grid-cols-2 gap-8">

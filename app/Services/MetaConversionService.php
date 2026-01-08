@@ -35,10 +35,6 @@ class MetaConversionService
                 $payload
             );
 
-        logger()->info('META RESPONSE', [
-            'status' => $response->status(),
-            'body' => $response->json(),
-        ]);
 
         return $response->successful();
     }

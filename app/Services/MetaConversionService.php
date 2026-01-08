@@ -21,12 +21,17 @@ class MetaConversionService
                     ],
                 ]
             ],
+            // usar apenas em teste
             'test_event_code' => 'TEST18042',
         ];
 
-        $url = 'https://graph.facebook.com/v24.0/' . env('META_PIXEL_ID') . '/events?access_token=' . env('META_ACCESS_TOKEN');
-
-        $response = Http::post($url, $payload);
+        $response = Http::withQueryParameters([
+            'access_token' => env('META_ACCESS_TOKEN'),
+        ])
+            ->post(
+                'https://graph.facebook.com/v24.0/' . env('META_PIXEL_ID') . '/events',
+                $payload
+            );
 
         logger()->info('META RESPONSE', [
             'status' => $response->status(),
@@ -34,6 +39,6 @@ class MetaConversionService
         ]);
 
         return $response->successful();
-
     }
+
 }

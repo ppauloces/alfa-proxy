@@ -23,7 +23,7 @@ class MetaConversionService
                 ]
             ],
             // usar apenas em teste
-            'test_event_code' => 'TEST18042',
+           //'test_event_code' => 'TEST18042',
         ];
 
         $response = Http::withHeaders([
@@ -35,10 +35,6 @@ class MetaConversionService
                 $payload
             );
 
-        logger()->info('META RESPONSE', [
-            'status' => $response->status(),
-            'body' => $response->json(),
-        ]);
 
         return $response->successful();
     }

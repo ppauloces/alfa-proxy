@@ -780,7 +780,7 @@
                                     Proxies por apenas R$ 15,00
                                 </h3>
                                 <p class="text-white/95 font-medium text-sm md:text-base">
-                                    Válido até <strong class="font-black">02 de Fevereiro de 2025</strong> para novos
+                                    Válido até <strong class="font-black">02 de Fevereiro de 2026</strong> para novos
                                     clientes
                                 </p>
                             </div>

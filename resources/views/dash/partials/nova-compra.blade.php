@@ -161,7 +161,7 @@
                             Proxies de 30 dias por R$ 15,00
                         </h3>
                         <p class="text-white/90 text-sm font-medium">
-                            Válido até <strong>02 de Fevereiro de 2025</strong>
+                            Válido até <strong>02 de Fevereiro de 2026</strong>
                         </p>
                     </div>
                 </div>

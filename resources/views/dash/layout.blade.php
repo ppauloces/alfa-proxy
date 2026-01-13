@@ -17,7 +17,7 @@
         !function (f, b, e, v, n, t, s) {
             if (f.fbq) return; n = f.fbq = function () {
                 n.callMethod ?
-                n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+                    n.callMethod.apply(n, arguments) : n.queue.push(arguments)
             };
             if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
             n.queue = []; t = b.createElement(e); t.async = !0;
@@ -436,19 +436,19 @@
             <div class="flex items-center gap-4">
                 @auth
                     <!-- <div class="flex items-center gap-3 bg-[#23366f]/5 px-4 py-2 rounded-2xl border border-[#23366f]/10">
-                                    <div class="w-8 h-8 rounded-lg bg-[#23366f] flex items-center justify-center text-white text-xs">
-                                        <i class="fas fa-wallet"></i>
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <span class="text-[9px] uppercase tracking-widest text-slate-400 font-bold leading-none mb-1">Saldo Disponível</span>
-                                        <span class="text-sm font-extrabold text-[#23366f] leading-none">
-                                            R$ {{ number_format(Auth::user()->saldo ?? 0, 2, ',', '.') }}
-                                        </span>
-                                    </div>
-                                    <button type="button" data-section-link="saldo" class="ml-2 w-6 h-6 rounded-md bg-white flex items-center justify-center text-[#23366f] hover:bg-[#23366f] hover:text-white transition-all shadow-sm">
-                                        <i class="fas fa-plus text-[10px]"></i>
-                                    </button>
-                                </div> -->
+                                        <div class="w-8 h-8 rounded-lg bg-[#23366f] flex items-center justify-center text-white text-xs">
+                                            <i class="fas fa-wallet"></i>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="text-[9px] uppercase tracking-widest text-slate-400 font-bold leading-none mb-1">Saldo Disponível</span>
+                                            <span class="text-sm font-extrabold text-[#23366f] leading-none">
+                                                R$ {{ number_format(Auth::user()->saldo ?? 0, 2, ',', '.') }}
+                                            </span>
+                                        </div>
+                                        <button type="button" data-section-link="saldo" class="ml-2 w-6 h-6 rounded-md bg-white flex items-center justify-center text-[#23366f] hover:bg-[#23366f] hover:text-white transition-all shadow-sm">
+                                            <i class="fas fa-plus text-[10px]"></i>
+                                        </button>
+                                    </div> -->
 
                     <div class="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
 
@@ -540,10 +540,13 @@
                                     <span class="nav-text">Extrato</span>
                                 </span>
                             </button>
-                            <button type="button" class="nav-pill" data-section-link="cartoes">
+                            <button type="button" class="nav-pill opacity-60 cursor-not-allowed">
                                 <span class="flex items-center gap-3">
                                     <i class="fas fa-credit-card w-5 text-center"></i>
                                     <span class="nav-text">Meus Cartões</span>
+                                    <span
+                                        class="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">Em
+                                        breve</span>
                                 </span>
                             </button>
                         </div>

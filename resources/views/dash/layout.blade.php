@@ -542,8 +542,8 @@
                             </button>
                             <button type="button" class="nav-pill opacity-60 cursor-not-allowed">
                                 <span class="flex items-center gap-3">
-                                    <i class="fas fa-credit-card w-5 text-center"></i>
-                                    <span class="nav-text">Meus Cartões</span>
+                                    <i class="fas fa-credit-card w-5 text-center text-slate-400"></i>
+                                    <span class="nav-text text-slate-400">Meus Cartões</span>
                                     <span
                                         class="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">Em
                                         breve</span>

@@ -35,9 +35,14 @@ return [
         ],
     ],
 
-    'aprovei' => [
-        'public_key' => env('APROVEI_PUBLIC_KEY'),
-        'secret_key' => env('APROVEI_SECRET_KEY'),
+    'stripe' => [
+        'public_key' => env('STRIPE_PUBLIC_KEY'),
+        'secret_key' => env('STRIPE_SECRET_KEY'),
+    ],
+
+    'asaas' => [
+        'api_key' => env('ASAAS_API_KEY'),
+        'sandbox' => env('ASAAS_SANDBOX', true),
     ],
 
     'python_api' => [

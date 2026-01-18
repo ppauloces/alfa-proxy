@@ -1297,13 +1297,33 @@
                                                     </span>
                                                 </td>
                                                 <td class="px-8 py-6">
-                                                    <div class="flex justify-center">
-                                                        <label class="switch scale-90">
-                                                            <input type="checkbox" {{ $proxy['auto_renew'] ? 'checked' : '' }}>
-                                                            <span class="slider"></span>
-                                                        </label>
-                                                    </div>
-                                                </td>
+                                                    <div class="flex flex-col items-center gap-3">
+                                                        {{-- Botão Renovar --}}
+                                                        <button
+                                                            type="button"
+                                                            onclick="abrirModalRenovacao({{ json_encode([
+                                                                'id' => $proxy['id'],
+                                                                'endereco' => $proxy['ip'] . ':' . $proxy['port'],
+                                                                'pais' => $proxy['country'] ?? 'BR',
+                                                                'expiracao' => $proxy['expires_at'],
+                                                                'bloqueado' => $proxy['blocked'] ?? false,
+                                                                'expirado' => \Carbon\Carbon::parse($proxy['expires_at'])->isPast(),
+                                                            ]) }})"
+                                                            class="action-btn px-4 py-2 rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-500 hover:!text-white hover:border-amber-500 font-bold text-[11px] transition-all shadow-sm hover:shadow-amber-500/30"
+                                                        >
+                                                            <i class="fas fa-sync-alt mr-1.5"></i> Renovar
+                                                        </button>
+
+                                                        {{-- Toggle Renovação Automática (Desabilitado por enquanto) --}}
+                                                        <div class="flex flex-col items-center gap-1">
+    <label class="switch scale-75">
+        <input type="checkbox" class="auto-renew-toggle" data-proxy-id="{{ $proxy['id'] }}" {{ $proxy['auto_renew'] ? 'checked' : '' }}>
+        <span class="slider"></span>
+    </label>
+    <p class="text-[8px] text-slate-400 mt-1 text-center">Cobrança automatica automática via cartão</p>
+</div>
+</div>
+</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -1326,6 +1346,9 @@
                     </div>
                 @endforeach
             </div>
+
+            {{-- Modal de Renovação --}}
+            @include('dash.partials.modal-renovacao')
         </section>
 
         <section class="dash-section {{ $currentSection === 'perfil' ? 'active' : 'hidden' }}" data-section="perfil">
@@ -1400,9 +1423,12 @@
                 @include('dash.partials.admin.cupons')
             </section>
 
-          
+
         @endif
     </div>
+
+    {{-- Modal de Boas-vindas (coleta CPF e telefone) --}}
+    @include('dash.partials.modal-welcome')
 @endsection
 
 @section('scripts')
@@ -1751,150 +1777,162 @@
         });
         })();
 
-        // Modal PIX
-        @if(session('pix_modal'))
-            (() => {
-            const pixData = @json(session('pix_modal'));
+        
+            const renderPixModal = (pixData) => {
+                if (!pixData) {
+                    return;
+                }
 
-            // Criar modal PIX
-            const modalHTML = `
-            <div id="pixModal" class="admin-modal-overlay active">
-                <div class="admin-modal" style="max-width: 500px;">
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#23366f] flex items-center justify-center text-xl">
-                            <i class="fa-brands fa-pix"></i>
+                const existing = document.getElementById('pixModal');
+                if (existing) {
+                    existing.remove();
+                }
+
+                const modalHTML = `
+                <div id="pixModal" class="admin-modal-overlay active">
+                    <div class="admin-modal" style="max-width: 500px;">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#23366f] flex items-center justify-center text-xl">
+                                <i class="fa-brands fa-pix"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-black text-slate-900 tracking-tight">Pagamento PIX</h3>
+                                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Aguardando confirmacao</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="text-xl font-black text-slate-900 tracking-tight">Pagamento PIX</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Aguardando confirmação</p>
+                            <button onclick="fecharModalPix()" class="text-slate-400 hover:text-slate-900 transition-all">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-6 mb-6">
+                            <div class="text-center mb-4">
+                                <p class="text-sm text-slate-600 mb-2">Valor a pagar</p>
+                                <p class="text-3xl font-bold text-slate-900">R$ ${pixData.valor.toFixed(2).replace('.', ',')}</p>
                             </div>
-                        </div>
-                        <button onclick="fecharModalPix()" class="text-slate-400 hover:text-slate-900 transition-all">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
 
-                    <div class="bg-slate-50 rounded-2xl p-6 mb-6">
-                        <div class="text-center mb-4">
-                            <p class="text-sm text-slate-600 mb-2">Valor a pagar</p>
-                            <p class="text-3xl font-bold text-slate-900">R$ ${pixData.valor.toFixed(2).replace('.', ',')}</p>
-                        </div>
-
-                        <!-- QR Code -->
-                        <div class="bg-white p-4 rounded-xl mb-4 flex items-center justify-center" style="min-height: 200px;">
-                            ${pixData.qr_code_base64
-                            ? `<img src="${pixData.qr_code_base64}" alt="QR Code PIX" class="max-w-full h-auto"
-                                style="max-height: 250px;">`
-                            : `<div class="text-center">
-                                <svg class="w-32 h-32 mx-auto mb-2 text-slate-300" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
-                                </svg>
-                                <p class="text-xs text-slate-500">QR Code PIX</p>
-                            </div>`
-                            }
-                        </div>
-
-                        <!-- Temporizador -->
-                        <div class="text-center text-sm font-black text-amber-600 uppercase tracking-widest mb-4">
-                            <i class="fas fa-clock mr-1"></i> Expira em: <span id="pixTimer"></span>
-                        </div>
-
-                        <!-- Código Copia e Cola -->
-                        <div class="bg-white rounded-xl p-4 mb-4">
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PIX Copia e Cola</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="pixCode" value="${pixData.copia_e_cola}" readonly
-                                    class="flex-1 px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-xs font-mono font-bold text-slate-600 truncate px-2">
-                                <button onclick="copiarPixCode()"
-                                    class="px-4 py-2 bg-[#23366f] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all flex items-center gap-2 shadow-lg shadow-blue-900/20">
-                                    <i class="fas fa-copy"></i>
-                                </button>
+                            <!-- QR Code -->
+                            <div class="bg-white p-4 rounded-xl mb-4 flex items-center justify-center" style="min-height: 200px;">
+                                ${pixData.qr_code_base64
+                                ? `<img src="${pixData.qr_code_base64}" alt="QR Code PIX" class="max-w-full h-auto"
+                                    style="max-height: 250px;">`
+                                : `<div class="text-center">
+                                    <svg class="w-32 h-32 mx-auto mb-2 text-slate-300" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
+                                    </svg>
+                                    <p class="text-xs text-slate-500">QR Code PIX</p>
+                                </div>`
+                                }
                             </div>
+
+                            <!-- Temporizador -->
+                            <div class="text-center text-sm font-black text-amber-600 uppercase tracking-widest mb-4">
+                                <i class="fas fa-clock mr-1"></i> Expira em: <span id="pixTimer"></span>
+                            </div>
+
+                            <!-- Codigo Copia e Cola -->
+                            <div class="bg-white rounded-xl p-4 mb-4">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PIX Copia e Cola</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="pixCode" value="${pixData.copia_e_cola}" readonly
+                                        class="flex-1 px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-xs font-mono font-bold text-slate-600 truncate px-2">
+                                    <button onclick="copiarPixCode()"
+                                        class="px-4 py-2 bg-[#23366f] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all flex items-center gap-2 shadow-lg shadow-blue-900/20">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button onclick="fecharModalPix()"
+                                class="w-full py-4 bg-slate-200 text-slate-700 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-300 transition-all">
+                                Fechar Janela
+                            </button>
                         </div>
 
-                        <button onclick="fecharModalPix()"
-                            class="w-full py-4 bg-slate-200 text-slate-700 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-300 transition-all">
-                            Fechar Janela
-                        </button>
-                    </div>
-
-                    <p class="text-[9px] font-bold text-center text-slate-300 uppercase tracking-widest">
-                        ID da Transação: ${pixData.transaction_code}
-                    </p>
-                </div>
-            </div>
-            `;
-
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-            // Funções do modal
-            window.copiarPixCode = () => {
-            const input = document.getElementById('pixCode');
-            input.select();
-            document.execCommand('copy');
-            alert('Código PIX copiado!');
-            };
-
-            window.fecharModalPix = () => {
-            document.getElementById('pixModal').remove();
-            };
-
-            // Temporizador
-            const expiresAt = pixData.expira_timestamp * 1000;
-            const updateTimer = () => {
-            const now = Date.now();
-            const diff = expiresAt - now;
-
-            if (diff <= 0) { document.getElementById('pixTimer').textContent='Expirado' ; return; } const
-                minutes=Math.floor(diff / 60000); const seconds=Math.floor((diff % 60000) / 1000);
-                document.getElementById('pixTimer').textContent=`${minutes}:${seconds.toString().padStart(2, '0' )}`; };
-                updateTimer(); const timerInterval=setInterval(updateTimer, 1000); // Polling para verificar status do pagamento
-                const checkPaymentStatus=async ()=> {
-                try {
-                const response = await fetch(`/api/transacao/${pixData.transaction_id}`);
-                const data = await response.json();
-
-                if (data.status === 1) {
-                // Pagamento confirmado!
-                clearInterval(timerInterval);
-                clearInterval(pollingInterval);
-
-                // Atualizar modal para mostrar sucesso
-                const modalContent = document.querySelector('#pixModal > div');
-                modalContent.innerHTML = `
-                <div class="text-center py-8">
-                    <div
-                        class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    </div>
-                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Pagamento Confirmado!</h2>
-                    <p class="text-slate-600 mb-6">Seus proxies foram alocados com sucesso</p>
-                    <div class="flex items-center justify-center gap-2 mb-4">
-                        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                        <p class="text-sm text-slate-600">Redirecionando...</p>
+                        <p class="text-[9px] font-bold text-center text-slate-300 uppercase tracking-widest">
+                            ID da Transacao: ${pixData.transaction_code}
+                        </p>
                     </div>
                 </div>
                 `;
 
-                // Redirecionar após 2 segundos
-                setTimeout(() => {
-                window.location.href = '/dash?section=proxies';
-                }, 2000);
-                }
-                } catch (error) {
-                console.error('Erro ao verificar status do pagamento:', error);
-                }
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+                window.copiarPixCode = () => {
+                    const input = document.getElementById('pixCode');
+                    input.select();
+                    document.execCommand('copy');
+                    alert('Codigo PIX copiado!');
                 };
 
-                // Verificar a cada 3 segundos
-                const pollingInterval = setInterval(checkPaymentStatus, 3000);
+                window.fecharModalPix = () => {
+                    document.getElementById('pixModal')?.remove();
+                };
 
-                // Verificar imediatamente
+                const expiresAt = pixData.expira_timestamp * 1000;
+                const updateTimer = () => {
+                    const now = Date.now();
+                    const diff = expiresAt - now;
+
+                    if (diff <= 0) {
+                        const timerEl = document.getElementById('pixTimer');
+                        if (timerEl) timerEl.textContent = 'Expirado';
+                        return;
+                    }
+                    const minutes = Math.floor(diff / 60000);
+                    const seconds = Math.floor((diff % 60000) / 1000);
+                    const timerEl = document.getElementById('pixTimer');
+                    if (timerEl) timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                };
+                updateTimer();
+                const timerInterval = setInterval(updateTimer, 1000);
+
+                const checkPaymentStatus = async () => {
+                    try {
+                        const response = await fetch(`/api/transacao/${pixData.transaction_id}`);
+                        const data = await response.json();
+
+                        if (data.status === 1) {
+                            clearInterval(timerInterval);
+                            clearInterval(pollingInterval);
+
+                            const modalContent = document.querySelector('#pixModal > div');
+                            modalContent.innerHTML = `
+                            <div class="text-center py-8">
+                                <div
+                                    class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <h2 class="text-2xl font-bold text-slate-900 mb-2">Pagamento Confirmado!</h2>
+                                <p class="text-slate-600 mb-6">Seus proxies foram alocados com sucesso</p>
+                                <div class="flex items-center justify-center gap-2 mb-4">
+                                    <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                                    <p class="text-sm text-slate-600">Redirecionando...</p>
+                                </div>
+                            </div>
+                            `;
+
+                            setTimeout(() => {
+                                window.location.href = '/dash?section=proxies';
+                            }, 2000);
+                        }
+                    } catch (error) {
+                        console.error('Erro ao verificar status do pagamento:', error);
+                    }
+                };
+
+                const pollingInterval = setInterval(checkPaymentStatus, 3000);
                 checkPaymentStatus();
-                })();
+            };
+// Modal PIX
+        @if(session('pix_modal'))
+            (() => {
+            const pixData = @json(session('pix_modal'));
+            renderPixModal(pixData);
+            })();
         @endif
 
             window.showProxyTestNotification = function(data, type) {
@@ -2049,4 +2087,248 @@
             }
             };
 
+            // ==========================================
+            // MODAL DE RENOVAÇÃO DE PROXY
+            // ==========================================
+
+            let renovacaoProxyData = null;
+            const autoRenewToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            const setAutoRenew = async (proxyId, enabled, toggleEl) => {
+                if (!proxyId || !autoRenewToken) {
+                    return;
+                }
+
+                if (toggleEl) {
+                    toggleEl.disabled = true;
+                }
+
+                try {
+                    const response = await fetch('{{ route("proxies.renovar") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': autoRenewToken,
+                        },
+                        body: JSON.stringify({
+                            proxy_id: proxyId,
+                            auto_renew: enabled,
+                        }),
+                    });
+
+                    const data = await response.json().catch(() => ({}));
+
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.error || data.message || 'Erro ao atualizar renovacao automatica');
+                    }
+                } catch (error) {
+                    if (toggleEl) {
+                        toggleEl.checked = !enabled;
+                    }
+                    alert(error.message || 'Erro ao atualizar renovacao automatica');
+                } finally {
+                    if (toggleEl) {
+                        toggleEl.disabled = false;
+                    }
+                }
+            };
+
+            document.querySelectorAll('.auto-renew-toggle').forEach(toggle => {
+                toggle.addEventListener('change', () => {
+                    const proxyId = toggle.dataset.proxyId;
+                    setAutoRenew(proxyId, toggle.checked, toggle);
+                });
+            });
+
+            const modalAutoRenewToggle = document.getElementById('renovacao-auto-toggle');
+            if (modalAutoRenewToggle) {
+                modalAutoRenewToggle.addEventListener('change', () => {
+                    const proxyId = modalAutoRenewToggle.dataset.proxyId;
+                    setAutoRenew(proxyId, modalAutoRenewToggle.checked, modalAutoRenewToggle);
+                });
+            }
+
+            window.abrirModalRenovacao = function(proxyData) {
+                renovacaoProxyData = proxyData;
+
+                const modalAutoToggle = document.getElementById('renovacao-auto-toggle');
+                if (modalAutoToggle) {
+                    modalAutoToggle.checked = !!proxyData.auto_renew;
+                    modalAutoToggle.dataset.proxyId = proxyData.id;
+                }
+
+                // Preencher informações do proxy
+                document.getElementById('renovacao-proxy-endereco').textContent = proxyData.endereco;
+                document.getElementById('renovacao-proxy-pais').textContent = proxyData.pais;
+                document.getElementById('renovacao-expiracao-atual').textContent =
+                    new Date(proxyData.expiracao).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                // Status do proxy
+                const statusEl = document.getElementById('renovacao-proxy-status');
+                if (proxyData.expirado) {
+                    statusEl.innerHTML = '<span class="text-red-600">Expirado</span>';
+                } else if (proxyData.bloqueado) {
+                    statusEl.innerHTML = '<span class="text-amber-600">Bloqueado</span>';
+                } else {
+                    statusEl.innerHTML = '<span class="text-green-600">Ativo</span>';
+                }
+
+                // Mostrar alerta se bloqueado
+                const alertaBloqueado = document.getElementById('renovacao-alerta-bloqueado');
+                if (proxyData.bloqueado) {
+                    alertaBloqueado.classList.remove('hidden');
+                } else {
+                    alertaBloqueado.classList.add('hidden');
+                }
+
+                // Resetar seleção de período
+                document.querySelectorAll('.renovacao-period-radio').forEach(radio => {
+                    radio.checked = false;
+                });
+                document.getElementById('btn-confirmar-renovacao').disabled = true;
+                document.getElementById('renovacao-resumo-periodo').textContent = 'Selecione';
+                document.getElementById('renovacao-resumo-valor').textContent = 'R$ 0,00';
+                document.getElementById('renovacao-resumo-total').textContent = 'R$ 0,00';
+                document.getElementById('renovacao-expiracao-nova').textContent = 'Selecione o período';
+                document.getElementById('renovacao-resumo-nova-data').textContent = '--';
+
+                // Event listeners para os períodos
+                document.querySelectorAll('.renovacao-period-radio').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        const dias = parseInt(this.value);
+                        const preco = parseFloat(this.dataset.price);
+
+                        // Calcular nova data de expiração
+                        const expiracaoAtual = new Date(proxyData.expiracao);
+                        const hoje = new Date();
+                        let novaExpiracao;
+
+                        if (expiracaoAtual < hoje) {
+                            // Proxy expirado: adiciona dias a partir de hoje
+                            novaExpiracao = new Date(hoje);
+                            novaExpiracao.setDate(novaExpiracao.getDate() + dias);
+                        } else {
+                            // Proxy ativo: adiciona dias à expiração atual
+                            novaExpiracao = new Date(expiracaoAtual);
+                            novaExpiracao.setDate(novaExpiracao.getDate() + dias);
+                        }
+
+                        // Atualizar resumo
+                        document.getElementById('renovacao-resumo-periodo').textContent = `${dias} dias`;
+                        document.getElementById('renovacao-resumo-valor').textContent =
+                            `R$ ${preco.toFixed(2).replace('.', ',')}`;
+                        document.getElementById('renovacao-resumo-total').textContent =
+                            `R$ ${preco.toFixed(2).replace('.', ',')}`;
+                        document.getElementById('renovacao-expiracao-nova').textContent =
+                            novaExpiracao.toLocaleDateString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        document.getElementById('renovacao-resumo-nova-data').textContent =
+                            novaExpiracao.toLocaleDateString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                            });
+
+                        // Habilitar botão de confirmação
+                        document.getElementById('btn-confirmar-renovacao').disabled = false;
+                    });
+                });
+
+                // Exibir modal
+                document.getElementById('modalRenovacao').style.display = 'flex';
+            };
+
+            window.fecharModalRenovacao = function() {
+                document.getElementById('modalRenovacao').style.display = 'none';
+                renovacaoProxyData = null;
+            };
+
+            window.confirmarRenovacao = async function() {
+                const periodoSelecionado = document.querySelector('.renovacao-period-radio:checked');
+
+                if (!periodoSelecionado || !renovacaoProxyData) {
+                    alert('Selecione um período de renovação');
+                    return;
+                }
+
+                const btnConfirmar = document.getElementById('btn-confirmar-renovacao');
+                const originalText = btnConfirmar.innerHTML;
+
+                try {
+                    // Desabilitar botão e mostrar loading
+                    btnConfirmar.disabled = true;
+                    btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+
+                    // Enviar requisição
+                    const response = await fetch('{{ route("proxies.renovar-pix") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            proxy_id: renovacaoProxyData.id,
+                            periodo: parseInt(periodoSelecionado.value)
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        // Fechar modal de renovacao
+                        fecharModalRenovacao();
+
+                        if (data.pix_modal) {
+                            renderPixModal(data.pix_modal);
+                            return;
+                        }
+
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        }
+                    } else {
+                        alert(data.error || 'Erro ao processar renovação. Tente novamente.');
+                        btnConfirmar.innerHTML = originalText;
+                        btnConfirmar.disabled = false;
+                    }
+
+                } catch (error) {
+                    console.error('Erro ao processar renovação:', error);
+                    alert('Erro ao conectar com o servidor. Tente novamente.');
+                    btnConfirmar.innerHTML = originalText;
+                    btnConfirmar.disabled = false;
+                }
+            };
+
+            // Fechar modal ao clicar fora
+            document.getElementById('modalRenovacao')?.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    fecharModalRenovacao();
+                }
+            });
+
 @endsection
+
+
+
+
+
+
+
+
+
+
+
+

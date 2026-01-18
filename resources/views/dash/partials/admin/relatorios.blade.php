@@ -56,7 +56,15 @@
                 @foreach($financeExtract['saida'] as $saida)
                     <div class="timeline-item">
                         <div>
-                            <p class="font-semibold text-slate-900">{{ $saida['descricao'] }}</p>
+                            <div class="flex items-center gap-2">
+                                <p class="font-semibold text-slate-900">{{ $saida['descricao'] }}</p>
+                                @if(($saida['tipo'] ?? '') === 'renovacao')
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-100 to-cyan-100 border border-blue-200 rounded-full">
+                                        <i class="fas fa-sync-alt text-[8px] text-blue-600"></i>
+                                        <span class="text-[9px] font-black text-blue-700 uppercase tracking-wider">Renovação</span>
+                                    </span>
+                                @endif
+                            </div>
                             <p class="text-xs text-slate-500">{{ $saida['categoria'] }} • {{ $saida['data'] }}</p>
                         </div>
                         <span class="text-red-500 font-semibold">{{ $saida['valor'] }}</span>

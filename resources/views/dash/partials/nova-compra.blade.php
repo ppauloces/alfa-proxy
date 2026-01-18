@@ -594,7 +594,7 @@
                         @php
                             $methods = [
                                 ['id' => 'pix', 'name' => 'PIX', 'icon' => 'fas fa-qrcode', 'desc' => 'Instantâneo', 'enabled' => true],
-                                ['id' => 'credit_card', 'name' => 'Cartão', 'icon' => 'fas fa-credit-card', 'desc' => 'Em breve', 'enabled' => false],
+                                ['id' => 'credit_card', 'name' => 'Cartão', 'icon' => 'fas fa-credit-card', 'desc' => 'Até 12x', 'enabled' => true],
                                 ['id' => 'usdt', 'name' => 'USDT', 'icon' => 'fab fa-bitcoin', 'desc' => 'Em breve', 'enabled' => false],
                                 ['id' => 'btc', 'name' => 'Bitcoin', 'icon' => 'fab fa-btc', 'desc' => 'Em breve', 'enabled' => false],
                                 ['id' => 'ltc', 'name' => 'Litecoin', 'icon' => 'fas fa-coins', 'desc' => 'Em breve', 'enabled' => false],
@@ -627,44 +627,30 @@
                     <!-- Campos de Cartão de Crédito -->
                     <div id="creditCardFields" class="mt-8 p-6 bg-slate-50 rounded-2xl"
                         style="display: {{ old('metodo_pagamento') === 'credit_card' ? 'block' : 'none' }};">
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div class="form-group">
-                                <label
-                                    class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Selecione
-                                    o Cartão</label>
-                                @if(isset($savedCards) && count($savedCards) > 0)
-                                    <select name="card_id" id="cardSelect" class="form-select bg-white border-slate-200">
-                                        <option value="">Selecione um cartão</option>
-                                        @foreach($savedCards as $card)
-                                            <option value="{{ $card->id }}" {{ old('card_id') == $card->id ? 'selected' : '' }}>
-                                                {{ ucfirst($card->brand) }} •••• {{ $card->last4 }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                @else
-                                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-start gap-3">
-                                        <i class="fas fa-exclamation-triangle text-amber-500 mt-1"></i>
-                                        <div>
-                                            <p class="text-xs text-amber-800 font-bold mb-1">Nenhum cartão salvo</p>
-                                            <a href="{{ route('dash.show', ['section' => 'cartoes']) }}"
-                                                class="text-[10px] text-amber-600 underline font-black uppercase">Cadastrar
-                                                agora</a>
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-
-                            <div class="form-group">
-                                <label
-                                    class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Parcelas</label>
-                                <select name="installments" id="installmentsSelect"
-                                    class="form-select bg-white border-slate-200">
-                                    @for($i = 1; $i <= 12; $i++)
-                                        <option value="{{ $i }}" {{ old('installments', 1) == $i ? 'selected' : '' }}>
-                                            {{ $i }}x sem juros</option>
-                                    @endfor
+                        <div class="form-group">
+                            <label
+                                class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Selecione
+                                o Cartão</label>
+                            @if(isset($savedCards) && count($savedCards) > 0)
+                                <select name="card_id" id="cardSelect" class="form-select bg-white border-slate-200">
+                                    <option value="">Selecione um cartão</option>
+                                    @foreach($savedCards as $card)
+                                        <option value="{{ $card->id }}" {{ old('card_id') == $card->id ? 'selected' : '' }}>
+                                            {{ ucfirst($card->bandeira) }} •••• {{ $card->ultimos_digitos }}
+                                        </option>
+                                    @endforeach
                                 </select>
-                            </div>
+                            @else
+                                <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-start gap-3">
+                                    <i class="fas fa-exclamation-triangle text-amber-500 mt-1"></i>
+                                    <div>
+                                        <p class="text-xs text-amber-800 font-bold mb-1">Nenhum cartão salvo</p>
+                                        <a href="{{ route('dash.show', ['section' => 'cartoes']) }}"
+                                            class="text-[10px] text-amber-600 underline font-black uppercase">Cadastrar
+                                            agora</a>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -696,7 +682,7 @@
                         </div>
                     </div>
 
-                    <button type="submit"
+                    <button type="submit" id="submitOrderBtn"
                         class="w-full py-4 rounded-2xl bg-[#23366f] text-white font-bold hover:scale-[1.02] transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-3">
                         <i class="fas fa-shopping-cart"></i> Finalizar Pedido
                     </button>
@@ -710,3 +696,256 @@
         </div>
     </form>
 </div>
+
+<!-- Modal de Processamento de Pagamento -->
+<div id="paymentProcessingModal" class="fixed inset-0 z-[9999] hidden">
+    <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"></div>
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] p-10 max-w-md w-full text-center shadow-2xl">
+            <!-- Estado: Processando -->
+            <div id="processingState" class="processing-state">
+                <div class="mb-8">
+                    <div class="w-24 h-24 mx-auto relative">
+                        <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-[#23366f] border-t-transparent animate-spin"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-credit-card text-3xl text-[#23366f]"></i>
+                        </div>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-black text-slate-900 mb-3">Processando Pagamento</h3>
+                <p class="text-slate-500 font-medium mb-6">Aguarde enquanto processamos sua transação...</p>
+                <div class="flex items-center justify-center gap-2 text-sm text-slate-400">
+                    <i class="fas fa-lock text-green-500"></i>
+                    <span>Transação segura e criptografada</span>
+                </div>
+            </div>
+
+            <!-- Estado: Sucesso -->
+            <div id="successState" class="processing-state hidden">
+                <div class="mb-8">
+                    <div class="w-24 h-24 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-check text-4xl text-green-600 animate-bounce"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-black text-green-600 mb-3">Pagamento Aprovado!</h3>
+                <p class="text-slate-500 font-medium mb-6">Seus proxies estão sendo ativados...</p>
+                <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-green-500 rounded-full animate-pulse" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <!-- Estado: Erro com Fallback PIX -->
+            <div id="errorState" class="processing-state hidden">
+                <div class="mb-8">
+                    <div class="w-24 h-24 mx-auto bg-amber-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-4xl text-amber-600"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-black text-slate-900 mb-3">Ops! Cartão não aprovado</h3>
+                <p class="text-slate-500 font-medium mb-2" id="errorMessage">Houve um problema com seu cartão.</p>
+                <p class="text-slate-600 font-semibold mb-6">Deseja pagar via PIX?</p>
+
+                <div class="flex gap-3">
+                    <button type="button" id="cancelPaymentBtn" class="flex-1 py-3 px-6 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all">
+                        Cancelar
+                    </button>
+                    <button type="button" id="fallbackPixBtn" class="flex-1 py-3 px-6 rounded-xl bg-[#23366f] text-white font-bold hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-qrcode"></i> Pagar com PIX
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes checkmark {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+#successState .fa-check {
+    animation: checkmark 0.5s ease-out;
+}
+
+.processing-state {
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.processing-state.hidden {
+    display: none;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const orderForm = document.getElementById('orderForm');
+    const modal = document.getElementById('paymentProcessingModal');
+    const processingState = document.getElementById('processingState');
+    const successState = document.getElementById('successState');
+    const errorState = document.getElementById('errorState');
+    const errorMessage = document.getElementById('errorMessage');
+    const cancelBtn = document.getElementById('cancelPaymentBtn');
+    const fallbackPixBtn = document.getElementById('fallbackPixBtn');
+
+    let pendingFormData = null;
+
+    // Interceptar submit do formulário quando for cartão
+    orderForm?.addEventListener('submit', async function(e) {
+        const paymentMethod = document.getElementById('orderPaymentMethod').value;
+
+        // Se não for cartão, deixar o formulário seguir normalmente
+        if (paymentMethod !== 'credit_card') {
+            return true;
+        }
+
+        e.preventDefault();
+
+        // Validações básicas
+        const cardId = document.getElementById('cardSelect')?.value;
+        if (!cardId) {
+            showToast('Selecione um cartão para continuar.');
+            return;
+        }
+
+        // Salvar dados do formulário para possível fallback PIX
+        pendingFormData = new FormData(orderForm);
+
+        // Mostrar modal de processamento
+        showModal();
+        showState('processing');
+
+        try {
+            const formData = new FormData(orderForm);
+
+            const response = await fetch('{{ route("compra.processar") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showState('success');
+
+                // Redirecionar após animação
+                setTimeout(() => {
+                    window.location.href = data.redirect || '{{ route("dash.show", ["section" => "proxies"]) }}';
+                }, 2000);
+            } else {
+                // Mostrar erro e oferecer PIX
+                errorMessage.textContent = data.error || 'Houve um problema com seu cartão.';
+                showState('error');
+            }
+
+        } catch (error) {
+            console.error('Erro ao processar:', error);
+            errorMessage.textContent = 'Erro de conexão. Tente novamente.';
+            showState('error');
+        }
+    });
+
+    // Botão cancelar
+    cancelBtn?.addEventListener('click', function() {
+        hideModal();
+        pendingFormData = null;
+    });
+
+    // Botão fallback PIX
+    fallbackPixBtn?.addEventListener('click', async function() {
+        if (!pendingFormData) return;
+
+        // Alterar método de pagamento para PIX
+        pendingFormData.set('metodo_pagamento', 'pix');
+
+        // Mostrar processando novamente
+        showState('processing');
+
+        try {
+            const response = await fetch('{{ route("compra.processar") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: pendingFormData
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.pix_modal) {
+                // Fechar modal e redirecionar para exibir PIX
+                hideModal();
+                window.location.href = data.redirect || window.location.href;
+            } else if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                errorMessage.textContent = data.error || 'Erro ao gerar PIX.';
+                showState('error');
+            }
+
+        } catch (error) {
+            console.error('Erro ao gerar PIX:', error);
+            errorMessage.textContent = 'Erro de conexão. Tente novamente.';
+            showState('error');
+        }
+    });
+
+    function showModal() {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideModal() {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        // Reset estados
+        setTimeout(() => {
+            showState('processing');
+        }, 300);
+    }
+
+    function showState(state) {
+        processingState.classList.add('hidden');
+        successState.classList.add('hidden');
+        errorState.classList.add('hidden');
+
+        if (state === 'processing') processingState.classList.remove('hidden');
+        if (state === 'success') successState.classList.remove('hidden');
+        if (state === 'error') errorState.classList.remove('hidden');
+    }
+
+    function showToast(message) {
+        // Usar o toast existente do sistema
+        const oldToast = document.querySelector('.validation-toast');
+        if (oldToast) oldToast.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'validation-toast';
+        toast.innerHTML = `
+            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #ef4444, #dc2626); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 700; color: #0f172a; margin-bottom: 0.5rem; font-size: 0.9375rem;">Atenção</div>
+                    <p style="color: #64748b; font-size: 0.8125rem; font-weight: 500;">${message}</p>
+                </div>
+                <button onclick="this.closest('.validation-toast').remove();" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0.25rem; font-size: 1rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
+});
+</script>

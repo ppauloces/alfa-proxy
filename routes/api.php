@@ -15,6 +15,7 @@ Route::post('/postback/transacao', [PostbackController::class, 'handle'])->name(
 
 //Webhooks
 Route::post('/webhook/abacatepay', [WebhookController::class, 'abacatepay']);
+Route::post('/webhook/asaas', [WebhookController::class, 'asaas']);
 
 //API Endpoints
 Route::get('/transacao/{transacao_id}', [ApiController::class, 'transacao_status']);

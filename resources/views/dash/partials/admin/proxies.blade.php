@@ -296,6 +296,20 @@
                 @enderror
             </label>
             <label class="flex flex-col gap-2">
+                <span class="text-slate-500 font-semibold">Valor de Renovação da VPS</span>
+                <div class="relative">
+                    <input type="text" id="vps_valor_renovacao_mask" 
+                        class="form-input pl-10 @error('valor_renovacao') border-red-500 @enderror" 
+                        placeholder="0,00"
+                        value="{{ old('valor_renovacao') ? number_format(old('valor_renovacao'), 2, ',', '.') : '' }}" required>
+                    
+                    <input type="hidden" name="valor_renovacao" id="vps_valor_renovacao_real" value="{{ old('valor_renovacao') }}">
+                </div>
+                @error('valor_renovacao')
+                    <span class="text-xs text-red-500">{{ $message }}</span>
+                @enderror
+            </label>
+            <label class="flex flex-col gap-2">
                 <span class="text-slate-500 font-semibold">País*</span>
                 <x-ui.select name="pais" :value="old('pais')" placeholder="Selecione" :options="[
                     'Brasil' => 'Brasil',
@@ -419,8 +433,8 @@
                     $vendidas = max(0, $totalProxies - $bloqueadas - $usoInterno - $disponiveis);
                 @endphp
 
-                <button type="button" class="admin-card w-full text-left hover:shadow-md transition-shadow"
-                    data-open-vps-modal="vpsModal-{{ $farm->id }}">
+                <div class="admin-card w-full text-left hover:shadow-md transition-shadow relative">
+                    <button type="button" class="w-full text-left" data-open-vps-modal="vpsModal-{{ $farm->id }}">
                     <div class="flex items-start justify-between gap-4">
                         <div class="min-w-0">
                             <p class="text-lg font-semibold text-slate-900 truncate">{{ $farm->apelido }}</p>
@@ -430,7 +444,7 @@
                         <div class="flex items-center gap-3 flex-shrink-0">
                             <span class="badge-status"
                                 data-status="{{ \Illuminate\Support\Str::slug($farm->status, '-') }}">{{ $farm->status }}</span>
-                            <i class="fas fa-arrow-up-right-from-square text-slate-400 text-sm"></i>
+                            <i class="fas fa-pen-to-square text-slate-400 text-sm"></i>
                         </div>
                     </div>
 
@@ -458,7 +472,16 @@
                             <p class="font-bold text-indigo-900">{{ $usoInterno }}</p>
                         </div>
                     </div>
-                </button>
+                    </button>
+
+                    {{-- Botão de Editar VPS (fora do botão principal) --}}
+                    <button type="button"
+                        class="edit-vps-btn absolute top-3 right-3 w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-[#448ccb] hover:bg-blue-50 transition-all flex items-center justify-center z-10"
+                        data-vps-id="{{ $farm->id }}"
+                        title="Editar VPS">
+                        <i class="fas fa-cog text-sm"></i>
+                    </button>
+                </div>
             @endforeach
         </div>
 
@@ -610,6 +633,127 @@
                                 @endforeach
                             </div>
                         @endif
+                    </div>
+                </div>
+            </div>
+        @endforeach
+
+        {{-- Modal de Edição de VPS --}}
+        @foreach($vpsFarm as $farm)
+            <div id="editVpsModal-{{ $farm->id }}" class="admin-modal-overlay hidden" data-edit-vps-modal>
+                <div class="admin-modal" style="max-width: 600px;">
+                    <div class="p-6">
+                        {{-- Header --}}
+                        <div class="flex items-start justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-server text-blue-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-900">Editar VPS</h3>
+                                    <p class="text-sm text-slate-500 mt-1">{{ $farm->apelido }} - {{ $farm->ip }}</p>
+                                </div>
+                            </div>
+                            <button type="button" class="text-slate-400 hover:text-slate-600 transition-colors" data-close-edit-vps-modal>
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+
+                        {{-- Form --}}
+                        <form id="editVpsForm-{{ $farm->id }}" onsubmit="submitEditVps(event, {{ $farm->id }})">
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                {{-- Valor da VPS --}}
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-sm text-slate-600 font-semibold">Valor da VPS (R$)</span>
+                                    <input type="text"
+                                        id="edit_valor_mask_{{ $farm->id }}"
+                                        class="form-input"
+                                        placeholder="0,00"
+                                        value="{{ number_format((float)$farm->valor, 2, ',', '.') }}">
+                                    <input type="hidden" name="valor" id="edit_valor_real_{{ $farm->id }}" value="{{ $farm->valor }}">
+                                </label>
+
+                                {{-- Valor de Renovação --}}
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-sm text-slate-600 font-semibold">Valor de Renovação (R$)</span>
+                                    <input type="text"
+                                        id="edit_valor_renovacao_mask_{{ $farm->id }}"
+                                        class="form-input"
+                                        placeholder="0,00"
+                                        value="{{ $farm->valor_renovacao ? number_format((float)$farm->valor_renovacao, 2, ',', '.') : '' }}">
+                                    <input type="hidden" name="valor_renovacao" id="edit_valor_renovacao_real_{{ $farm->id }}" value="{{ $farm->valor_renovacao }}">
+                                    <span class="text-xs text-slate-400">Deixe vazio para usar o valor da VPS</span>
+                                </label>
+
+                                {{-- Data de Contratação --}}
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-sm text-slate-600 font-semibold">Data de Contratação</span>
+                                    <input type="date"
+                                        name="data_contratacao"
+                                        class="form-input"
+                                        value="{{ $farm->data_contratacao ? $farm->data_contratacao->format('Y-m-d') : '' }}">
+                                </label>
+
+                                {{-- Período Contratado --}}
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-sm text-slate-600 font-semibold">Período Contratado</span>
+                                    <select name="periodo_dias" class="form-input">
+                                        <option value="30" {{ $farm->periodo_dias == 30 ? 'selected' : '' }}>30 dias</option>
+                                        <option value="60" {{ $farm->periodo_dias == 60 ? 'selected' : '' }}>60 dias</option>
+                                        <option value="90" {{ $farm->periodo_dias == 90 ? 'selected' : '' }}>90 dias</option>
+                                        <option value="180" {{ $farm->periodo_dias == 180 ? 'selected' : '' }}>180 dias</option>
+                                    </select>
+                                </label>
+
+                                {{-- Hospedagem --}}
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-sm text-slate-600 font-semibold">Hospedagem</span>
+                                    <input type="text"
+                                        name="hospedagem"
+                                        class="form-input"
+                                        placeholder="OVH, Hetzner..."
+                                        value="{{ $farm->hospedagem }}">
+                                </label>
+
+                                {{-- Status da VPS --}}
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-sm text-slate-600 font-semibold">Status</span>
+                                    <select name="status" class="form-input">
+                                        <option value="Operacional" {{ $farm->status == 'Operacional' ? 'selected' : '' }}>Operacional</option>
+                                        <option value="Desabilitada" {{ $farm->status == 'Desabilitada' ? 'selected' : '' }}>Desabilitada</option>
+                                        <option value="Excluída" {{ $farm->status == 'Excluída' ? 'selected' : '' }}>Excluída</option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            {{-- Informativo sobre status --}}
+                            <div class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                                <div class="flex gap-3">
+                                    <i class="fas fa-info-circle text-amber-600 mt-0.5"></i>
+                                    <div class="text-sm text-amber-800">
+                                        <p class="font-semibold mb-1">Sobre o Status:</p>
+                                        <ul class="text-xs space-y-1 text-amber-700">
+                                            <li><strong>Operacional:</strong> VPS ativa, despesas de renovação são geradas automaticamente</li>
+                                            <li><strong>Desabilitada:</strong> VPS inativa, despesas de renovação <strong>NÃO</strong> são geradas</li>
+                                            <li><strong>Excluída:</strong> VPS removida do sistema</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Ações --}}
+                            <div class="flex gap-3">
+                                <button type="button"
+                                    data-close-edit-vps-modal
+                                    class="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                                <button type="submit"
+                                    class="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors">
+                                    <i class="fas fa-save"></i> Salvar Alterações
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -1742,17 +1886,23 @@
 
     //MASCARA DE VALOR
 
-    document.addEventListener('DOMContentLoaded', function() {
-    const inputMask = document.getElementById('vps_valor_mask');
-    const inputReal = document.getElementById('vps_valor_real');
+        //MASCARA DE VALOR
 
-    if (inputMask) {
+        document.addEventListener('DOMContentLoaded', function() {
+    const inputMask = document.getElementById('vps_valor_mask');
+    const inputMaskRenovacao = document.getElementById('vps_valor_renovacao_mask');
+    const inputReal = document.getElementById('vps_valor_real');
+    const inputRealRenovacao = document.getElementById('vps_valor_renovacao_real');
+
+    // Máscara para o campo de valor da VPS
+    if (inputMask && inputReal) {
         inputMask.addEventListener('input', function(e) {
             // Remove tudo que não é dígito
             let value = e.target.value.replace(/\D/g, '');
 
             if (value === '') {
                 inputReal.value = '';
+                e.target.value = '';
                 return;
             }
 
@@ -1761,6 +1911,32 @@
 
             // Atualiza o input hidden (valor que o PHP vai ler)
             inputReal.value = floatValue;
+
+            // Formata para exibição (ex: 1.500,00)
+            e.target.value = new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(floatValue);
+        });
+    }
+
+    // Máscara para o campo de valor de renovação da VPS
+    if (inputMaskRenovacao && inputRealRenovacao) {
+        inputMaskRenovacao.addEventListener('input', function(e) {
+            // Remove tudo que não é dígito
+            let value = e.target.value.replace(/\D/g, '');
+
+            if (value === '') {
+                inputRealRenovacao.value = '';
+                e.target.value = '';
+                return;
+            }
+
+            // Transforma em decimal (ex: 1500 -> 15.00)
+            const floatValue = (parseInt(value) / 100).toFixed(2);
+
+            // Atualiza o input hidden (valor que o PHP vai ler)
+            inputRealRenovacao.value = floatValue;
 
             // Formata para exibição (ex: 1.500,00)
             e.target.value = new Intl.NumberFormat('pt-BR', {
@@ -2042,6 +2218,172 @@
         // Salvar ao perder o foco
         select.addEventListener('blur', savePais);
     });
+
+    // ============================================
+    // MODAL DE EDIÇÃO DE VPS
+    // ============================================
+
+    // Abrir modal de edição de VPS
+    document.addEventListener('click', function(e) {
+        // Botão de edição de VPS
+        const editBtn = e.target.closest('.edit-vps-btn');
+        if (editBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const vpsId = editBtn.dataset.vpsId;
+            const modal = document.getElementById(`editVpsModal-${vpsId}`);
+            if (modal) {
+                // Portal para o body
+                if (modal.parentNode !== document.body) {
+                    document.body.appendChild(modal);
+                }
+                modal.classList.remove('hidden');
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+                // Inicializar máscaras de valor para este modal
+                initEditVpsMasks(`editVpsModal-${vpsId}`);
+            }
+            return;
+        }
+
+        // Fechar modal de edição de VPS
+        const closeBtn = e.target.closest('[data-close-edit-vps-modal]');
+        if (closeBtn) {
+            const modal = closeBtn.closest('[data-edit-vps-modal]');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            return;
+        }
+
+        // Fechar ao clicar no overlay
+        if (e.target && e.target.matches('[data-edit-vps-modal]')) {
+            e.target.classList.add('hidden');
+            e.target.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+
+    // Fechar com ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const openModals = document.querySelectorAll('[data-edit-vps-modal]:not(.hidden)');
+            openModals.forEach(modal => {
+                modal.classList.add('hidden');
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        }
+    });
+
+    // Inicializar máscaras de valor para o modal de edição
+    function initEditVpsMasks(modalId) {
+        const vpsId = modalId.replace('editVpsModal-', '');
+
+        const valorMask = document.getElementById(`edit_valor_mask_${vpsId}`);
+        const valorReal = document.getElementById(`edit_valor_real_${vpsId}`);
+        const renovacaoMask = document.getElementById(`edit_valor_renovacao_mask_${vpsId}`);
+        const renovacaoReal = document.getElementById(`edit_valor_renovacao_real_${vpsId}`);
+
+        // Máscara para valor
+        if (valorMask && valorReal && !valorMask.dataset.maskInitialized) {
+            valorMask.dataset.maskInitialized = 'true';
+            valorMask.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value === '') {
+                    valorReal.value = '';
+                    e.target.value = '';
+                    return;
+                }
+                const floatValue = (parseInt(value) / 100).toFixed(2);
+                valorReal.value = floatValue;
+                e.target.value = new Intl.NumberFormat('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(floatValue);
+            });
+        }
+
+        // Máscara para valor de renovação
+        if (renovacaoMask && renovacaoReal && !renovacaoMask.dataset.maskInitialized) {
+            renovacaoMask.dataset.maskInitialized = 'true';
+            renovacaoMask.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value === '') {
+                    renovacaoReal.value = '';
+                    e.target.value = '';
+                    return;
+                }
+                const floatValue = (parseInt(value) / 100).toFixed(2);
+                renovacaoReal.value = floatValue;
+                e.target.value = new Intl.NumberFormat('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(floatValue);
+            });
+        }
+    }
+
+    // Submeter formulário de edição de VPS
+    async function submitEditVps(event, vpsId) {
+        event.preventDefault();
+
+        const form = document.getElementById(`editVpsForm-${vpsId}`);
+        const modal = document.getElementById(`editVpsModal-${vpsId}`);
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        // Coletar dados do formulário
+        const formData = {
+            vps_id: vpsId,
+            valor: document.getElementById(`edit_valor_real_${vpsId}`).value,
+            valor_renovacao: document.getElementById(`edit_valor_renovacao_real_${vpsId}`).value || null,
+            data_contratacao: form.querySelector('[name="data_contratacao"]').value,
+            periodo_dias: form.querySelector('[name="periodo_dias"]').value,
+            hospedagem: form.querySelector('[name="hospedagem"]').value,
+            status: form.querySelector('[name="status"]').value
+        };
+
+        // Desabilitar botão durante o envio
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+        try {
+            const response = await fetch('{{ route("vps.atualizar") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast('VPS atualizada com sucesso!', 'success');
+
+                // Fechar modal
+                modal.classList.add('hidden');
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+
+                // Recarregar página após 1s para atualizar os dados
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast(data.error || 'Erro ao atualizar VPS', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar VPS:', error);
+            showToast('Erro ao conectar com o servidor', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
+        }
+    }
 </script>
 
 <style>

@@ -6,7 +6,8 @@
       "Bash(composer show:*)",
       "Bash(php:*)",
       "Bash(curl:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(composer require:*)"
     ],
     "deny": [],
     "ask": []

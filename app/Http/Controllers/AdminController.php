@@ -43,6 +43,7 @@ class AdminController extends Controller
             'usuario_ssh' => 'required|string|max:255',
             'senha_ssh' => 'required|string',
             'valor' => 'required|numeric|min:0',
+            'valor_renovacao' => 'nullable|numeric|min:0',
             'pais' => 'required|string|in:Brasil,Estados Unidos,Reino Unido,Alemanha,França,Itália,Espanha,Portugal,Canadá,Austrália',
             'hospedagem' => 'required|string|max:255',
             'periodo_dias' => 'required|integer|in:30,60,90,180',
@@ -59,6 +60,8 @@ class AdminController extends Controller
             'valor.required' => 'O valor da VPS é obrigatório.',
             'valor.numeric' => 'O valor deve ser um número.',
             'valor.min' => 'O valor deve ser maior ou igual a zero.',
+            'valor_renovacao.numeric' => 'O valor de renovação deve ser um número.',
+            'valor_renovacao.min' => 'O valor de renovação deve ser maior ou igual a zero.',
             'pais.required' => 'O país é obrigatório.',
             'pais.in' => 'País selecionado é inválido.',
             'hospedagem.required' => 'A hospedagem é obrigatória.',
@@ -78,6 +81,7 @@ class AdminController extends Controller
             'usuario_ssh' => $validated['usuario_ssh'],
             'senha_ssh' => $validated['senha_ssh'],
             'valor' => $validated['valor'],
+            'valor_renovacao' => $validated['valor_renovacao'],
             'pais' => $validated['pais'],
             'hospedagem' => $validated['hospedagem'],
             'periodo_dias' => $validated['periodo_dias'],
@@ -703,6 +707,98 @@ class AdminController extends Controller
     public function usuarios(Request $request)
     {
         return redirect()->route('dash.show', ['section' => $request->query('section', 'admin-usuarios')]);
+    }
+
+    /**
+     * Atualizar dados da VPS
+     */
+    public function atualizarVps(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'vps_id' => 'required|exists:vps,id',
+                'valor' => 'required|numeric|min:0',
+                'valor_renovacao' => 'nullable|numeric|min:0',
+                'data_contratacao' => 'required|date',
+                'periodo_dias' => 'required|integer|in:30,60,90,180',
+                'hospedagem' => 'required|string|max:255',
+                'status' => 'required|string|in:Operacional,Desabilitada,Excluída',
+            ], [
+                'vps_id.required' => 'ID da VPS é obrigatório.',
+                'vps_id.exists' => 'VPS não encontrada.',
+                'valor.required' => 'O valor da VPS é obrigatório.',
+                'valor.numeric' => 'O valor deve ser um número.',
+                'valor.min' => 'O valor deve ser maior ou igual a zero.',
+                'valor_renovacao.numeric' => 'O valor de renovação deve ser um número.',
+                'valor_renovacao.min' => 'O valor de renovação deve ser maior ou igual a zero.',
+                'data_contratacao.required' => 'A data de contratação é obrigatória.',
+                'data_contratacao.date' => 'A data informada não é válida.',
+                'periodo_dias.required' => 'O período contratado é obrigatório.',
+                'periodo_dias.in' => 'Período selecionado é inválido.',
+                'hospedagem.required' => 'A hospedagem é obrigatória.',
+                'status.required' => 'O status é obrigatório.',
+                'status.in' => 'Status inválido.',
+            ]);
+
+            $vps = Vps::findOrFail($validated['vps_id']);
+
+            // Armazenar valores antigos para log
+            $dadosAntigos = [
+                'valor' => $vps->valor,
+                'valor_renovacao' => $vps->valor_renovacao,
+                'data_contratacao' => $vps->data_contratacao,
+                'periodo_dias' => $vps->periodo_dias,
+                'hospedagem' => $vps->hospedagem,
+                'status' => $vps->status,
+            ];
+
+            // Atualizar VPS
+            $vps->update([
+                'valor' => $validated['valor'],
+                'valor_renovacao' => $validated['valor_renovacao'],
+                'data_contratacao' => $validated['data_contratacao'],
+                'periodo_dias' => $validated['periodo_dias'],
+                'hospedagem' => $validated['hospedagem'],
+                'status' => $validated['status'],
+            ]);
+
+            Log::info('VPS atualizada', [
+                'vps_id' => $vps->id,
+                'apelido' => $vps->apelido,
+                'dados_antigos' => $dadosAntigos,
+                'dados_novos' => [
+                    'valor' => $validated['valor'],
+                    'valor_renovacao' => $validated['valor_renovacao'],
+                    'data_contratacao' => $validated['data_contratacao'],
+                    'periodo_dias' => $validated['periodo_dias'],
+                    'hospedagem' => $validated['hospedagem'],
+                    'status' => $validated['status'],
+                ],
+                'atualizado_por' => Auth::id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'VPS atualizada com sucesso!',
+                'vps' => $vps->fresh(),
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->validator->errors()->first(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Erro ao atualizar VPS', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao atualizar VPS: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
 }

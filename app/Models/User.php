@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'cpf',
+        'phone',
         'password',
         'username',
         'saldo',
@@ -147,7 +148,7 @@ public function getPrecoBase($periodo)
         $precosPromocao = [
             30 => 15.00,
             60 => 26.00,
-            90 => 33.00,
+            90 => 35.00,
             180 => 60.00,
             360 => 90.00,
         ];

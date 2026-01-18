@@ -51,10 +51,12 @@ Route::middleware(['auth', CheckUserStatus::class])->group(function () {
     Route::get('/perfil', [LogadoController::class, 'perfil'])->name('perfil.show');
     Route::post('/perfil/atualizar', [LogadoController::class, 'atualizarPerfil'])->name('perfil.atualizar');
     Route::post('/perfil/alterar-senha', [LogadoController::class, 'alterarSenha'])->name('perfil.senha');
+    Route::post('/perfil/salvar-dados', [LogadoController::class, 'salvarDadosIniciais'])->name('perfil.salvar-dados');
 
     // Ordens / Proxies Ativos
     Route::get('/proxies', [LogadoController::class, 'proxies'])->name('proxies.show');
     Route::post('/proxies/renovar', [LogadoController::class, 'renovarProxy'])->name('proxies.renovar');
+    Route::post('/proxies/renovar-pix', [LogadoController::class, 'processarRenovacao'])->name('proxies.renovar-pix');
     Route::post('/proxies/exportar', [LogadoController::class, 'exportarProxies'])->name('proxies.exportar');
 
     // Nova Compra
@@ -114,6 +116,9 @@ Route::middleware(AdminMiddleware::class)->group(function () {
 
     // Atualizar país da VPS
     Route::post('/admin/vps/atualizar-pais', [AdminController::class, 'atualizarPaisVps'])->name('vps.atualizar-pais');
+
+    // Atualizar dados da VPS
+    Route::post('/admin/vps/atualizar', [AdminController::class, 'atualizarVps'])->name('vps.atualizar');
 
     // Atualizar cargo do usuário
     Route::patch('/admin/usuarios/{id}/cargo', [AdminController::class, 'atualizarCargo'])->name('usuarios.atualizar-cargo');

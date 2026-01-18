@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Cartao;
 use App\Models\Despesa;
 use App\Services\ProxyAllocationService;
+use App\Services\AsaasService;
 use App\Services\AbacatePayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -101,10 +102,16 @@ class LogadoController extends Controller
                     'pais' => $vps->pais,
                     'hospedagem' => $vps->hospedagem,
                     'valor' => 'R$ ' . number_format($vps->valor, 2, ',', '.'),
+                    'valor_raw' => $vps->valor, // Valor numérico para edição
+                    'valor_renovacao' => $vps->valor_renovacao, // Valor de renovação para edição
                     'periodo' => $vps->periodo_dias . ' dias',
+                    'periodo_dias' => $vps->periodo_dias, // Período em dias para edição
                     'contratada' => $vps->data_contratacao->format('d/m/Y'),
+                    'data_contratacao' => $vps->data_contratacao, // Data Carbon para edição
                     'status' => $vps->status,
                     'proxies' => $vps->proxies,
+                    'usuario_ssh' => $vps->usuario_ssh,
+                    'senha_ssh' => $vps->senha_ssh,
                 ];
             });
 
@@ -213,15 +220,25 @@ class LogadoController extends Controller
 
             // ===== EXTRATO DE SAÍDAS (Últimas 25 despesas) =====
             $saidas = Despesa::with('vps')
-                ->orderBy('created_at', 'desc')
+                ->orderBy('data_vencimento', 'desc')
                 ->limit(25)
                 ->get()
                 ->map(function ($despesa) {
+                    $tipoLabel = match ($despesa->tipo) {
+                        'compra' => 'Compra VPS',
+                        'cobranca' => 'Cobrança',
+                        'renovacao' => 'Renovação',
+                        default => ucfirst($despesa->tipo),
+                    };
+
                     return [
                         'descricao' => $despesa->descricao ?? 'VPS ' . ($despesa->vps->apelido ?? 'N/A'),
-                        'categoria' => ucfirst($despesa->tipo),
-                        'data' => $despesa->created_at->format('d/m/Y'),
+                        'categoria' => $tipoLabel,
+                        'tipo' => $despesa->tipo,
+                        'data' => $despesa->data_vencimento ? $despesa->data_vencimento->format('d/m/Y') : $despesa->created_at->format('d/m/Y'),
                         'valor' => '- R$ ' . number_format((float) $despesa->valor, 2, ',', '.'),
+                        'status' => $despesa->status,
+                        'vps_apelido' => $despesa->vps->apelido ?? 'N/A',
                     ];
                 });
 
@@ -289,7 +306,9 @@ class LogadoController extends Controller
                 ->where('uso_interno', false)
                 ->count();
             $precoMedio = array_sum($precosPorPeriodo) / count($precosPorPeriodo);
+
             $potencialVenda = $proxiesDisponiveis * $precoMedio;
+
 
             $forecast = [
                 [
@@ -373,6 +392,30 @@ class LogadoController extends Controller
                         ->where('disponibilidade', false)
                         ->count();
 
+                    // Busca transações pagas por esse user, ordenadas por data decrescente
+                    $transactions = Transaction::where('user_id', $proxy->user_id)
+                        ->where('tipo', 'compra_proxy')
+                        ->where('status', 1)
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+
+                    // Acha a transação mais próxima por tempo
+                    $matchedTransaction = $transactions->first(function ($txn) use ($proxy) {
+                        return abs(strtotime($txn->created_at) - strtotime($proxy->updated_at)) < 120; // 2 minutos de tolerância
+                    });
+
+                    $metadata = [];
+
+                    if ($matchedTransaction) {
+                        $metaRaw = $matchedTransaction->metadata;
+
+                        if (is_string($metaRaw)) {
+                            $metadata = json_decode($metaRaw, true);
+                        } elseif (is_array($metaRaw)) {
+                            $metadata = $metaRaw; // já é array, não decodifica de novo
+                        }
+                    }
+
                     return [
                         'id' => $proxy->id,
                         'stock_id' => $proxy->id,
@@ -388,12 +431,18 @@ class LogadoController extends Controller
                         'periodo' => $diasRestantes > 0 ? $diasRestantes . ' dias' : 'Expirado',
                         'gasto_cliente' => 'R$ ' . number_format($gastoCliente, 2, ',', '.'),
                         'pedidos' => $pedidos,
+
+                        // Novo: dados da transação associada
+                        'valor_unitario' => $metadata['valor_unitario'] ?? null,
+                        'periodo_comprado' => $metadata['periodo'] ?? null,
+                        'motivo' => $metadata['motivo'] ?? null,
                     ];
+
                 })->toArray();
         }
 
         // Buscar proxies do usuário agrupados por tipo
-        $stocks = Stock::where('user_id', Auth::id())->orderBy('updated_at', 'desc')->get();
+        $stocks = Stock::where('user_id', Auth::id())->orderBy('id', 'desc')->get();
 
         $proxyGroups = [
             'SOCKS5' => [],
@@ -531,6 +580,34 @@ class LogadoController extends Controller
             ->with('perfil_success', 'Senha alterada com sucesso!');
     }
 
+    /**
+     * Salvar dados iniciais (CPF e Telefone) - Modal de boas-vindas
+     */
+    public function salvarDadosIniciais(Request $request)
+    {
+        $request->validate([
+            'cpf' => 'required|string|min:11|max:18',
+            'phone' => 'required|string|min:10|max:20',
+        ]);
+
+        $usuario = User::find(Auth::id());
+
+        // Remover formatacao do CPF (manter apenas numeros)
+        $cpf = preg_replace('/\D/', '', $request->cpf);
+
+        // Remover formatacao do telefone (manter apenas numeros)
+        $phone = preg_replace('/\D/', '', $request->phone);
+
+        $usuario->cpf = $cpf;
+        $usuario->phone = $phone;
+        $usuario->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Dados salvos com sucesso!'
+        ]);
+    }
+
     // Proxies Ativos
     public function proxies()
     {
@@ -539,18 +616,38 @@ class LogadoController extends Controller
 
     public function renovarProxy(Request $request)
     {
+        $request->validate([
+            'proxy_id' => 'required|exists:stocks,id',
+            'auto_renew' => 'required|boolean',
+        ]);
+
         $stock = Stock::where('id', $request->proxy_id)
             ->where('user_id', Auth::id())
             ->first();
 
         if (!$stock) {
-            return back()->withErrors(['error' => 'Proxy não encontrado.']);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Proxy nao encontrado.',
+                ], 404);
+            }
+
+            return back()->withErrors(['error' => 'Proxy nao encontrado.']);
         }
 
-        $stock->renovacao_automatica = $request->auto_renew;
+        $autoRenew = filter_var($request->auto_renew, FILTER_VALIDATE_BOOLEAN);
+        $stock->renovacao_automatica = $autoRenew;
         $stock->save();
 
-        return back()->with('success', 'Configuração de renovação atualizada!');
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'auto_renew' => $stock->renovacao_automatica,
+            ]);
+        }
+
+        return back()->with('success', 'Configuracao de renovacao atualizada!');
     }
 
     public function exportarProxies(Request $request)
@@ -583,7 +680,7 @@ class LogadoController extends Controller
         return redirect()->route('dash.show', ['section' => 'nova-compra']);
     }
 
-    public function processarCompra(Request $request, ProxyAllocationService $proxyService, AbacatePayService $abacatePay)
+    public function processarCompra(Request $request, ProxyAllocationService $proxyService, AsaasService $asaas, AbacatePayService $abacatePay)
     {
         $request->validateWithBag('novaCompra', [
             'pais' => 'required',
@@ -628,9 +725,10 @@ class LogadoController extends Controller
                 ],
             ]);
 
-            // Se for Cartão de Crédito, processar via Aprovei
+            // Se for Cartão de Crédito, processar via Stripe
             if ($request->metodo_pagamento === 'credit_card') {
-                $aproveiService = app(\App\Services\AproveiService::class);
+                $stripeService = app(\App\Services\StripeService::class);
+                $isAjax = $request->ajax() || $request->wantsJson();
 
                 // Buscar o cartão
                 $cartao = Cartao::where('id', $request->card_id)
@@ -639,6 +737,12 @@ class LogadoController extends Controller
 
                 if (!$cartao) {
                     DB::rollBack();
+                    if ($isAjax) {
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'Cartão não encontrado',
+                        ], 400);
+                    }
                     return back()
                         ->withErrors(['card_id' => 'Cartão não encontrado'], 'novaCompra')
                         ->withInput();
@@ -650,44 +754,45 @@ class LogadoController extends Controller
                 $transacao->save();
 
                 try {
-                    $valorEmCentavos = app()->environment('local')
-                        ? 100
-                        : (int) ($valorTotal * 100);
-                    $quantidade = (int) $request->quantidade;
-                    $quantidade = $quantidade > 0 ? $quantidade : 1;
-                    $unitPriceEmCentavos = (int) floor($valorEmCentavos / $quantidade);
+                    $valorEmCentavos = (int) ($valorTotal * 100);
 
-                    // Montar payload para Aprovei
-                    $payload = $aproveiService->buildCreditCardPayload(
-                        amountInCents: $valorEmCentavos,
-                        cardToken: $cartao->token_gateway1,
-                        installments: $request->installments ?? 1,
-                        customer: $aproveiService->formatCustomer($usuario),
-                        items: [$aproveiService->formatProxyItem($quantidade, $unitPriceEmCentavos, $request->periodo, $request->pais)],
-                        externalRef: $transacao->transacao,
-                        postbackUrl: route('postback.transacao'),
-                        ip: $request->ip()
-                    );
-
-                    // Criar transação no Aprovei
-                    $result = $aproveiService->createCreditCardTransaction($payload);
+                    // Processar cobrança via Stripe
+                    $result = $stripeService->charge([
+                        'amount' => $valorEmCentavos,
+                        'payment_method_id' => $cartao->token_gateway1,
+                        'customer' => $stripeService->formatCustomer($usuario),
+                        'description' => sprintf('%d Proxy(s) %s - %d dias', $request->quantidade, $request->pais, $request->periodo),
+                        'metadata' => [
+                            'transaction_id' => $transacao->transacao,
+                            'user_id' => Auth::id(),
+                            'quantidade' => $request->quantidade,
+                            'periodo' => $request->periodo,
+                            'pais' => $request->pais,
+                        ],
+                    ]);
 
                     if (!$result['success']) {
                         DB::rollBack();
+                        if ($isAjax) {
+                            return response()->json([
+                                'success' => false,
+                                'error' => $result['error'],
+                            ], 400);
+                        }
                         return back()
                             ->withErrors(['pagamento' => $result['error']], 'novaCompra')
                             ->withInput();
                     }
 
-                    $aproveiData = $result['data'];
+                    $stripeData = $result['data'];
 
                     // Atualizar transação com ID do gateway
                     $transacao->update([
-                        'gateway_transaction_id' => $aproveiData['id'],
+                        'gateway_transaction_id' => $stripeData['id'],
                     ]);
 
                     // Verificar se já foi aprovado
-                    if (in_array($aproveiData['status'], ['paid', 'approved'])) {
+                    if ($stripeData['status'] === 'paid') {
                         $transacao->update(['status' => 1]);
 
                         // Alocar proxies imediatamente
@@ -700,6 +805,14 @@ class LogadoController extends Controller
 
                         DB::commit();
 
+                        if ($isAjax) {
+                            return response()->json([
+                                'success' => true,
+                                'message' => sprintf('Pagamento aprovado! %d proxies alocados.', count($proxiesAlocados)),
+                                'redirect' => route('dash.show', ['section' => 'proxies']),
+                            ]);
+                        }
+
                         return redirect()
                             ->route('dash.show', ['section' => 'proxies'])
                             ->with('proxies_success', sprintf(
@@ -708,77 +821,148 @@ class LogadoController extends Controller
                             ));
                     }
 
-                    // Se pendente, retornar com mensagem de aguardando
+                    // Se pendente ou requer ação, retornar com mensagem
                     DB::commit();
+
+                    if ($isAjax) {
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Pagamento processado! Aguardando confirmação.',
+                            'redirect' => route('dash.show', ['section' => 'transacoes']),
+                        ]);
+                    }
 
                     return redirect()
                         ->route('dash.show', ['section' => 'transacoes'])
-                        ->with('success', 'Pagamento processado! Aguardando confirmação do gateway.');
+                        ->with('success', 'Pagamento processado! Aguardando confirmação.');
 
                 } catch (\Exception $e) {
                     DB::rollBack();
+                    if ($isAjax) {
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'Erro ao processar pagamento: ' . $e->getMessage(),
+                        ], 500);
+                    }
                     return back()
                         ->withErrors(['error' => 'Erro ao processar pagamento: ' . $e->getMessage()], 'novaCompra')
                         ->withInput();
                 }
             }
 
-            // Se for PIX, criar QR Code via AbacatePay
+            // Se for PIX, criar QR Code (Asaas como primário, AbacatePay como fallback)
             if ($request->metodo_pagamento === 'pix') {
-                try {
-                    $pixData = $abacatePay->createPix([
-                        'amount' => (int) ($valorTotal * 100), // Converter para centavos
-                        'expiresIn' => 1800, // 30 minutos em segundos
-                        'description' => sprintf('%d Proxy(s) %s - %d dias', $request->quantidade, $request->pais, $request->periodo),
-                        'customer' => [
-                            'name' => $usuario->name,
-                            'cellphone' => $usuario->phone ?? '(00) 00000-0000',
-                            'email' => $usuario->email,
-                            'taxId' => $usuario->cpf ?? '293.235.470-18',
-                        ],
-                        'metadata' => [
-                            'externalId' => $transacao->transacao,
-                            'user_id' => Auth::id(),
-                            'tipo' => 'compra_proxy',
-                        ],
-                    ]);
+                $isAjax = $request->ajax() || $request->wantsJson();
 
-                    // Atualizar transação com dados do AbacatePay
-                    $metadata = $transacao->metadata;
-                    $metadata['abacatepay'] = [
-                        'pix_id' => $pixData['id'],
-                        'dev_mode' => $pixData['devMode'] ?? false,
-                        'expires_at' => $pixData['expiresAt'],
-                    ];
-                    $transacao->metadata = $metadata;
-                    $transacao->save();
+                $pixPayload = [
+                    'amount' => (int) ($valorTotal * 100), // Converter para centavos
+                    'expiresIn' => 1800, // 30 minutos em segundos
+                    'description' => sprintf('%d Proxy(s) %s - %d dias', $request->quantidade, $request->pais, $request->periodo),
+                    'customer' => [
+                        'name' => $usuario->name,
+                        'cellphone' => $usuario->phone ?? '',
+                        'email' => $usuario->email,
+                        'taxId' => $usuario->cpf ?? '', // Asaas exige CPF válido, AbacatePay aceita vazio
+                    ],
+                    'metadata' => [
+                        'externalId' => $transacao->transacao,
+                        'user_id' => Auth::id(),
+                        'tipo' => 'compra_proxy',
+                    ],
+                ];
 
-                    DB::commit();
+                $pixData = null;
+                $usedGateway = null;
+                $lastError = null;
 
-                    // Calcular timestamp de expiração
-                    $expiresAt = \Carbon\Carbon::parse($pixData['expiresAt']);
-
-                    // Retornar para dashboard com modal PIX
-                    return redirect()
-                        ->route('dash.show', ['section' => 'nova-compra'])
-                        ->with('pix_modal', [
-                            'transaction_id' => $transacao->id,
-                            'transaction_code' => $transacao->transacao,
-                            'pix_id' => $pixData['id'],
-                            'valor' => $valorTotal,
-                            'copia_e_cola' => $pixData['brCode'],
-                            'qr_code_base64' => $pixData['brCodeBase64'],
-                            'expira_em' => $expiresAt->format('d/m/Y H:i'),
-                            'expira_timestamp' => $expiresAt->timestamp,
-                            'dev_mode' => $pixData['devMode'] ?? false,
-                        ]);
-
-                } catch (\Exception $e) {
-                    DB::rollBack();
-                    return back()
-                        ->withErrors(['error' => 'Erro ao gerar PIX: ' . $e->getMessage()], 'novaCompra')
-                        ->withInput();
+                // Tentar Asaas primeiro
+                if ($asaas->isConfigured()) {
+                    try {
+                        $pixData = $asaas->createPix($pixPayload);
+                        $usedGateway = 'asaas';
+                        \Log::info('PIX criado via Asaas', ['pix_id' => $pixData['id']]);
+                    } catch (\Exception $e) {
+                        $lastError = $e->getMessage();
+                        \Log::warning('Asaas falhou, tentando AbacatePay', ['error' => $e->getMessage()]);
+                    }
                 }
+
+                // Fallback para AbacatePay se Asaas falhar ou não estiver configurado
+                if (!$pixData) {
+                    try {
+                        // AbacatePay pode ter requisitos diferentes - garantir taxId válido
+                        $abacatePayload = $pixPayload;
+                        if (empty($abacatePayload['customer']['taxId'])) {
+                            // AbacatePay pode exigir CPF, usar placeholder se não disponível
+                            $abacatePayload['customer']['taxId'] = '00000000000';
+                        }
+                        if (empty($abacatePayload['customer']['cellphone'])) {
+                            $abacatePayload['customer']['cellphone'] = '00000000000';
+                        }
+
+                        $pixData = $abacatePay->createPix($abacatePayload);
+                        $usedGateway = 'abacatepay';
+                        \Log::info('PIX criado via AbacatePay (fallback)', ['pix_id' => $pixData['id']]);
+                    } catch (\Exception $e) {
+                        DB::rollBack();
+                        $errorMsg = $lastError
+                            ? "Asaas: {$lastError} | AbacatePay: {$e->getMessage()}"
+                            : $e->getMessage();
+
+                        if ($isAjax) {
+                            return response()->json([
+                                'success' => false,
+                                'error' => 'Erro ao gerar PIX: ' . $errorMsg,
+                            ], 500);
+                        }
+                        return back()
+                            ->withErrors(['error' => 'Erro ao gerar PIX: ' . $errorMsg], 'novaCompra')
+                            ->withInput();
+                    }
+                }
+
+                // Atualizar transação com dados do gateway usado
+                $metadata = $transacao->metadata;
+                $metadata['pix_gateway'] = $usedGateway;
+                $metadata[$usedGateway] = [
+                    'pix_id' => $pixData['id'],
+                    'dev_mode' => $pixData['devMode'] ?? false,
+                    'expires_at' => $pixData['expiresAt'],
+                ];
+                $transacao->metadata = $metadata;
+                $transacao->save();
+
+                DB::commit();
+
+                // Calcular timestamp de expiração
+                $expiresAt = \Carbon\Carbon::parse($pixData['expiresAt']);
+
+                $pixModalData = [
+                    'transaction_id' => $transacao->id,
+                    'transaction_code' => $transacao->transacao,
+                    'pix_id' => $pixData['id'],
+                    'valor' => $valorTotal,
+                    'copia_e_cola' => $pixData['brCode'],
+                    'qr_code_base64' => $pixData['brCodeBase64'],
+                    'expira_em' => $expiresAt->format('d/m/Y H:i'),
+                    'expira_timestamp' => $expiresAt->timestamp,
+                    'dev_mode' => $pixData['devMode'] ?? false,
+                    'gateway' => $usedGateway,
+                ];
+
+                // Se for AJAX, retornar JSON
+                if ($isAjax) {
+                    return response()->json([
+                        'success' => true,
+                        'pix_modal' => $pixModalData,
+                        'redirect' => route('dash.show', ['section' => 'nova-compra']),
+                    ]);
+                }
+
+                // Retornar para dashboard com modal PIX
+                return redirect()
+                    ->route('dash.show', ['section' => 'nova-compra'])
+                    ->with('pix_modal', $pixModalData);
             }
 
             // Para outros métodos de pagamento, manter simulação por enquanto
@@ -810,6 +994,160 @@ class LogadoController extends Controller
                 ->withInput();
         }
     }
+
+    /**
+     * Processar renovação de proxy via PIX
+     */
+    public function processarRenovacao(Request $request, AsaasService $asaas, AbacatePayService $abacatePay)
+    {
+        // Validar dados de entrada
+        $validated = $request->validate([
+            'proxy_id' => 'required|exists:stocks,id',
+            'periodo' => 'required|integer|in:30,60,90,180,360',
+        ]);
+
+        $usuario = User::find(Auth::id());
+        $renewalService = app(\App\Services\ProxyRenewalService::class);
+
+        try {
+            // Buscar proxy
+            $proxy = Stock::with('vps')->findOrFail($validated['proxy_id']);
+
+            // Verificar se proxy pertence ao usuário
+            if (!$renewalService->canRenewProxy($proxy, $usuario)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Você não tem permissão para renovar este proxy.',
+                ], 403);
+            }
+
+            // Calcular valor e nova data de expiração
+            $valorTotal = $renewalService->calculateRenewalPrice($usuario, $validated['periodo']);
+            $novaExpiracao = $renewalService->calculateNewExpiration($proxy, $validated['periodo']);
+
+            DB::beginTransaction();
+
+            // Criar transação de renovação
+            $transacao = Transaction::create([
+                'user_id' => Auth::id(),
+                'email' => $usuario->email,
+                'transacao' => 'REN-' . strtoupper(uniqid()),
+                'valor' => $valorTotal,
+                'status' => 0, // Pendente
+                'metodo_pagamento' => 'pix',
+                'tipo' => 'renovacao',
+                'metadata' => [
+                    'proxy_id' => $proxy->id,
+                    'proxy_ip' => $proxy->ip,
+                    'proxy_porta' => $proxy->porta,
+                    'periodo_adicional' => $validated['periodo'],
+                    'expiracao_anterior' => $proxy->expiracao,
+                    'expiracao_nova' => $novaExpiracao->format('Y-m-d H:i:s'),
+                    'estava_bloqueado' => $proxy->bloqueada,
+                ],
+            ]);
+
+            // Criar PIX (Asaas como primário, AbacatePay como fallback)
+            $pixPayload = [
+                'amount' => (int) ($valorTotal * 100), // Converter para centavos
+                'expiresIn' => 1800, // 30 minutos
+                'description' => sprintf('Renovação Proxy %s:%s - %d dias', $proxy->ip, $proxy->porta, $validated['periodo']),
+                'customer' => [
+                    'name' => $usuario->name,
+                    'cellphone' => $usuario->phone ?? '',
+                    'email' => $usuario->email,
+                    'taxId' => $usuario->cpf ?? '', // Asaas exige CPF válido, AbacatePay aceita vazio
+                ],
+                'metadata' => [
+                    'externalId' => $transacao->transacao,
+                    'user_id' => Auth::id(),
+                    'tipo' => 'renovacao',
+                    'proxy_id' => $proxy->id,
+                ],
+            ];
+
+            $pixData = null;
+            $usedGateway = null;
+            $lastError = null;
+
+            // Tentar Asaas primeiro
+            if ($asaas->isConfigured()) {
+                try {
+                    $pixData = $asaas->createPix($pixPayload);
+                    $usedGateway = 'asaas';
+                    \Log::info('PIX renovação criado via Asaas', ['pix_id' => $pixData['id']]);
+                } catch (\Exception $e) {
+                    $lastError = $e->getMessage();
+                    \Log::warning('Asaas falhou na renovação, tentando AbacatePay', ['error' => $e->getMessage()]);
+                }
+            }
+
+            // Fallback para AbacatePay se Asaas falhar ou não estiver configurado
+            if (!$pixData) {
+                // AbacatePay pode ter requisitos diferentes - garantir taxId válido
+                $abacatePayload = $pixPayload;
+                if (empty($abacatePayload['customer']['taxId'])) {
+                    $abacatePayload['customer']['taxId'] = '00000000000';
+                }
+                if (empty($abacatePayload['customer']['cellphone'])) {
+                    $abacatePayload['customer']['cellphone'] = '00000000000';
+                }
+
+                $pixData = $abacatePay->createPix($abacatePayload);
+                $usedGateway = 'abacatepay';
+                \Log::info('PIX renovação criado via AbacatePay (fallback)', ['pix_id' => $pixData['id']]);
+            }
+
+            // Atualizar transação com dados do gateway usado
+            $metadata = $transacao->metadata;
+            $metadata['pix_gateway'] = $usedGateway;
+            $metadata[$usedGateway] = [
+                'pix_id' => $pixData['id'],
+                'dev_mode' => $pixData['devMode'] ?? false,
+                'expires_at' => $pixData['expiresAt'],
+            ];
+            $transacao->metadata = $metadata;
+            $transacao->save();
+
+            DB::commit();
+
+            // Calcular timestamp de expiração
+            $expiresAt = \Carbon\Carbon::parse($pixData['expiresAt']);
+
+            // Retornar sucesso com redirecionamento para modal PIX
+            return response()->json([
+                'success' => true,
+                'redirect' => route('dash.show', ['section' => 'proxies']),
+                'pix_modal' => [
+                    'transaction_id' => $transacao->id,
+                    'transaction_code' => $transacao->transacao,
+                    'pix_id' => $pixData['id'],
+                    'valor' => $valorTotal,
+                    'copia_e_cola' => $pixData['brCode'],
+                    'qr_code_base64' => $pixData['brCodeBase64'],
+                    'expira_em' => $expiresAt->format('d/m/Y H:i'),
+                    'expira_timestamp' => $expiresAt->timestamp,
+                    'dev_mode' => $pixData['devMode'] ?? false,
+                    'gateway' => $usedGateway,
+                ],
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            \Log::error('Erro ao processar renovação', [
+                'user_id' => Auth::id(),
+                'proxy_id' => $validated['proxy_id'],
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao processar renovação: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function dashboard()
     {
         $usuario = User::where('id', Auth::id())->first();
@@ -1025,3 +1363,4 @@ class LogadoController extends Controller
     }
 
 }
+

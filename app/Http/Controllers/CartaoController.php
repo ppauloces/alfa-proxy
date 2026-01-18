@@ -29,11 +29,11 @@ class CartaoController extends Controller
         // Debug: Log dos dados recebidos
         Log::info('Tentativa de salvar cartão', [
             'user_id' => Auth::id(),
-            'has_token' => $request->has('card_token'),
+            'has_payment_method' => $request->has('payment_method_id'),
         ]);
 
         $request->validate([
-            'card_token' => 'required|string',
+            'payment_method_id' => 'required|string',
             'last4' => 'required|string|size:4',
             'brand' => 'required|string',
             'exp_month' => 'required|integer|min:1|max:12',
@@ -77,7 +77,7 @@ class CartaoController extends Controller
             // Se for o primeiro cartão, torná-lo padrão automaticamente
             $isPrimeiro = $totalCartoes === 0;
 
-            // Criar cartão com o token do Aprovei
+            // Criar cartão com o PaymentMethod do Stripe
             $cartao = Cartao::create([
                 'user_id' => Auth::id(),
                 'bandeira' => strtolower($request->brand),
@@ -86,8 +86,8 @@ class CartaoController extends Controller
                 'ano_expiracao' => $request->exp_year,
                 'nome_titular' => strtoupper($request->holder_name),
                 'cpf' => $request->cpf,
-                'gateway' => 'aprovei',
-                'token_gateway1' => $request->card_token, // Token do Aprovei
+                'gateway' => 'stripe',
+                'token_gateway1' => $request->payment_method_id, // PaymentMethod ID do Stripe
                 'token_gateway2' => null,
                 'is_default' => $request->is_default || $isPrimeiro,
             ]);
@@ -98,7 +98,7 @@ class CartaoController extends Controller
                 'user_id' => Auth::id(),
                 'cartao_id' => $cartao->id,
                 'bandeira' => $request->brand,
-                'gateway' => 'aprovei',
+                'gateway' => 'stripe',
             ]);
 
             return response()->json([

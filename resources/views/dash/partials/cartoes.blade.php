@@ -147,15 +147,9 @@
             <!-- Formulário -->
             <div class="space-y-4">
                 <div class="form-group">
-                    <label for="card-number" class="form-label">Número do Cartão</label>
-                    <input type="text"
-                           id="card-number"
-                           name="card-number"
-                           class="form-input"
-                           placeholder="0000 0000 0000 0000"
-                           autocomplete="off"
-                           maxlength="19"
-                           required>
+                    <label for="card-element" class="form-label">Dados do Cartão</label>
+                    <div id="card-element" class="form-input p-4 min-h-[50px]"></div>
+                    <div id="card-errors" class="text-red-500 text-sm mt-2" role="alert"></div>
                 </div>
 
                 <div class="form-group">
@@ -181,31 +175,6 @@
                            required>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="form-group">
-                        <label for="card-expiry" class="form-label">Validade (MM/AA)</label>
-                        <input type="text"
-                               id="card-expiry"
-                               name="card-expiry"
-                               class="form-input"
-                               placeholder="MM/AA"
-                               autocomplete="off"
-                               required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="card-cvc" class="form-label">CVV</label>
-                        <input type="text"
-                               id="card-cvc"
-                               name="card-cvc"
-                               class="form-input"
-                               placeholder="123"
-                               autocomplete="off"
-                               maxlength="4"
-                               required>
-                    </div>
-                </div>
-
                 <div class="form-group">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="is_default" id="is_default" class="w-4 h-4 text-[#23366f] rounded" @if(count($savedCards) == 0) checked @endif>
@@ -226,49 +195,139 @@
     </div>
 </div>
 
-<!-- Aprovei SDK -->
-<script src="https://api.aproveipay.com.br/v1/js"></script>
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
 
 <style>
 #card-wrapper {
-    height: 250px;
+    height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.jp-card-container {
-    margin: 0 auto !important;
+/* Card Visual Preview */
+.card-preview {
+    width: 350px;
+    height: 200px;
+    background: linear-gradient(135deg, #23366f 0%, #448ccb 100%);
+    border-radius: 20px;
+    padding: 25px;
+    color: white;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(35, 54, 111, 0.4);
 }
 
-.jp-card {
-    min-width: 350px !important;
-    transform: scale(0.95);
+.card-preview .card-chip {
+    width: 50px;
+    height: 40px;
+    background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.card-preview .card-number {
+    font-size: 22px;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+    font-family: monospace;
+}
+
+.card-preview .card-info {
+    display: flex;
+    justify-content: space-between;
+}
+
+.card-preview .card-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 5px;
+}
+
+.card-preview .card-value {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.card-preview .card-brand {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    font-size: 28px;
+}
+
+/* Stripe Elements Styling */
+#card-element {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    transition: border-color 0.2s;
+}
+
+#card-element:focus-within {
+    border-color: #23366f;
+}
+
+#card-element.StripeElement--focus {
+    border-color: #23366f;
+}
+
+#card-element.StripeElement--invalid {
+    border-color: #ef4444;
 }
 
 @media (max-width: 640px) {
-    .jp-card {
-        min-width: 280px !important;
-        transform: scale(0.8);
+    .card-preview {
+        width: 280px;
+        height: 160px;
+        padding: 20px;
+    }
+
+    .card-preview .card-number {
+        font-size: 16px;
+        letter-spacing: 2px;
     }
 }
 </style>
 
 <script>
-// Inicializar Card.js quando o modal abrir
-let cardInstance = null;
-let aproveiInitialized = false;
+// Stripe Elements
+let stripe = null;
+let cardElement = null;
+let stripeInitialized = false;
 
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', function() {
     const addBtn = document.getElementById('addCardBtn');
     const cardForm = document.getElementById('cardForm');
+    const cardWrapper = document.getElementById('card-wrapper');
 
-    // Inicializar Aprovei SDK
+    // Criar preview do cartão
+    cardWrapper.innerHTML = `
+        <div class="card-preview">
+            <i class="card-brand fab fa-cc-visa"></i>
+            <div class="card-chip"></div>
+            <div class="card-number">•••• •••• •••• ••••</div>
+            <div class="card-info">
+                <div>
+                    <div class="card-label">Nome</div>
+                    <div class="card-value" id="preview-name">NOME COMPLETO</div>
+                </div>
+                <div>
+                    <div class="card-label">Validade</div>
+                    <div class="card-value" id="preview-expiry">••/••</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Inicializar Stripe
     try {
-        await Aprovei.setPublicKey("{{ config('services.aprovei.public_key') }}");
-        aproveiInitialized = true;
+        stripe = Stripe("{{ config('services.stripe.public_key') }}");
+        stripeInitialized = true;
     } catch (error) {
-        console.error('Erro ao inicializar Aprovei SDK:', error);
+        console.error('Erro ao inicializar Stripe:', error);
         alert('Erro ao inicializar sistema de pagamento. Tente novamente mais tarde.');
     }
 
@@ -290,41 +349,80 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
+    // Atualizar preview do nome
+    const nameInput = document.getElementById('card-name');
+    nameInput?.addEventListener('input', function(e) {
+        const previewName = document.getElementById('preview-name');
+        previewName.textContent = e.target.value.toUpperCase() || 'NOME COMPLETO';
+    });
+
     addBtn?.addEventListener('click', function() {
-        // Aguardar o modal aparecer
+        // Aguardar o modal aparecer e inicializar Stripe Elements
         setTimeout(() => {
-            if (!cardInstance) {
-                cardInstance = new Card({
-                    form: '#cardForm',
-                    container: '#card-wrapper',
-                    formSelectors: {
-                        numberInput: '#card-number',
-                        expiryInput: '#card-expiry',
-                        cvcInput: '#card-cvc',
-                        nameInput: '#card-name'
+            if (!cardElement && stripeInitialized) {
+                const elements = stripe.elements({
+                    locale: 'pt-BR'
+                });
+
+                const style = {
+                    base: {
+                        color: '#1e293b',
+                        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, sans-serif',
+                        fontSize: '16px',
+                        fontSmoothing: 'antialiased',
+                        '::placeholder': {
+                            color: '#94a3b8'
+                        }
                     },
-                    width: 350,
-                    formatting: true,
-                    messages: {
-                        validDate: 'valido\nate',
-                        monthYear: 'mm/aa',
-                    },
-                    placeholders: {
-                        number: '•••• •••• •••• ••••',
-                        name: 'Nome Completo',
-                        expiry: '••/••',
-                        cvc: '•••'
+                    invalid: {
+                        color: '#ef4444',
+                        iconColor: '#ef4444'
+                    }
+                };
+
+                cardElement = elements.create('card', {
+                    style: style,
+                    hidePostalCode: true
+                });
+
+                cardElement.mount('#card-element');
+
+                // Atualizar preview e mostrar erros
+                cardElement.on('change', function(event) {
+                    const displayError = document.getElementById('card-errors');
+                    const previewNumber = document.querySelector('.card-preview .card-number');
+                    const previewExpiry = document.getElementById('preview-expiry');
+                    const brandIcon = document.querySelector('.card-preview .card-brand');
+
+                    if (event.error) {
+                        displayError.textContent = event.error.message;
+                    } else {
+                        displayError.textContent = '';
+                    }
+
+                    // Atualizar ícone da bandeira
+                    if (event.brand) {
+                        const brandIcons = {
+                            'visa': 'fab fa-cc-visa',
+                            'mastercard': 'fab fa-cc-mastercard',
+                            'amex': 'fab fa-cc-amex',
+                            'discover': 'fab fa-cc-discover',
+                            'diners': 'fab fa-cc-diners-club',
+                            'jcb': 'fab fa-cc-jcb',
+                            'unknown': 'fas fa-credit-card'
+                        };
+                        brandIcon.className = 'card-brand ' + (brandIcons[event.brand] || brandIcons['unknown']);
                     }
                 });
             }
         }, 100);
     });
 
-    // Submissão do formulário com tokenização
+    // Submissão do formulário com Stripe
     cardForm?.addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        if (!aproveiInitialized) {
+        if (!stripeInitialized || !cardElement) {
             alert('Sistema de pagamento não está pronto. Tente novamente.');
             return;
         }
@@ -335,51 +433,40 @@ document.addEventListener('DOMContentLoaded', async function() {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
 
         try {
-            // Obter dados do formulário
-            const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
             const holderName = document.getElementById('card-name').value;
             const cpf = document.getElementById('card-cpf').value.replace(/\D/g, '');
-            const expiry = document.getElementById('card-expiry').value;
-            const cvv = document.getElementById('card-cvc').value;
             const isDefault = document.getElementById('is_default').checked;
 
-            // Processar validade
-            const [expMonth, expYear] = expiry.split('/');
-            const fullYear = expYear.length === 2 ? `20${expYear}` : expYear;
-
-            // Validação básica
-            if (!cardNumber || cardNumber.length < 13) {
-                throw new Error('Número do cartão inválido');
-            }
-
+            // Validação do CPF
             if (!cpf || cpf.length !== 11) {
                 throw new Error('CPF inválido');
             }
 
-            if (!expMonth || !expYear || parseInt(expMonth) < 1 || parseInt(expMonth) > 12) {
-                throw new Error('Data de validade inválida');
+            if (!holderName || holderName.trim().length < 3) {
+                throw new Error('Nome do titular inválido');
             }
 
-            if (!cvv || cvv.length < 3) {
-                throw new Error('CVV inválido');
+            // Criar PaymentMethod com Stripe
+            const { paymentMethod, error } = await stripe.createPaymentMethod({
+                type: 'card',
+                card: cardElement,
+                billing_details: {
+                    name: holderName
+                }
+            });
+
+            if (error) {
+                throw new Error(error.message);
             }
 
-            // Tokenizar com Aprovei
-            const cardData = {
-                number: cardNumber,
-                holderName: holderName,
-                expMonth: parseInt(expMonth),
-                expYear: parseInt(fullYear),
-                cvv: cvv
-            };
+            console.log('PaymentMethod criado:', paymentMethod.id);
 
-            console.log('Tokenizando cartão...', { holderName, expMonth, expYear: fullYear });
-            const token = await Aprovei.encrypt(cardData);
-            console.log('Token gerado com sucesso');
-
-            // Identificar bandeira
-            const brand = identifyCardBrand(cardNumber);
-            const last4 = cardNumber.slice(-4);
+            // Extrair dados do cartão
+            const card = paymentMethod.card;
+            const last4 = card.last4;
+            const brand = card.brand;
+            const expMonth = card.exp_month;
+            const expYear = card.exp_year;
 
             // Enviar ao servidor
             const response = await fetch('{{ route("cartoes.store") }}', {
@@ -390,11 +477,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    card_token: token,
+                    payment_method_id: paymentMethod.id,
                     last4: last4,
                     brand: brand,
-                    exp_month: parseInt(expMonth),
-                    exp_year: parseInt(fullYear),
+                    exp_month: expMonth,
+                    exp_year: expYear,
                     holder_name: holderName,
                     cpf: cpf,
                     is_default: isDefault
@@ -404,7 +491,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             const data = await response.json();
 
             if (data.success) {
-                // Redirecionar ou recarregar
                 if (data.redirect) {
                     window.location.href = data.redirect;
                 } else {
@@ -424,23 +510,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 });
-
-// Identificar bandeira do cartão
-function identifyCardBrand(number) {
-    const digit1 = number[0];
-    const digit2 = number.substring(0, 2);
-    const digit4 = number.substring(0, 4);
-
-    if (digit1 === '4') return 'visa';
-    if (['51', '52', '53', '54', '55'].includes(digit2) || (digit4 >= '2221' && digit4 <= '2720')) return 'mastercard';
-    if (['34', '37'].includes(digit2)) return 'amex';
-    if (['6011', '6221', '6222', '6223', '6224', '6225', '6226', '6227', '6228', '6229'].includes(digit4) || digit2 === '65') return 'discover';
-    if (['4011', '4312', '4389', '4514', '4573', '5041', '5066', '5067'].includes(digit4)) return 'elo';
-    if (digit4 === '6062' || digit4 === '3841') return 'hipercard';
-    if (['36', '38'].includes(digit2)) return 'diners';
-
-    return 'unknown';
-}
 
 // Funções de gerenciamento de cartões
 window.setDefaultCard = function(cardId) {
@@ -514,6 +583,9 @@ window.deleteCard = function(cardId) {
     addBtn?.addEventListener('click', openModal);
     closeBtn?.addEventListener('click', closeModal);
     cancelBtn?.addEventListener('click', closeModal);
+    modal?.addEventListener('click', (event) => {
+        event.stopPropagation();
+    });
     overlay?.addEventListener('click', closeModal);
 })();
 </script>

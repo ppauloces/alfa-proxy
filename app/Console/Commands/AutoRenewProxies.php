@@ -165,6 +165,7 @@ class AutoRenewProxies extends Command
                     $transacao->update([
                         'status' => 1,
                         'gateway_transaction_id' => $result['data']['id'] ?? null,
+                        'gateway_type' => 'stripe',
                         'card_id' => $usedCard?->id,
                         'metadata' => array_merge($metadata, [
                             'expiracao_nova' => $proxy->fresh()->expiracao,

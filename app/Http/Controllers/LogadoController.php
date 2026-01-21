@@ -513,6 +513,13 @@ class LogadoController extends Controller
             ];
         });
 
+        $savedCardsOptions = $savedCards->mapWithKeys(function ($card) {
+            return [
+                $card->id => ucfirst($card->bandeira) . ' •••• ' . $card->ultimos_digitos
+            ];
+        });
+
+
         return view('dash.index', compact(
             'usuario',
             'proxyGroups',
@@ -523,6 +530,7 @@ class LogadoController extends Controller
             'transacoes',
             'activeSection',
             'savedCards',
+            'savedCardsOptions',
             'vpsFarm',
             'vpsHistorico',
             'estatisticas',
@@ -677,6 +685,7 @@ class LogadoController extends Controller
     // Nova Compra
     public function novaCompra()
     {
+
         return redirect()->route('dash.show', ['section' => 'nova-compra']);
     }
 
@@ -716,6 +725,7 @@ class LogadoController extends Controller
                 'status' => 0, // Pendente
                 'metodo_pagamento' => $request->metodo_pagamento,
                 'tipo' => 'compra_proxy',
+                'gateway_type' => null,
                 'metadata' => [
                     'pais' => $request->pais,
                     'quantidade' => $request->quantidade,
@@ -770,6 +780,9 @@ class LogadoController extends Controller
                             'pais' => $request->pais,
                         ],
                     ]);
+
+                    $transacao->gateway_type = 'stripe';
+                    $transacao->save();
 
                     if (!$result['success']) {
                         DB::rollBack();
@@ -875,51 +888,56 @@ class LogadoController extends Controller
                 $usedGateway = null;
                 $lastError = null;
 
+                try {
+                    // AbacatePay pode ter requisitos diferentes - garantir taxId válido
+                    $abacatePayLoad = $pixPayload;
+                    if (empty($abacatePayLoad['customer']['taxId'])) {
+                        // AbacatePay pode exigir CPF, usar placeholder se não disponível
+                        $abacatePayLoad['customer']['taxId'] = '00000000000';
+                    }
+                    if (empty($abacatePayLoad['customer']['cellphone'])) {
+                        $abacatePayLoad['customer']['cellphone'] = '00000000000';
+                    }
+
+                    $abacatePayLoad['metadata'] = (object) array_map('strval', $pixPayload['metadata']);
+
+                    $transacao->gateway_type = 'abacatepay';
+                    $transacao->save();
+
+
+                    $pixData = $abacatePay->createPix($abacatePayLoad);
+                    $usedGateway = 'abacatepay';
+                    \Log::info('PIX criado via AbacatePay (fallback)', ['pix_id' => $pixData['id']]);
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    // $errorMsg = $lastError
+                    //     ? "Asaas: {$lastError} | AbacatePay: {$e->getMessage()}"
+                    //     : $e->getMessage();
+
+                    // if ($isAjax) {
+                    //     return response()->json([
+                    //         'success' => false,
+                    //         'error' => 'Erro ao gerar PIX: ' . $errorMsg,
+                    //     ], 500);
+                    // }
+                    // return back()
+                    //     ->withErrors(['error' => 'Erro ao gerar PIX: ' . $errorMsg], 'novaCompra')
+                    //     ->withInput();
+                }
+
                 // Tentar Asaas primeiro
-                if ($asaas->isConfigured()) {
+                if (!$pixData && $asaas->isConfigured()) {
                     try {
                         $pixData = $asaas->createPix($pixPayload);
                         $usedGateway = 'asaas';
-                        \Log::info('PIX criado via Asaas', ['pix_id' => $pixData['id']]);
+                        $transacao->gateway_type = 'asaas';
+                        $transacao->save();
                     } catch (\Exception $e) {
                         $lastError = $e->getMessage();
                         \Log::warning('Asaas falhou, tentando AbacatePay', ['error' => $e->getMessage()]);
                     }
                 }
 
-                // Fallback para AbacatePay se Asaas falhar ou não estiver configurado
-                if (!$pixData) {
-                    try {
-                        // AbacatePay pode ter requisitos diferentes - garantir taxId válido
-                        $abacatePayload = $pixPayload;
-                        if (empty($abacatePayload['customer']['taxId'])) {
-                            // AbacatePay pode exigir CPF, usar placeholder se não disponível
-                            $abacatePayload['customer']['taxId'] = '00000000000';
-                        }
-                        if (empty($abacatePayload['customer']['cellphone'])) {
-                            $abacatePayload['customer']['cellphone'] = '00000000000';
-                        }
-
-                        $pixData = $abacatePay->createPix($abacatePayload);
-                        $usedGateway = 'abacatepay';
-                        \Log::info('PIX criado via AbacatePay (fallback)', ['pix_id' => $pixData['id']]);
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-                        $errorMsg = $lastError
-                            ? "Asaas: {$lastError} | AbacatePay: {$e->getMessage()}"
-                            : $e->getMessage();
-
-                        if ($isAjax) {
-                            return response()->json([
-                                'success' => false,
-                                'error' => 'Erro ao gerar PIX: ' . $errorMsg,
-                            ], 500);
-                        }
-                        return back()
-                            ->withErrors(['error' => 'Erro ao gerar PIX: ' . $errorMsg], 'novaCompra')
-                            ->withInput();
-                    }
-                }
 
                 // Atualizar transação com dados do gateway usado
                 $metadata = $transacao->metadata;
@@ -1036,6 +1054,7 @@ class LogadoController extends Controller
                 'status' => 0, // Pendente
                 'metodo_pagamento' => 'pix',
                 'tipo' => 'renovacao',
+                'gateway_type' => null,
                 'metadata' => [
                     'proxy_id' => $proxy->id,
                     'proxy_ip' => $proxy->ip,
@@ -1070,32 +1089,38 @@ class LogadoController extends Controller
             $usedGateway = null;
             $lastError = null;
 
-            // Tentar Asaas primeiro
-            if ($asaas->isConfigured()) {
+            try {
+                $abacatePayLoad = $pixPayload;
+                if (empty($abacatePayLoad['customer']['taxId'])) {
+                    $abacatePayLoad['customer']['taxId'] = '00000000000';
+                }
+                if (empty($abacatePayLoad['customer']['cellphone'])) {
+                    $abacatePayLoad['customer']['cellphone'] = '00000000000';
+                }
+
+                $abacatePayLoad['metadata'] = (object) array_map('strval', $pixPayload['metadata']);
+
+                $transacao->gateway_type = 'abacatepay';
+                $transacao->save();
+
+                $pixData = $abacatePay->createPix($abacatePayLoad);
+                $usedGateway = 'abacatepay';
+                \Log::info('PIX renovação criado via AbacatePay (fallback)', ['pix_id' => $pixData['id']]);
+            } catch (\Exception $e) {
+                $lastError = $e->getMessage();
+                \Log::warning('AbacatePay falhou na renovação, tentando Asaas', ['error' => $e->getMessage()]);
+            }
+
+            if (!$pixData && $asaas->isConfigured()) {
                 try {
                     $pixData = $asaas->createPix($pixPayload);
                     $usedGateway = 'asaas';
-                    \Log::info('PIX renovação criado via Asaas', ['pix_id' => $pixData['id']]);
+                    $transacao->gateway_type = 'asaas';
+                    $transacao->save();
                 } catch (\Exception $e) {
                     $lastError = $e->getMessage();
                     \Log::warning('Asaas falhou na renovação, tentando AbacatePay', ['error' => $e->getMessage()]);
                 }
-            }
-
-            // Fallback para AbacatePay se Asaas falhar ou não estiver configurado
-            if (!$pixData) {
-                // AbacatePay pode ter requisitos diferentes - garantir taxId válido
-                $abacatePayload = $pixPayload;
-                if (empty($abacatePayload['customer']['taxId'])) {
-                    $abacatePayload['customer']['taxId'] = '00000000000';
-                }
-                if (empty($abacatePayload['customer']['cellphone'])) {
-                    $abacatePayload['customer']['cellphone'] = '00000000000';
-                }
-
-                $pixData = $abacatePay->createPix($abacatePayload);
-                $usedGateway = 'abacatepay';
-                \Log::info('PIX renovação criado via AbacatePay (fallback)', ['pix_id' => $pixData['id']]);
             }
 
             // Atualizar transação com dados do gateway usado

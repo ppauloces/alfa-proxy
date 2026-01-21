@@ -86,14 +86,6 @@ class WebhookController extends Controller
 
                         DB::commit();
 
-                        Log::info('Renovação processada com sucesso via webhook', [
-                            'transaction_id' => $transacao->id,
-                            'proxy_id' => $proxy->id,
-                            'proxy_ip' => $proxy->ip,
-                            'proxy_porta' => $proxy->porta,
-                            'nova_expiracao' => $proxy->expiracao,
-                            'estava_bloqueado' => $metadata['estava_bloqueado'],
-                        ]);
 
                         return response()->json([
                             'success' => true,

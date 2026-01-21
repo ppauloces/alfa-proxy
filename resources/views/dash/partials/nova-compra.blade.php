@@ -594,11 +594,8 @@
                         @php
                             $methods = [
                                 ['id' => 'pix', 'name' => 'PIX', 'icon' => 'fas fa-qrcode', 'desc' => 'Instantâneo', 'enabled' => true],
-                                ['id' => 'credit_card', 'name' => 'Cartão', 'icon' => 'fas fa-credit-card', 'desc' => 'Até 12x', 'enabled' => true],
+                                ['id' => 'credit_card', 'name' => 'CARTÃO DE CRÉDITO', 'icon' => 'fas fa-credit-card', 'desc' => 'Máxima segurança', 'enabled' => true],
                                 ['id' => 'usdt', 'name' => 'USDT', 'icon' => 'fab fa-bitcoin', 'desc' => 'Em breve', 'enabled' => false],
-                                ['id' => 'btc', 'name' => 'Bitcoin', 'icon' => 'fab fa-btc', 'desc' => 'Em breve', 'enabled' => false],
-                                ['id' => 'ltc', 'name' => 'Litecoin', 'icon' => 'fas fa-coins', 'desc' => 'Em breve', 'enabled' => false],
-                                ['id' => 'bnb', 'name' => 'Binance', 'icon' => 'fas fa-coins', 'desc' => 'Em breve', 'enabled' => false],
                             ];
                         @endphp
 
@@ -628,18 +625,11 @@
                     <div id="creditCardFields" class="mt-8 p-6 bg-slate-50 rounded-2xl"
                         style="display: {{ old('metodo_pagamento') === 'credit_card' ? 'block' : 'none' }};">
                         <div class="form-group">
-                            <label
+                            <!-- <label
                                 class="form-label text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Selecione
-                                o Cartão</label>
+                                o Cartão de Crédito</label> -->
                             @if(isset($savedCards) && count($savedCards) > 0)
-                                <select name="card_id" id="cardSelect" class="form-select bg-white border-slate-200">
-                                    <option value="">Selecione um cartão</option>
-                                    @foreach($savedCards as $card)
-                                        <option value="{{ $card->id }}" {{ old('card_id') == $card->id ? 'selected' : '' }}>
-                                            {{ ucfirst($card->bandeira) }} •••• {{ $card->ultimos_digitos }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                            <x-ui.select name="card_id" id="cardSelect" :value="old('card_id', '')" placeholder="Selecione" :options="$savedCardsOptions" />
                             @else
                                 <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-start gap-3">
                                     <i class="fas fa-exclamation-triangle text-amber-500 mt-1"></i>
@@ -804,14 +794,23 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
 
         // Validações básicas
-        const cardId = document.getElementById('cardSelect')?.value;
+        const cardId = document.querySelector('input[name="card_id"]')?.value;
         if (!cardId) {
-            showToast('Selecione um cartão para continuar.');
+            showToast('Selecione um cartão de crédito para continuar.');
             return;
         }
 
         // Salvar dados do formulário para possível fallback PIX
         pendingFormData = new FormData(orderForm);
+        
+        const motivo = document.querySelector('input[name="motivo"]')?.value;
+        const periodo = document.querySelector('input[name="periodo"]')?.value;
+        const quantidade = document.querySelector('input[name="quantidade"]')?.value;
+        
+        pendingFormData.append('motivo', motivo);
+        pendingFormData.append('periodo', periodo);
+        pendingFormData.append('quantidade', quantidade);
+
 
         // Mostrar modal de processamento
         showModal();
@@ -882,9 +881,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (data.success && data.pix_modal) {
-                // Fechar modal e redirecionar para exibir PIX
                 hideModal();
-                window.location.href = data.redirect || window.location.href;
+                if (typeof renderPixModal === 'function') {
+                    renderPixModal(data.pix_modal);
+                } else {
+                    window.location.href = data.redirect || window.location.href;
+                }
+                return;
             } else if (data.redirect) {
                 window.location.href = data.redirect;
             } else {

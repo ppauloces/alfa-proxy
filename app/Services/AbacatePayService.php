@@ -33,16 +33,11 @@ class AbacatePayService
      */
     public function createPix(array $payload): array
     {
+
         try {
             $endpoint = 'pixQrCode/create';
             $fullUrl = $this->client->getConfig('base_uri') . $endpoint;
 
-            Log::info('Criando PIX na AbacatePay', [
-                'payload' => $payload,
-                'endpoint' => $endpoint,
-                'full_url' => $fullUrl,
-                'api_key_prefix' => substr(config('abacatepay.api_key'), 0, 10) . '...'
-            ]);
 
             $response = $this->client->post($endpoint, [
                 'json' => $payload,

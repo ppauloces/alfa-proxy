@@ -217,31 +217,36 @@
         }
 
         .proxy-table th:nth-child(1) {
-            width: 35%;
+            width: 40px;
+        }
+
+        /* Checkbox */
+        .proxy-table th:nth-child(2) {
+            width: 33%;
         }
 
         /* Endereço / Ações */
-        .proxy-table th:nth-child(2) {
+        .proxy-table th:nth-child(3) {
             width: 8%;
         }
 
         /* País */
-        .proxy-table th:nth-child(3) {
+        .proxy-table th:nth-child(4) {
             width: 13%;
         }
 
         /* Compra */
-        .proxy-table th:nth-child(4) {
+        .proxy-table th:nth-child(5) {
             width: 14%;
         }
 
         /* Expiração */
-        .proxy-table th:nth-child(5) {
+        .proxy-table th:nth-child(6) {
             width: 15%;
         }
 
-        /* Período */
-        .proxy-table th:nth-child(6) {
+        /* Status */
+        .proxy-table th:nth-child(7) {
             width: 15%;
         }
 
@@ -880,6 +885,117 @@
             background: rgba(248, 250, 252, 0.8);
         }
 
+        /* Bulk select bar */
+        .bulk-bar {
+            position: fixed;
+            bottom: 0.5rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(120%);
+            background: #0f172a;
+            color: #fff;
+            border-radius: 20px;
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 9000;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.4);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            white-space: nowrap;
+        }
+
+        .bulk-bar.visible {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .bulk-bar .bulk-count {
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 0.35rem 0.75rem;
+            border-radius: 10px;
+        }
+
+        .bulk-bar .bulk-separator {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .bulk-bar .protocol-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .bulk-bar .protocol-toggle button {
+            padding: 0.35rem 0.85rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .bulk-bar .protocol-toggle button.active {
+            background: var(--sf-blue);
+            color: #fff;
+            border-radius: 8px;
+        }
+
+        .bulk-bar .bulk-copy-btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(120deg, var(--sf-blue-light), var(--sf-blue));
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .bulk-bar .bulk-copy-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(32, 85, 221, 0.4);
+        }
+
+        .bulk-bar .bulk-close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .bulk-bar .bulk-close-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            color: #fff;
+        }
+
+        .proxy-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--sf-blue);
+            cursor: pointer;
+        }
+
+        tr.proxy-row-selected {
+            background: rgba(79, 139, 255, 0.06) !important;
+        }
+
         /* ===================================
            RESPONSIVIDADE MOBILE & TABLET
         =================================== */
@@ -1000,6 +1116,31 @@
                 padding: 0.75rem !important;
                 font-size: 0.875rem !important;
             }
+
+            /* Bulk bar mobile */
+            .bulk-bar {
+                bottom: 1rem;
+                padding: 0.6rem 0.75rem;
+                gap: 0.5rem;
+                border-radius: 16px;
+                max-width: 95vw;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .bulk-bar .protocol-toggle button {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.65rem;
+            }
+
+            .bulk-bar .bulk-copy-btn {
+                padding: 0.4rem 0.9rem;
+                font-size: 0.7rem;
+            }
+
+            .bulk-bar .bulk-count {
+                font-size: 0.7rem;
+            }
         }
 
         /* Tablet - 641px até 1024px */
@@ -1021,8 +1162,8 @@
         /* Ajustes para telas pequenas */
         @media (max-width: 768px) {
             /* Esconder colunas menos importantes em mobile */
-            .proxy-table th:nth-child(4),
-            .proxy-table td:nth-child(4) {
+            .proxy-table th:nth-child(5),
+            .proxy-table td:nth-child(5) {
                 display: none;
             }
 
@@ -1225,6 +1366,9 @@
                                 <table class="proxy-table w-full">
                                     <thead>
                                         <tr class="bg-slate-50/50 border-b border-slate-100">
+                                            <th class="px-4 py-5 text-center" style="width: 40px;">
+                                                <input type="checkbox" class="proxy-checkbox proxy-select-all" data-group="{{ $group }}" title="Selecionar todos">
+                                            </th>
                                             <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-left">Endereço / Ações</th>
                                             <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">País</th>
                                             <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Contratação</th>
@@ -1235,7 +1379,10 @@
                                     </thead>
                                     <tbody class="divide-y divide-slate-50">
                                         @foreach ($proxies as $proxy)
-                                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                            <tr class="hover:bg-slate-50/50 transition-colors proxy-row" data-group="{{ $group }}" data-proxy-string="{{ $proxy['ip'] }}:{{ $proxy['port'] }}:{{ $proxy['user'] }}:{{ $proxy['password'] }}">
+                                                <td class="px-4 py-6 text-center">
+                                                    <input type="checkbox" class="proxy-checkbox proxy-row-check" data-group="{{ $group }}">
+                                                </td>
                                                 <td class="px-8 py-6">
                                                     <div class="flex flex-col gap-3">
                                                         <div class="address-chip group relative bg-slate-100 hover:bg-[#23366f] hover:text-white transition-all cursor-pointer">
@@ -1349,6 +1496,22 @@
 
             {{-- Modal de Renovação --}}
             @include('dash.partials.modal-renovacao')
+
+            {{-- Barra flutuante de cópia em massa --}}
+            <div class="bulk-bar" id="bulkBar">
+                <span class="bulk-count" id="bulkCount">0 selecionados</span>
+                <div class="bulk-separator"></div>
+                <div class="protocol-toggle">
+                    <button type="button" class="active" data-protocol="com">socks5://</button>
+                    <button type="button" data-protocol="sem">Sem protocolo</button>
+                </div>
+                <button type="button" class="bulk-copy-btn" id="bulkCopyBtn">
+                    <i class="fas fa-copy"></i> Copiar
+                </button>
+                <button type="button" class="bulk-close-btn" id="bulkCloseBtn" title="Desmarcar todos">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </section>
 
         <section class="dash-section {{ $currentSection === 'perfil' ? 'active' : 'hidden' }}" data-section="perfil">
@@ -1453,7 +1616,7 @@
     });
     })();
 
-    window.copyToClipboard = function (text) {
+    window.copyToClipboard = function (text, successMessage) {
     const toast = (msg, type = 'success') => {
         if (typeof window.showToast === 'function') {
             window.showToast(msg, type);
@@ -1495,7 +1658,7 @@
         const ok = okModern || copyFallback();
 
         if (ok) {
-            toast(`Proxy copiado: ${text}`, 'success');
+            toast(successMessage ?? `Proxy copiado: ${text}`, 'success');
         } else {
             toast('Não foi possível copiar. Use HTTPS/localhost ou copie manualmente.', 'error');
         }
@@ -2318,6 +2481,112 @@
                     fecharModalRenovacao();
                 }
             });
+
+            // ==========================================
+            // SELEÇÃO EM MASSA E CÓPIA DE PROXIES
+            // ==========================================
+            (() => {
+                const bulkBar = document.getElementById('bulkBar');
+                if (!bulkBar) return;
+
+                const bulkCount = document.getElementById('bulkCount');
+                const bulkCopyBtn = document.getElementById('bulkCopyBtn');
+                const bulkCloseBtn = document.getElementById('bulkCloseBtn');
+                const protocolBtns = bulkBar.querySelectorAll('.protocol-toggle button');
+                let withProtocol = true;
+
+                // Toggle de protocolo
+                protocolBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        protocolBtns.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        withProtocol = btn.dataset.protocol === 'com';
+                    });
+                });
+
+                const getSelectedCount = () => {
+                    return document.querySelectorAll('.proxy-row-check:checked').length;
+                };
+
+                const updateBulkBar = () => {
+                    const count = getSelectedCount();
+                    bulkCount.textContent = `${count} selecionado${count !== 1 ? 's' : ''}`;
+
+                    if (count > 0) {
+                        bulkBar.classList.add('visible');
+                    } else {
+                        bulkBar.classList.remove('visible');
+                    }
+
+                    // Atualizar estado dos "select all" checkboxes
+                    document.querySelectorAll('.proxy-select-all').forEach(selectAll => {
+                        const group = selectAll.dataset.group;
+                        const panel = document.querySelector(`[data-tab-panel="${group}"]`);
+                        if (!panel || panel.classList.contains('hidden')) return;
+
+                        const rowChecks = panel.querySelectorAll('.proxy-row-check');
+                        const checkedCount = panel.querySelectorAll('.proxy-row-check:checked').length;
+
+                        selectAll.checked = rowChecks.length > 0 && checkedCount === rowChecks.length;
+                        selectAll.indeterminate = checkedCount > 0 && checkedCount < rowChecks.length;
+                    });
+
+                    // Highlight de linhas selecionadas
+                    document.querySelectorAll('.proxy-row').forEach(row => {
+                        const check = row.querySelector('.proxy-row-check');
+                        row.classList.toggle('proxy-row-selected', check?.checked ?? false);
+                    });
+                };
+
+                // Select all checkbox
+                document.querySelectorAll('.proxy-select-all').forEach(selectAll => {
+                    selectAll.addEventListener('change', () => {
+                        const group = selectAll.dataset.group;
+                        const panel = document.querySelector(`[data-tab-panel="${group}"]`);
+                        if (!panel) return;
+
+                        panel.querySelectorAll('.proxy-row-check').forEach(check => {
+                            check.checked = selectAll.checked;
+                        });
+                        updateBulkBar();
+                    });
+                });
+
+                // Individual row checkboxes (event delegation)
+                document.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('proxy-row-check')) {
+                        updateBulkBar();
+                    }
+                });
+
+                // Copiar selecionados
+                bulkCopyBtn.addEventListener('click', () => {
+                    const selected = document.querySelectorAll('.proxy-row-check:checked');
+                    if (!selected.length) return;
+
+                    const countProxies = selected.length;
+                    const proxyRows = selected.length ? Array.from(selected).map(c => c.closest('.proxy-row')).filter(Boolean) : [];
+                    const proxyStrings = proxyRows.map(row => {
+                        const str = row.dataset.proxyString || '';
+                        return withProtocol ? 'socks5://' + str : str;
+                    }).join('\n');
+                    copyToClipboard(proxyStrings || countProxies.toString(), countProxies + ' proxies copiadas');
+
+                    // Feedback visual no botão
+                    const originalHTML = bulkCopyBtn.innerHTML;
+                    bulkCopyBtn.innerHTML = '<i class="fas fa-check"></i> ' + countProxies + ' proxies copiadas';
+                    setTimeout(() => {
+                        bulkCopyBtn.innerHTML = originalHTML;
+                    }, 2000);
+                });
+
+                // Fechar / desmarcar todos
+                bulkCloseBtn.addEventListener('click', () => {
+                    document.querySelectorAll('.proxy-row-check').forEach(c => c.checked = false);
+                    document.querySelectorAll('.proxy-select-all').forEach(c => c.checked = false);
+                    updateBulkBar();
+                });
+            })();
 
 @endsection
 

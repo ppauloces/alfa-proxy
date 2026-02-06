@@ -272,7 +272,7 @@
         /* Mobile - Até 640px */
         @media (max-width: 640px) {
             header .max-w-full {
-                padding: 0.75rem 1rem !important;
+                padding: 0 0.75rem !important;
                 gap: 0.5rem !important;
             }
 
@@ -284,12 +284,8 @@
                 display: none !important;
             }
 
-            header .flex.items-center.gap-4 {
-                gap: 0.5rem !important;
-            }
-
-            header button {
-                padding: 0.5rem !important;
+            header .flex.items-center.gap-2\.5 {
+                gap: 0.375rem !important;
             }
 
             .dashboard-shell {
@@ -410,56 +406,44 @@
 
     <div class="grid-overlay"></div>
 
-    <header class="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-100">
-        <div class="max-w-full mx-auto px-8 py-4 flex justify-between items-center gap-8">
-            <!-- LOGO HORIZONTAL -->
+    <header class="fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-200/80">
+        <div class="max-w-full mx-auto px-6 sm:px-8 py-0 flex justify-between items-center gap-6">
+            <!-- LOGO -->
             <a href="{{ route('dash.show') }}"
-                class="flex items-center gap-3 shrink-0 bg-white/90 backdrop-blur rounded-2xl border border-slate-100 shadow-sm px-3 sm:px-4 py-2 hover:bg-white transition">
-                {{-- Troque o src pelo caminho real da sua logo horizontal --}}
+                class="flex items-center shrink-0 py-3.5 hover:opacity-80 transition-opacity">
                 <img src="{{ asset('images/logoproxy1.webp') }}" alt="AlfaProxy"
-                    class="h-6 sm:h-8 lg:h-9 w-auto object-contain">
+                    class="h-6 sm:h-7 lg:h-8 w-auto object-contain">
             </a>
-            <div class="flex items-center flex-1 justify-end">
-                {{-- Espaçador para mobile --}}
-                <div class="lg:hidden w-10"></div>
-            </div>
-            <nav class="hidden xl:flex items-center bg-slate-100/50 rounded-full px-2 py-1">
-                <a href="{{ route('inicial') }}"
-                    class="px-5 py-2 rounded-full text-slate-600 text-sm font-semibold hover:text-[#23366f] hover:bg-white transition-all">Inicio</a>
-                <a href="{{ route('inicial') }}"
-                    class="px-5 py-2 rounded-full text-slate-600 text-sm font-semibold hover:text-[#23366f] hover:bg-white transition-all">Planos</a>
-                <a href="{{ route('inicial') }}"
-                    class="px-5 py-2 rounded-full text-slate-600 text-sm font-semibold hover:text-[#23366f] hover:bg-white transition-all">API</a>
-                <a href="{{ route('duvidas.show') }}"
-                    class="px-5 py-2 rounded-full text-slate-600 text-sm font-semibold hover:text-[#23366f] hover:bg-white transition-all">Suporte</a>
-            </nav>
-            <div class="flex items-center gap-4">
-                @auth
-                    <!-- <div class="flex items-center gap-3 bg-[#23366f]/5 px-4 py-2 rounded-2xl border border-[#23366f]/10">
-                                        <div class="w-8 h-8 rounded-lg bg-[#23366f] flex items-center justify-center text-white text-xs">
-                                            <i class="fas fa-wallet"></i>
-                                        </div>
-                                        <div class="flex flex-col">
-                                            <span class="text-[9px] uppercase tracking-widest text-slate-400 font-bold leading-none mb-1">Saldo Disponível</span>
-                                            <span class="text-sm font-extrabold text-[#23366f] leading-none">
-                                                R$ {{ number_format(Auth::user()->saldo ?? 0, 2, ',', '.') }}
-                                            </span>
-                                        </div>
-                                        <button type="button" data-section-link="saldo" class="ml-2 w-6 h-6 rounded-md bg-white flex items-center justify-center text-[#23366f] hover:bg-[#23366f] hover:text-white transition-all shadow-sm">
-                                            <i class="fas fa-plus text-[10px]"></i>
-                                        </button>
-                                    </div> -->
 
-                    <div class="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
+            <div class="hidden xl:block w-[1px] h-7 bg-slate-200 shrink-0"></div>
+
+            <nav class="hidden xl:flex items-center gap-1 flex-1">
+                <a href="{{ route('inicial') }}"
+                    class="px-4 py-1.5 rounded-lg text-slate-500 text-[13px] font-medium hover:text-slate-900 hover:bg-slate-50 transition-all">Inicio</a>
+                <a href="{{ route('inicial') }}"
+                    class="px-4 py-1.5 rounded-lg text-slate-500 text-[13px] font-medium hover:text-slate-900 hover:bg-slate-50 transition-all">Planos</a>
+                <a href="{{ route('inicial') }}"
+                    class="px-4 py-1.5 rounded-lg text-slate-500 text-[13px] font-medium hover:text-slate-900 hover:bg-slate-50 transition-all">API</a>
+                <a href="{{ route('duvidas.show') }}"
+                    class="px-4 py-1.5 rounded-lg text-slate-500 text-[13px] font-medium hover:text-slate-900 hover:bg-slate-50 transition-all">Suporte</a>
+            </nav>
+
+            <div class="flex items-center flex-1 xl:flex-none justify-end">
+                <div class="xl:hidden flex-1"></div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                @auth
+                    <div class="h-6 w-[1px] bg-slate-200 hidden sm:block"></div>
 
                     <form action="{{ route('logout.perform') }}" method="GET" class="inline">
                         <button type="submit"
-                            class="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer">
-                            <i class="fas fa-sign-out-alt"></i>
+                            class="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer">
+                            <i class="fas fa-sign-out-alt text-sm"></i>
                         </button>
                     </form>
                 @endauth
-                <button class="lg:hidden p-2.5 rounded-xl bg-slate-100 text-slate-600" id="mobileMenuToggle">
+                <button class="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-50 transition-all" id="mobileMenuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>

@@ -1328,10 +1328,14 @@
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Próximo Vencimento</p>
                         @php
                             $allProxies = collect($proxyGroups)->flatten(1);
-                            $nextExp = $allProxies->sortBy('expires_at')->where('bloqueada', '=', 0)->first();
+                            $nextExp = $allProxies
+                                ->where('bloqueada', '=', 0)
+                                ->filter(fn($p) => \Carbon\Carbon::parse($p['expires_at'])->isFuture())
+                                ->sortBy('expires_at')
+                                ->first();
                         @endphp
                         <p class="text-3xl font-black text-slate-900">
-                            {{ intval($nextExp ? \Carbon\Carbon::parse(now())->diffInDays($nextExp['expires_at']) : 'N/A') }} dias
+                            {{ $nextExp ? intval(now()->diffInDays(\Carbon\Carbon::parse($nextExp['expires_at']))) . ' dias' : 'N/A' }}
                         </p>
                     </div>
                 </div>

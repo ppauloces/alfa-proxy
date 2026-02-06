@@ -168,21 +168,72 @@
             color: #94a3b8;
         }
 
+        .tab-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 0.25rem;
+        }
+
         .tab-btn {
-            padding: 0.6rem 1.4rem;
-            border-radius: 999px;
-            border: 1px solid transparent;
-            background: rgba(255, 255, 255, 0.7);
-            color: #0f172a;
-            font-weight: 600;
-            transition: all 0.2s ease;
+            position: relative;
+            padding: 0.75rem 1.25rem;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            color: #64748b;
+            font-weight: 500;
+            font-size: 0.8125rem;
+            transition: color 0.2s ease;
             cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0.75rem;
+            right: 0.75rem;
+            height: 2px;
+            background: transparent;
+            border-radius: 1px;
+            transition: background 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            color: #0f172a;
         }
 
         .tab-btn.active {
-            background: linear-gradient(120deg, var(--sf-blue-light), var(--sf-blue));
-            color: #fff;
-            box-shadow: 0 12px 30px rgba(32, 85, 221, 0.25);
+            color: var(--sf-blue);
+            font-weight: 600;
+        }
+
+        .tab-btn.active::after {
+            background: var(--sf-blue);
+        }
+
+        .tab-btn .tab-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.25rem;
+            height: 1.25rem;
+            padding: 0 0.35rem;
+            margin-left: 0.4rem;
+            border-radius: 6px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            line-height: 1;
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .tab-btn.active .tab-count {
+            background: rgba(35, 54, 111, 0.1);
+            color: var(--sf-blue);
         }
 
         .proxy-card,
@@ -1064,8 +1115,13 @@
             }
 
             /* Tabs mobile */
+            .tab-bar {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
             .tab-btn {
-                padding: 0.5rem 1rem !important;
+                padding: 0.6rem 0.875rem !important;
                 font-size: 0.75rem !important;
             }
 
@@ -1352,13 +1408,13 @@
                 @endif
 
                 {{-- Filtros e Tabs --}}
-                <div class="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm inline-flex items-center gap-1 w-fit">
+                <div class="tab-bar">
                     @foreach ($proxyGroups as $group => $proxies)
-                        <button type="button" 
-                            class="tab-btn px-6 py-2.5 rounded-xl font-bold text-sm transition-all {{ $loop->first ? 'active bg-[#23366f] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:bg-slate-50' }}" 
+                        <button type="button"
+                            class="tab-btn {{ $loop->first ? 'active' : '' }}"
                             data-tab="{{ $group }}">
                             {{ \Illuminate\Support\Str::headline($group) }}
-                            <span class="ml-1 opacity-60 font-medium">({{ count($proxies) }})</span>
+                            <span class="tab-count">{{ count($proxies) }}</span>
                         </button>
                     @endforeach
                 </div>
@@ -1607,16 +1663,12 @@
     if (!tabBtns.length) return;
 
     tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-    const target = btn.dataset.tab;
-    tabBtns.forEach(b => {
-        b.classList.remove('active', 'bg-[#23366f]', 'text-white', 'shadow-lg', 'shadow-blue-900/20');
-        b.classList.add('text-slate-500', 'hover:bg-slate-50');
-    });
-    tabPanels.forEach(panel => panel.classList.toggle('hidden', panel.dataset.tabPanel !== target));
-    btn.classList.add('active', 'bg-[#23366f]', 'text-white', 'shadow-lg', 'shadow-blue-900/20');
-    btn.classList.remove('text-slate-500', 'hover:bg-slate-50');
-    });
+        btn.addEventListener('click', () => {
+            const target = btn.dataset.tab;
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabPanels.forEach(panel => panel.classList.toggle('hidden', panel.dataset.tabPanel !== target));
+            btn.classList.add('active');
+        });
     });
     })();
 

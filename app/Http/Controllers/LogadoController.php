@@ -555,17 +555,63 @@ class LogadoController extends Controller
 
     public function atualizarPerfil(Request $request)
     {
+        $userId = Auth::id();
+
         $request->validateWithBag('perfil', [
             'name' => 'required|string|max:255',
+            'username' => [
+                'required',
+                'string',
+                'min:3',
+                'max:30',
+                'regex:/^[a-zA-Z0-9_]+$/',
+                'unique:users,username,' . $userId,
+            ],
+            'cpf' => ['required', 'string', 'min:11', 'max:18', new CpfCnpj],
+            'phone' => 'required|string|min:14|max:15',
+        ], [
+            'username.regex' => 'O username pode conter apenas letras, números e underline.',
+            'username.unique' => 'Este username já está em uso.',
+            'username.min' => 'O username deve ter pelo menos 3 caracteres.',
+            'cpf.required' => 'Informe seu CPF ou CNPJ.',
+            'phone.required' => 'Informe seu telefone.',
+            'phone.min' => 'Informe um telefone válido.',
         ]);
 
-        $usuario = User::find(Auth::id());
+        $usuario = User::find($userId);
         $usuario->name = $request->name;
+        $usuario->username = $request->username;
+        $usuario->cpf = preg_replace('/\D/', '', $request->cpf);
+        $usuario->phone = preg_replace('/\D/', '', $request->phone);
         $usuario->save();
 
         return redirect()
             ->route('dash.show', ['section' => 'perfil'])
             ->with('perfil_success', 'Perfil atualizado com sucesso!');
+    }
+
+    /**
+     * Verificar disponibilidade de username (AJAX)
+     */
+    public function checarUsername(Request $request)
+    {
+        $username = $request->input('username', '');
+        $userId = Auth::id();
+
+        if (strlen($username) < 3) {
+            return response()->json(['available' => false, 'message' => 'Mínimo 3 caracteres']);
+        }
+
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
+            return response()->json(['available' => false, 'message' => 'Apenas letras, números e _']);
+        }
+
+        $exists = User::where('username', $username)->where('id', '!=', $userId)->exists();
+
+        return response()->json([
+            'available' => !$exists,
+            'message' => $exists ? 'Username já está em uso' : 'Username disponível',
+        ]);
     }
 
     public function alterarSenha(Request $request)

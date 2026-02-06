@@ -398,8 +398,14 @@
 
         // Mascara + validacao em tempo real para CPF/CNPJ
         if (cpfInput) {
-            const atualizarEstadoCpf = () => {
+            const atualizarEstadoCpf = (mostrarUI = true) => {
                 const numeros = cpfInput.value.replace(/\D/g, '');
+
+                if (!mostrarUI) {
+                    // Apenas atualizar estado interno, sem alterar visual
+                    cpfValido = validarCpfCnpj(cpfInput.value) === true;
+                    return;
+                }
 
                 cpfInput.classList.remove('input-valid', 'input-invalid');
                 cpfHint.classList.remove('hint-valid', 'hint-invalid');
@@ -450,11 +456,11 @@
                 }
 
                 e.target.value = value;
-                atualizarEstadoCpf();
+                atualizarEstadoCpf(true);
             });
 
-            // Validar valor pre-preenchido
-            if (cpfInput.value) atualizarEstadoCpf();
+            // Validar silenciosamente no carregamento (sem feedback visual)
+            if (cpfInput.value) atualizarEstadoCpf(false);
         }
 
         // Mascara para telefone

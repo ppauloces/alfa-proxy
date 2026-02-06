@@ -52,6 +52,7 @@ Route::middleware(['auth', CheckUserStatus::class])->group(function () {
     Route::post('/perfil/atualizar', [LogadoController::class, 'atualizarPerfil'])->name('perfil.atualizar');
     Route::post('/perfil/alterar-senha', [LogadoController::class, 'alterarSenha'])->name('perfil.senha');
     Route::post('/perfil/salvar-dados', [LogadoController::class, 'salvarDadosIniciais'])->name('perfil.salvar-dados');
+    Route::post('/perfil/checar-username', [LogadoController::class, 'checarUsername'])->name('perfil.checar-username');
 
     // Ordens / Proxies Ativos
     Route::get('/proxies', [LogadoController::class, 'proxies'])->name('proxies.show');

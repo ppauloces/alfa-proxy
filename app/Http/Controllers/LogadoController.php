@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use App\Rules\CpfCnpj;
 
 
 class LogadoController extends Controller
@@ -593,8 +594,8 @@ class LogadoController extends Controller
      */
     public function salvarDadosIniciais(Request $request)
     {
-        $request->validate([
-            'cpf' => 'required|string|min:11|max:18',
+        $validated = $request->validate([
+            'cpf' => ['required', 'string', 'min:11', 'max:18', new CpfCnpj],
             'phone' => 'required|string|min:10|max:20',
         ]);
 

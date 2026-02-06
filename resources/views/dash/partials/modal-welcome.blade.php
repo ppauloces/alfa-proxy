@@ -12,7 +12,7 @@
             </div>
 
             <h2 class="welcome-title">Bem-vindo, {{ explode(' ', $usuario->name)[0] }}!</h2>
-            <p class="welcome-subtitle">Para uma melhor experiencia, precisamos de algumas informacoes.</p>
+            <p class="welcome-subtitle">Para uma melhor experiencia, precisamos de algumas informações.</p>
 
             <form id="formWelcome" class="welcome-form" autocomplete="off">
                 @csrf
@@ -29,9 +29,10 @@
                         autocorrect="off"
                         autocapitalize="off"
                         spellcheck="false"
+                        maxlength="18"
                         required
                     >
-                    <small class="input-hint">Necessario para pagamentos via PIX</small>
+                    <small class="input-hint" id="cpf_hint">Necessario para pagamentos via PIX</small>
                 </div>
 
                 <div class="form-group-welcome">
@@ -310,13 +311,127 @@
     .btn-welcome-later:hover {
         color: #0f172a;
     }
+
+    .input-welcome.input-valid {
+        border-color: #10b981;
+        background: #f0fdf4;
+    }
+
+    .input-welcome.input-valid:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+
+    .input-welcome.input-invalid {
+        border-color: #ef4444;
+        background: #fef2f2;
+    }
+
+    .input-welcome.input-invalid:focus {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+    }
+
+    .input-hint.hint-valid {
+        color: #10b981;
+        font-weight: 600;
+    }
+
+    .input-hint.hint-invalid {
+        color: #ef4444;
+        font-weight: 600;
+    }
 </style>
 
 <script>
+    // Validacao de CPF (digitos verificadores)
+    function validarCPF(cpf) {
+        cpf = cpf.replace(/\D/g, '');
+        if (cpf.length !== 11) return false;
+        if (/^(\d)\1{10}$/.test(cpf)) return false;
+
+        for (let t = 9; t < 11; t++) {
+            let sum = 0;
+            for (let i = 0; i < t; i++) {
+                sum += parseInt(cpf[i]) * ((t + 1) - i);
+            }
+            let digit = ((10 * sum) % 11) % 10;
+            if (parseInt(cpf[t]) !== digit) return false;
+        }
+        return true;
+    }
+
+    // Validacao de CNPJ (digitos verificadores)
+    function validarCNPJ(cnpj) {
+        cnpj = cnpj.replace(/\D/g, '');
+        if (cnpj.length !== 14) return false;
+        if (/^(\d)\1{13}$/.test(cnpj)) return false;
+
+        const weights1 = [5,4,3,2,9,8,7,6,5,4,3,2];
+        const weights2 = [6,5,4,3,2,9,8,7,6,5,4,3,2];
+
+        let sum = 0;
+        for (let i = 0; i < 12; i++) sum += parseInt(cnpj[i]) * weights1[i];
+        let d1 = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+        if (parseInt(cnpj[12]) !== d1) return false;
+
+        sum = 0;
+        for (let i = 0; i < 13; i++) sum += parseInt(cnpj[i]) * weights2[i];
+        let d2 = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+        if (parseInt(cnpj[13]) !== d2) return false;
+
+        return true;
+    }
+
+    // Validar CPF ou CNPJ
+    function validarCpfCnpj(valor) {
+        const numeros = valor.replace(/\D/g, '');
+        if (numeros.length === 11) return validarCPF(numeros);
+        if (numeros.length === 14) return validarCNPJ(numeros);
+        return null; // ainda digitando
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-        // Mascara para CPF/CNPJ
         const cpfInput = document.getElementById('welcome_cpf');
+        const cpfHint = document.getElementById('cpf_hint');
+        let cpfValido = false;
+
+        // Mascara + validacao em tempo real para CPF/CNPJ
         if (cpfInput) {
+            const atualizarEstadoCpf = () => {
+                const numeros = cpfInput.value.replace(/\D/g, '');
+
+                cpfInput.classList.remove('input-valid', 'input-invalid');
+                cpfHint.classList.remove('hint-valid', 'hint-invalid');
+
+                if (numeros.length === 0) {
+                    cpfHint.textContent = 'Necessario para pagamentos via PIX';
+                    cpfValido = false;
+                    return;
+                }
+
+                const resultado = validarCpfCnpj(cpfInput.value);
+
+                if (resultado === null) {
+                    // Ainda digitando
+                    const tipo = numeros.length > 11 ? 'CNPJ' : 'CPF';
+                    cpfHint.textContent = `Digitando ${tipo}...`;
+                    cpfValido = false;
+                } else if (resultado) {
+                    const tipo = numeros.length === 11 ? 'CPF' : 'CNPJ';
+                    cpfInput.classList.add('input-valid');
+                    cpfHint.classList.add('hint-valid');
+                    cpfHint.textContent = `${tipo} válido`;
+                    cpfValido = true;
+                } else {
+                    const tipo = numeros.length <= 11 ? 'CPF' : 'CNPJ';
+                    cpfInput.classList.add('input-invalid');
+                    cpfHint.classList.add('hint-invalid');
+                    cpfHint.textContent = `${tipo} inválido — verifique os dígitos`;
+                    cpfValido = false;
+                }
+            };
+
             cpfInput.addEventListener('input', function(e) {
                 let value = e.target.value.replace(/\D/g, '');
 
@@ -327,6 +442,7 @@
                     value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
                 } else {
                     // CNPJ: 00.000.000/0001-00
+                    value = value.substring(0, 14);
                     value = value.replace(/(\d{2})(\d)/, '$1.$2');
                     value = value.replace(/(\d{3})(\d)/, '$1.$2');
                     value = value.replace(/(\d{3})(\d)/, '$1/$2');
@@ -334,7 +450,11 @@
                 }
 
                 e.target.value = value;
+                atualizarEstadoCpf();
             });
+
+            // Validar valor pre-preenchido
+            if (cpfInput.value) atualizarEstadoCpf();
         }
 
         // Mascara para telefone
@@ -363,6 +483,19 @@
             formWelcome.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
+                // Validar CPF/CNPJ antes de enviar
+                if (!cpfValido) {
+                    cpfInput.classList.add('input-invalid');
+                    cpfHint.classList.add('hint-invalid');
+                    const numeros = cpfInput.value.replace(/\D/g, '');
+                    const tipo = numeros.length > 11 ? 'CNPJ' : 'CPF';
+                    cpfHint.textContent = numeros.length === 0
+                        ? 'Preencha o CPF ou CNPJ'
+                        : `${tipo} inválido — verifique os dígitos`;
+                    cpfInput.focus();
+                    return;
+                }
+
                 const btn = formWelcome.querySelector('button[type="submit"]');
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '<span>Salvando...</span>';
@@ -388,7 +521,14 @@
                         document.getElementById('welcomeStep1').style.display = 'none';
                         document.getElementById('welcomeStep2').style.display = 'block';
                     } else {
-                        alert(data.error || 'Erro ao salvar dados. Tente novamente.');
+                        // Mostrar erros de validacao do backend
+                        if (data.errors?.cpf) {
+                            cpfInput.classList.add('input-invalid');
+                            cpfHint.classList.add('hint-invalid');
+                            cpfHint.textContent = data.errors.cpf[0];
+                        } else {
+                            alert(data.error || data.message || 'Erro ao salvar dados. Tente novamente.');
+                        }
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     }

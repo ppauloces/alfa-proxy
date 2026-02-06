@@ -939,6 +939,23 @@ class LogadoController extends Controller
                 }
 
 
+                // Se nenhum gateway conseguiu gerar o PIX, retornar erro
+                if (!$pixData) {
+                    DB::rollBack();
+                    $errorMsg = 'Erro ao processar compra: nenhum gateway de pagamento disponível. Tente novamente.';
+
+                    if ($isAjax) {
+                        return response()->json([
+                            'success' => false,
+                            'error' => $errorMsg,
+                        ], 500);
+                    }
+
+                    return back()
+                        ->withErrors(['error' => $errorMsg], 'novaCompra')
+                        ->withInput();
+                }
+
                 // Atualizar transação com dados do gateway usado
                 $metadata = $transacao->metadata;
                 $metadata['pix_gateway'] = $usedGateway;
@@ -1121,6 +1138,15 @@ class LogadoController extends Controller
                     $lastError = $e->getMessage();
                     \Log::warning('Asaas falhou na renovação, tentando AbacatePay', ['error' => $e->getMessage()]);
                 }
+            }
+
+            // Se nenhum gateway conseguiu gerar o PIX, retornar erro
+            if (!$pixData) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Erro ao gerar PIX para renovação. Tente novamente.',
+                ], 500);
             }
 
             // Atualizar transação com dados do gateway usado

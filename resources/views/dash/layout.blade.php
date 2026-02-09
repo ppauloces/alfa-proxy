@@ -99,8 +99,8 @@
             z-index: 50;
             border-right: 1px solid rgba(226, 232, 240, 0.8);
             border-radius: 0;
-            padding: 2rem 1rem;
-            box-shadow: 4px 0 20px rgba(15, 23, 42, 0.02);
+            padding: 1.25rem 0.75rem;
+            box-shadow: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
@@ -118,7 +118,7 @@
 
         .sidebar-card.collapsed {
             width: 80px;
-            padding: 2rem 0.75rem;
+            padding: 1.25rem 0.5rem;
         }
 
         .sidebar-card.collapsed .account-info,
@@ -144,31 +144,32 @@
             justify-content: space-between;
             gap: 0.75rem;
             width: 100%;
-            padding: 0.75rem 1rem;
-            border-radius: 12px;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
             border: none;
             background: transparent;
             color: #64748b;
-            font-size: 0.875rem;
-            font-weight: 600;
+            font-size: 0.8125rem;
+            font-weight: 500;
             cursor: pointer;
             text-decoration: none;
-            transition: all 0.2s ease;
+            transition: color 0.2s ease, background 0.2s ease;
         }
 
         .nav-pill i {
-            font-size: 1rem;
-            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            transition: color 0.2s ease;
         }
 
         .nav-pill:hover {
-            background: #f1f5f9;
-            color: var(--sf-blue);
+            background: #f8fafc;
+            color: #0f172a;
         }
 
         .nav-pill.active {
-            background: #eff6ff;
+            background: #f1f5f9;
             color: var(--sf-blue);
+            font-weight: 600;
         }
 
         .nav-pill.active i {
@@ -177,27 +178,24 @@
 
         .sidebar-toggle {
             width: 100%;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            padding: 0.65rem;
+            border-radius: 8px;
+            border: none;
+            padding: 0.5rem;
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            color: #64748b;
-            background: #fff;
+            color: #94a3b8;
+            background: transparent;
             cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            transition: color 0.2s ease, background 0.2s ease;
         }
 
         .sidebar-toggle:hover {
             background: #f8fafc;
-            border-color: #cbd5e1;
-            color: #334155;
+            color: #475569;
         }
 
         .custom-scrollbar::-webkit-scrollbar {
@@ -453,41 +451,33 @@
     <main class="dashboard-shell">
         <div class="dashboard-grid">
             <aside class="sidebar-card" data-sidebar>
-                <div class="flex items-center gap-3 mb-10 px-2">
+                <div class="flex items-center gap-3 mb-6 px-2 pb-5 border-b border-slate-100">
                     <div class="relative">
                         <div
-                            class="w-12 h-12 rounded-2xl bg-gradient-to-br {{ Auth::user()->isRevendedor() ? 'from-amber-400 to-orange-600' : 'from-[#448ccb] to-[#23366f]' }} flex items-center justify-center text-white font-bold shadow-lg {{ Auth::user()->isRevendedor() ? 'shadow-amber-500/20' : 'shadow-blue-900/20' }}">
+                            class="w-9 h-9 rounded-lg {{ Auth::user()->isRevendedor() ? 'bg-amber-500' : 'bg-[#23366f]' }} flex items-center justify-center text-white text-xs font-semibold">
                             {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}{{ strtoupper(substr(explode(' ', Auth::user()->name ?? 'U')[1] ?? '', 0, 1)) }}
                         </div>
                         <div
-                            class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full">
+                            class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full">
                         </div>
                     </div>
-                    <div class="account-info">
-                        <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold leading-tight">
-                            Painel {{ Auth::user()->isRevendedor() ? 'Revendedor' : 'Cliente' }}
-                        </p>
-                        <p class="text-sm font-extrabold text-slate-800 truncate max-w-[140px]">
+                    <div class="account-info min-w-0">
+                        <p class="text-[13px] font-semibold text-slate-800 truncate max-w-[150px]">
                             {{ Auth::user()->name ?? 'Usuario' }}
                         </p>
-                        @if(Auth::user()->isRevendedor())
-                            <span
-                                class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 rounded-full mt-1">
-                                <i class="fas fa-crown text-[8px] text-amber-600"></i>
-                                <span
-                                    class="text-[8px] font-black text-amber-700 uppercase tracking-wider">Revendedor</span>
-                            </span>
-                        @endif
+                        <p class="text-[11px] text-slate-400 font-medium leading-tight">
+                            {{ Auth::user()->isRevendedor() ? 'Revendedor' : 'Cliente' }}
+                        </p>
                     </div>
                 </div>
 
-                <div class="space-y-6 flex-1 overflow-y-auto custom-scrollbar px-2">
+                <div class="space-y-5 flex-1 overflow-y-auto custom-scrollbar px-1">
                     {{-- Seção Geral --}}
                     <div>
                         <p
-                            class="sidebar-title text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold mb-3 px-4">
+                            class="sidebar-title text-[11px] uppercase tracking-wider text-slate-400 font-medium mb-1.5 px-3">
                             Menu Principal</p>
-                        <div class="space-y-1">
+                        <div class="space-y-0.5">
                             <button type="button" class="nav-pill" data-section-link="proxies">
                                 <span class="flex items-center gap-3">
                                     <i class="fas fa-layer-group w-5 text-center"></i>
@@ -506,16 +496,16 @@
                     {{-- Seção Financeiro --}}
                     <div>
                         <p
-                            class="sidebar-title text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold mb-3 px-4">
+                            class="sidebar-title text-[11px] uppercase tracking-wider text-slate-400 font-medium mb-1.5 px-3">
                             Financeiro</p>
-                        <div class="space-y-1">
+                        <div class="space-y-0.5">
                             <div class="nav-pill opacity-60 cursor-not-allowed">
                                 <span class="flex items-center gap-3">
                                     <i class="fas fa-wallet w-5 text-center text-slate-400"></i>
                                     <span class="nav-text text-slate-400">Carteira / Saldo</span>
                                 </span>
                                 <span
-                                    class="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">Em
+                                    class="text-[9px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-medium">Em
                                     breve</span>
                             </div>
                             <button type="button" class="nav-pill" data-section-link="transacoes">
@@ -537,9 +527,9 @@
                     {{-- Seção Suporte e Conta --}}
                     <div>
                         <p
-                            class="sidebar-title text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold mb-3 px-4">
+                            class="sidebar-title text-[11px] uppercase tracking-wider text-slate-400 font-medium mb-1.5 px-3">
                             Atendimento & Conta</p>
-                        <div class="space-y-1">
+                        <div class="space-y-0.5">
                             <button type="button" class="nav-pill" data-section-link="suporte">
                                 <span class="flex items-center gap-3">
                                     <i class="fas fa-headset w-5 text-center"></i>
@@ -565,9 +555,9 @@
                         {{-- Seção Admin --}}
                         <div class="pt-4 border-t border-slate-100">
                             <p
-                                class="sidebar-title text-[10px] uppercase tracking-[0.2em] text-red-400 font-bold mb-3 px-4">
+                                class="sidebar-title text-[11px] uppercase tracking-wider text-red-400/80 font-medium mb-1.5 px-3">
                                 Administração</p>
-                            <div class="space-y-1">
+                            <div class="space-y-0.5">
                                 <button type="button" class="nav-pill" data-section-link="admin-usuarios">
                                     <span class="flex items-center gap-3">
                                         <i class="fas fa-users w-5 text-center"></i>
@@ -603,10 +593,10 @@
                     @endif
                 </div>
 
-                <div class="mt-8">
+                <div class="mt-auto pt-4 border-t border-slate-100">
                     <button type="button" class="sidebar-toggle" id="sidebarToggle">
-                        <i class="fas fa-chevron-left text-xs"></i>
-                        <span class="nav-text">Recolher Menu</span>
+                        <i class="fas fa-chevron-left text-[10px]"></i>
+                        <span class="nav-text text-[11px]">Recolher</span>
                     </button>
                 </div>
             </aside>
@@ -626,8 +616,8 @@
             toggleButtons.forEach(btn => {
                 if (!btn) return;
                 btn.innerHTML = collapsed
-                    ? '<i class="fas fa-chevron-right text-xs"></i>'
-                    : '<i class="fas fa-chevron-left text-xs"></i> <span class="nav-text">Recolher Menu</span>';
+                    ? '<i class="fas fa-chevron-right text-[10px]"></i>'
+                    : '<i class="fas fa-chevron-left text-[10px]"></i> <span class="nav-text text-[11px]">Recolher</span>';
             });
         };
 

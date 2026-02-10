@@ -58,7 +58,9 @@
                         <th>Saldo</th>
                         <th>Gasto Total</th>
                         <th>Proxies</th>
-                        <th>Ações</th>
+                        @if(Auth::user()->isSuperAdmin())
+                            <th>Ações</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -72,6 +74,7 @@
                                 $cargoBadgeClass = match ($cargo) {
                                     'usuario' => 'bg-slate-100 text-slate-700 ring-slate-200',
                                     'revendedor' => 'bg-emerald-100 text-emerald-700 ring-emerald-200',
+                                    'admin' => 'bg-blue-100 text-blue-700 ring-blue-200',
                                     'super' => 'bg-indigo-100 text-indigo-700 ring-indigo-200',
                                     default => 'bg-slate-100 text-slate-600 ring-slate-200',
                                 };
@@ -86,8 +89,8 @@
                                 <span class="text-xs text-slate-500">R$ {{ number_format(data_get($statsCompraProxy, $user->id.'.gasto', 0), 2, ',', '.') }}</span>
                             </td>
                             <td class="font-semibold text-slate-900">{{ data_get($statsCompraProxy, $user->id.'.proxies', 0) }}</td>
-                           
-                           
+
+                            @if(Auth::user()->isSuperAdmin())
                             <td class="relative">
                                 <div x-data="{
                                         open: false,
@@ -110,33 +113,68 @@
                                     <div x-show="open" @click.outside="open = false"
                                         class="fixed w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-[9999]"
                                         :style="`top:${top}px;left:${left}px;`" style="display:none;">
+
+                                        <p class="px-4 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Alterar cargo</p>
+
+                                        @if($cargo !== 'usuario')
                                         <form method="POST" action="/admin/usuarios/{{ $user['id'] }}/cargo" class="m-0">
                                             @csrf
                                             @method('PATCH')
-                                            <input type="hidden" name="cargo" value="super">
+                                            <input type="hidden" name="cargo" value="usuario">
                                             <button type="submit"
                                                 class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center">
-                                                <i class="fas fa-user-shield mr-2 text-slate-400"></i>
-                                                Transformar em admin
+                                                <i class="fas fa-user mr-2 text-slate-400"></i>
+                                                Usuário comum
                                             </button>
                                         </form>
+                                        @endif
+
+                                        @if($cargo !== 'revendedor')
                                         <form method="POST" action="/admin/usuarios/{{ $user['id'] }}/cargo" class="m-0">
                                             @csrf
                                             @method('PATCH')
                                             <input type="hidden" name="cargo" value="revendedor">
                                             <button type="submit"
                                                 class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center">
-                                                <i class="fas fa-store mr-2 text-slate-400"></i>
-                                                Mudar para revendedor
+                                                <i class="fas fa-store mr-2 text-emerald-400"></i>
+                                                Revendedor
                                             </button>
                                         </form>
+                                        @endif
+
+                                        @if($cargo !== 'admin')
+                                        <form method="POST" action="/admin/usuarios/{{ $user['id'] }}/cargo" class="m-0">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="cargo" value="admin">
+                                            <button type="submit"
+                                                class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center">
+                                                <i class="fas fa-user-shield mr-2 text-blue-400"></i>
+                                                Admin
+                                            </button>
+                                        </form>
+                                        @endif
+
+                                        @if($cargo !== 'super')
+                                        <form method="POST" action="/admin/usuarios/{{ $user['id'] }}/cargo" class="m-0">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="cargo" value="super">
+                                            <button type="submit"
+                                                class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center">
+                                                <i class="fas fa-crown mr-2 text-red-400"></i>
+                                                Super Admin
+                                            </button>
+                                        </form>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center text-slate-500 py-8">Nenhum cliente encontrado</td>
+                            <td colspan="{{ Auth::user()->isSuperAdmin() ? 7 : 6 }}" class="text-center text-slate-500 py-8">Nenhum cliente encontrado</td>
                         </tr>
                     @endforelse
                 </tbody>

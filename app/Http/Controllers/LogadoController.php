@@ -50,6 +50,7 @@ class LogadoController extends Controller
         $forecast = [];
         $soldProxyCards = [];
         $soldProxies = [];
+        $colaboradores = collect();
 
         if ($usuario->isAdmin()) {
             // ===== CLIENTES & LEADS (com busca + paginação) =====
@@ -58,7 +59,7 @@ class LogadoController extends Controller
             $usersPerPage = max(5, min(100, $usersPerPage));
 
             $clientLeads = User::query()
-                ->whereIn('cargo', ['usuario', 'revendedor', 'super'])
+                ->whereIn('cargo', ['usuario', 'revendedor', 'super', 'admin'])
                 ->when($usersQ !== '', function ($q) use ($usersQ) {
                     $q->where(function ($qq) use ($usersQ) {
                         $qq->where('name', 'like', '%' . $usersQ . '%')
@@ -91,6 +92,23 @@ class LogadoController extends Controller
                             'gasto' => (float) ($row->gasto ?? 0),
                         ];
                     });
+            }
+
+            // ===== COLABORADORES (apenas para super) =====
+            if ($usuario->isSuperAdmin()) {
+                $collabQ = trim((string) $request->query('collab_q', ''));
+
+                $colaboradores = User::query()
+                    ->where('cargo', 'admin')
+                    ->when($collabQ !== '', function ($q) use ($collabQ) {
+                        $q->where(function ($qq) use ($collabQ) {
+                            $qq->where('name', 'like', '%' . $collabQ . '%')
+                                ->orWhere('email', 'like', '%' . $collabQ . '%');
+                        });
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(20, ['*'], 'collab_page')
+                    ->withQueryString();
             }
 
             $vpsList = \App\Models\Vps::with('proxies')->orderBy('created_at', 'desc')->get();
@@ -286,14 +304,39 @@ class LogadoController extends Controller
                         'categoria' => $metodoLabel,
                         'data' => $transacao->created_at->format('d/m/Y'),
                         'valor' => '+ R$ ' . number_format((float) $transacao->valor, 2, ',', '.'),
+                        'valor_raw' => (float) $transacao->valor,
                         'is_revendedor' => $isRevendedor,
                         'user_id' => $transacao->user_id,
+                        'username' => $username,
+                        'tipo' => $tipo,
                     ];
                 });
+
+            // ===== ENTRADAS AGRUPADAS (por usuário + dia) =====
+            $entradasAgrupadas = $entradas->groupBy(function ($item) {
+                return $item['user_id'] . '_' . $item['data'];
+            })->map(function ($group) {
+                $first = $group->first();
+                $count = $group->count();
+                $totalRaw = $group->sum('valor_raw');
+
+                return [
+                    'username' => $first['username'],
+                    'user_id' => $first['user_id'],
+                    'is_revendedor' => $first['is_revendedor'],
+                    'data' => $first['data'],
+                    'quantidade' => $count,
+                    'valor_total' => '+ R$ ' . number_format($totalRaw, 2, ',', '.'),
+                    'valor_total_raw' => $totalRaw,
+                    'categoria' => $first['categoria'],
+                    'tipo' => $first['tipo'],
+                ];
+            })->values();
 
             $financeExtract = [
                 'saida' => $saidas,
                 'entrada' => $entradas,
+                'entrada_agrupada' => $entradasAgrupadas,
             ];
             $precosPorPeriodo = [
                 30 => 20.00,
@@ -544,6 +587,7 @@ class LogadoController extends Controller
             'usoInternoStats',
             'clientLeads',
             'statsCompraProxy',
+            'colaboradores',
         ));
     }
 

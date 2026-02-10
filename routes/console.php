@@ -26,22 +26,6 @@ Schedule::command('proxies:check-expired --batch-size=100')
         \Illuminate\Support\Facades\Log::error('Falha na execução do scheduler de proxies expirados');
     });
 
-/**
- * Agendamento automático de geração de despesas de renovação de VPS
- *
- * Executa diariamente às 00:01 para registrar despesas de renovação
- * que são cobradas no dia (cobrança automática no cartão)
- */
-Schedule::command('vps:gerar-despesas-renovacao')
-    ->dailyAt('00:01')
-    ->name('gerar-despesas-renovacao-vps')
-    ->withoutOverlapping(5)
-    ->onSuccess(function () {
-        \Illuminate\Support\Facades\Log::info('Geração de despesas de renovação de VPS executada com sucesso');
-    })
-    ->onFailure(function () {
-        \Illuminate\Support\Facades\Log::error('Falha na geração de despesas de renovação de VPS');
-    });
 
 /**
  * Auto-renovacao de proxies via cartao (Stripe)

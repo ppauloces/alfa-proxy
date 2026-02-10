@@ -10,6 +10,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/card/2.5.4/card.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/min/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/pt-br.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- Meta Pixel Code -->
@@ -441,7 +446,8 @@
                         </button>
                     </form>
                 @endauth
-                <button class="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-50 transition-all" id="mobileMenuToggle">
+                <button class="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-50 transition-all"
+                    id="mobileMenuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
@@ -518,7 +524,7 @@
                                 <span class="flex items-center gap-3">
                                     <i class="fas fa-credit-card w-5 text-center text-slate-400"></i>
                                     <span class="nav-text">Meus Cartões</span>
-                                    
+
                                 </span>
                             </button>
                         </div>
@@ -576,6 +582,20 @@
                                         <span class="nav-text">Histórico de VPS</span>
                                     </span>
                                 </button>
+                            </div>
+                            @if(Auth::user()->isSuperAdmin())
+                                <button type="button" class="nav-pill" data-section-link="admin-colaboradores">
+                                    <span class="flex items-center gap-3">
+                                        <i class="fas fa-user-shield w-5 text-center"></i>
+                                        <span class="nav-text">Colaboradores</span>
+                                    </span>
+                                </button>
+                                <button type="button" class="nav-pill" data-section-link="admin-financeiro">
+                                    <span class="flex items-center gap-3">
+                                        <i class="fas fa-dollar-sign w-5 text-center"></i>
+                                        <span class="nav-text">Financeiro</span>
+                                    </span>
+                                </button>
                                 <button type="button" class="nav-pill" data-section-link="admin-transacoes">
                                     <span class="flex items-center gap-3">
                                         <i class="fas fa-exchange-alt w-5 text-center"></i>
@@ -588,9 +608,10 @@
                                         <span class="nav-text">Relatórios</span>
                                     </span>
                                 </button>
-                            </div>
+                            @endif
                         </div>
                     @endif
+
                 </div>
 
                 <div class="mt-auto pt-4 border-t border-slate-100">

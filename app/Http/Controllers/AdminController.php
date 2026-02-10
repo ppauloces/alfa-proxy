@@ -801,4 +801,420 @@ class AdminController extends Controller
         }
     }
 
+    // ===== SEÇÕES MASTER (apenas super) =====
+
+    public function colaboradores(Request $request)
+    {
+        if (!Auth::user()->isSuperAdmin()) {
+            return redirect()->route('dash.show')->with('error', 'Acesso restrito.');
+        }
+
+        return redirect()->route('dash.show', ['section' => 'admin-colaboradores']);
+    }
+
+    public function financeiro(Request $request)
+    {
+        if (!Auth::user()->isSuperAdmin()) {
+            return redirect()->route('dash.show')->with('error', 'Acesso restrito.');
+        }
+
+        return redirect()->route('dash.show', ['section' => 'admin-financeiro']);
+    }
+
+    public function atualizarCargoColaborador(Request $request, $id)
+    {
+        if (!Auth::user()->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Acesso restrito.');
+        }
+
+        try {
+            $validated = $request->validate([
+                'cargo' => 'required|in:usuario,admin,super',
+            ]);
+
+            $user = User::findOrFail($id);
+
+            if ($user->id === Auth::id()) {
+                return redirect()->back()->withErrors(['error' => 'Você não pode alterar seu próprio cargo.']);
+            }
+
+            $user->cargo = $validated['cargo'];
+            $user->save();
+
+            Log::info('Cargo de colaborador atualizado', [
+                'admin_id' => Auth::id(),
+                'user_id' => $user->id,
+                'novo_cargo' => $validated['cargo'],
+            ]);
+
+            return redirect()->route('dash.show', ['section' => 'admin-colaboradores'])
+                ->with('success', 'Cargo atualizado com sucesso.');
+        } catch (\Exception $e) {
+            Log::error('Erro ao atualizar cargo de colaborador', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Erro ao atualizar cargo.']);
+        }
+    }
+
+    public function toggleStatusColaborador(Request $request, $id)
+    {
+        if (!Auth::user()->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Acesso restrito.');
+        }
+
+        try {
+            $user = User::findOrFail($id);
+
+            if ($user->id === Auth::id()) {
+                return redirect()->back()->withErrors(['error' => 'Você não pode alterar seu próprio status.']);
+            }
+
+            $user->status = !$user->status;
+            $user->save();
+
+            Log::info('Status de colaborador alterado', [
+                'admin_id' => Auth::id(),
+                'user_id' => $user->id,
+                'novo_status' => $user->status,
+            ]);
+
+            $msg = $user->status ? 'Colaborador ativado.' : 'Colaborador desativado.';
+            return redirect()->route('dash.show', ['section' => 'admin-colaboradores'])
+                ->with('success', $msg);
+        } catch (\Exception $e) {
+            Log::error('Erro ao alterar status de colaborador', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Erro ao alterar status.']);
+        }
+    }
+
+    // ===== LANÇAMENTO DE DESPESAS =====
+
+    public function lancarRenovacaoVps(Request $request)
+    {
+        if (!Auth::user()->isSuperAdmin()) {
+            return response()->json(['success' => false, 'error' => 'Acesso restrito.'], 403);
+        }
+
+        try {
+            $validated = $request->validate([
+                'vps_id' => 'required|exists:vps,id',
+                'valor' => 'required|numeric|min:0.01',
+                'data_vencimento' => 'required|date',
+                'status' => 'required|in:pago,pendente',
+            ], [
+                'vps_id.required' => 'Selecione uma VPS.',
+                'vps_id.exists' => 'VPS não encontrada.',
+                'valor.required' => 'O valor é obrigatório.',
+                'valor.min' => 'O valor deve ser maior que zero.',
+                'data_vencimento.required' => 'A data é obrigatória.',
+                'status.required' => 'O status é obrigatório.',
+            ]);
+
+            $vps = Vps::findOrFail($validated['vps_id']);
+
+            $despesa = Despesa::create([
+                'vps_id' => $vps->id,
+                'tipo' => 'renovacao',
+                'valor' => $validated['valor'],
+                'descricao' => "Renovação VPS {$vps->apelido} - Período {$vps->periodo_dias} dias",
+                'data_vencimento' => $validated['data_vencimento'],
+                'data_pagamento' => $validated['status'] === 'pago' ? $validated['data_vencimento'] : null,
+                'status' => $validated['status'],
+            ]);
+
+            Log::info('Renovação de VPS lançada manualmente', [
+                'despesa_id' => $despesa->id,
+                'vps_id' => $vps->id,
+                'vps_apelido' => $vps->apelido,
+                'valor' => $validated['valor'],
+                'status' => $validated['status'],
+                'lancado_por' => Auth::id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Renovação de {$vps->apelido} lançada com sucesso (R$ " . number_format($validated['valor'], 2, ',', '.') . ").",
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->validator->errors()->first(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Erro ao lançar renovação de VPS', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao lançar renovação: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Retorna dados financeiros filtrados por período (AJAX)
+     */
+    public function financeiroData(Request $request)
+    {
+        if (!Auth::user()->isSuperAdmin()) {
+            return response()->json(['error' => 'Acesso negado.'], 403);
+        }
+
+        $startDate = $request->query('start_date')
+            ? Carbon::parse($request->query('start_date'))->startOfDay()
+            : Carbon::now()->subDays(29)->startOfDay();
+
+        $endDate = $request->query('end_date')
+            ? Carbon::parse($request->query('end_date'))->endOfDay()
+            : Carbon::now()->endOfDay();
+
+        // ===== CARDS FINANCEIROS =====
+        $totalEntradas = Transaction::where('status', 1)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('valor');
+
+        $totalSaidas = Despesa::whereIn('status', ['pago', 'pendente'])
+            ->whereBetween('data_vencimento', [$startDate, $endDate])
+            ->sum('valor');
+
+        $lucroLiquido = $totalEntradas - $totalSaidas;
+
+        $revendedoresIds = User::where('cargo', 'revendedor')->pluck('id');
+        $totalEntradasRevendedores = Transaction::where('status', 1)
+            ->whereIn('user_id', $revendedoresIds)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('valor');
+        $proxiesVendidasRevendedores = Stock::whereIn('user_id', $revendedoresIds)
+            ->where('disponibilidade', false)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
+
+        $transacoesNoPeriodo = Transaction::where('status', 1)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+        $despesasNoPeriodo = Despesa::whereIn('status', ['pago', 'pendente'])
+            ->whereBetween('data_vencimento', [$startDate, $endDate])
+            ->count();
+
+        $financeCards = [
+            [
+                'label' => 'Total Entradas',
+                'value' => 'R$ ' . number_format($totalEntradas, 2, ',', '.'),
+                'trend' => '+' . $transacoesNoPeriodo . ' no período',
+                'bar' => 100,
+            ],
+            [
+                'label' => 'Total Saídas',
+                'value' => 'R$ ' . number_format($totalSaidas, 2, ',', '.'),
+                'trend' => $despesasNoPeriodo . ' despesas no período',
+                'bar' => $totalEntradas > 0 ? ($totalSaidas / $totalEntradas) * 100 : 0,
+            ],
+            [
+                'label' => 'Lucro Líquido',
+                'value' => 'R$ ' . number_format($lucroLiquido, 2, ',', '.'),
+                'trend' => $lucroLiquido >= 0 ? 'Positivo' : 'Negativo',
+                'bar' => $totalEntradas > 0 ? ($lucroLiquido / $totalEntradas) * 100 : 0,
+            ],
+            [
+                'label' => 'Vendas Revendedores',
+                'value' => 'R$ ' . number_format($totalEntradasRevendedores, 2, ',', '.'),
+                'trend' => $proxiesVendidasRevendedores . ' ' . ($proxiesVendidasRevendedores === 1 ? 'proxy vendida' : 'proxies vendidas'),
+                'bar' => $totalEntradas > 0 ? ($totalEntradasRevendedores / $totalEntradas) * 100 : 0,
+            ],
+        ];
+
+        // ===== EXTRATO DE SAÍDAS =====
+        $extratoSaidas = Despesa::with('vps')
+            ->whereIn('status', ['pago', 'pendente'])
+            ->whereBetween('data_vencimento', [$startDate, $endDate])
+            ->orderBy('data_vencimento', 'desc')
+            ->limit(50)
+            ->get()
+            ->map(function ($despesa) {
+                $tipoLabel = match ($despesa->tipo) {
+                    'compra' => 'Compra VPS',
+                    'cobranca' => 'Cobrança',
+                    'renovacao' => 'Renovação',
+                    default => ucfirst($despesa->tipo),
+                };
+
+                return [
+                    'descricao' => $despesa->descricao ?? 'VPS ' . ($despesa->vps->apelido ?? 'N/A'),
+                    'categoria' => $tipoLabel,
+                    'tipo' => $despesa->tipo,
+                    'data' => $despesa->data_vencimento ? $despesa->data_vencimento->format('d/m/Y') : $despesa->created_at->format('d/m/Y'),
+                    'valor' => '- R$ ' . number_format((float) $despesa->valor, 2, ',', '.'),
+                    'status' => $despesa->status,
+                ];
+            });
+
+        // ===== EXTRATO DE ENTRADAS (agrupadas por user+dia) =====
+        $entradas = Transaction::with('user')
+            ->where('status', 1)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get()
+            ->map(function ($transacao) {
+                $metodo = $transacao->metodo_pagamento ?? 'saldo';
+                $metodoLabel = match ($metodo) {
+                    'pix' => 'PIX',
+                    'credit_card' => 'Cartão de Crédito',
+                    'saldo' => 'Saldo',
+                    'boleto' => 'Boleto',
+                    'usdt' => 'USDT',
+                    'btc' => 'Bitcoin',
+                    'ltc' => 'Litecoin',
+                    'bnb' => 'Binance',
+                    default => ucfirst($metodo),
+                };
+
+                return [
+                    'data' => $transacao->created_at->format('d/m/Y'),
+                    'valor_raw' => (float) $transacao->valor,
+                    'is_revendedor' => $transacao->user && $transacao->user->cargo === 'revendedor',
+                    'user_id' => $transacao->user_id,
+                    'username' => $transacao->user->username ?? 'Usuário',
+                    'categoria' => $metodoLabel,
+                ];
+            });
+
+        $extratoEntradas = $entradas->groupBy(function ($item) {
+            return $item['user_id'] . '_' . $item['data'];
+        })->map(function ($group) {
+            $first = $group->first();
+            $totalRaw = $group->sum('valor_raw');
+
+            return [
+                'username' => $first['username'],
+                'user_id' => $first['user_id'],
+                'is_revendedor' => $first['is_revendedor'],
+                'data' => $first['data'],
+                'quantidade' => $group->count(),
+                'valor_total' => '+ R$ ' . number_format($totalRaw, 2, ',', '.'),
+                'categoria' => $first['categoria'],
+            ];
+        })->values();
+
+        return response()->json([
+            'financeCards' => $financeCards,
+            'extratoSaidas' => $extratoSaidas,
+            'extratoEntradas' => $extratoEntradas,
+        ]);
+    }
+
+    /**
+     * Dados filtrados para a aba admin de transações (vendas) via AJAX.
+     */
+    public function transacoesData(Request $request)
+    {
+        $startDate = $request->query('start_date')
+            ? Carbon::parse($request->query('start_date'))->startOfDay()
+            : Carbon::now()->subDays(29)->startOfDay();
+
+        $endDate = $request->query('end_date')
+            ? Carbon::parse($request->query('end_date'))->endOfDay()
+            : Carbon::now()->endOfDay();
+
+        // Cards filtrados por período
+        $proxiesVendidos = Stock::where('disponibilidade', false)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
+        $proxiesAtivos = Stock::where('disponibilidade', false)
+            ->where('bloqueada', false)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
+        $proxiesBloqueados = Stock::where('bloqueada', true)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->count();
+        $receitaTotal = Transaction::where('status', 1)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('valor');
+
+        $soldProxyCards = [
+            [
+                'label' => 'Total Vendidos',
+                'value' => number_format($proxiesVendidos, 0, ',', '.'),
+                'chip' => 'Proxies',
+            ],
+            [
+                'label' => 'Ativos',
+                'value' => number_format($proxiesAtivos, 0, ',', '.'),
+                'chip' => 'Em uso',
+            ],
+            [
+                'label' => 'Bloqueados',
+                'value' => number_format($proxiesBloqueados, 0, ',', '.'),
+                'chip' => 'Suspensos',
+            ],
+            [
+                'label' => 'Receita Total',
+                'value' => 'R$ ' . number_format($receitaTotal, 2, ',', '.'),
+                'chip' => 'Arrecadado',
+            ],
+        ];
+
+        // Lista de vendas filtrada
+        $soldProxies = Stock::with(['user', 'vps'])
+            ->where('disponibilidade', false)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(function ($proxy) {
+                $expiracao = $proxy->expiracao ? Carbon::parse($proxy->expiracao) : null;
+                $diasRestantes = $expiracao ? now()->diffInDays($expiracao, false) : 0;
+
+                $gastoCliente = Transaction::where('user_id', $proxy->user_id)
+                    ->where('status', 1)
+                    ->sum('valor');
+
+                $pedidos = Stock::where('user_id', $proxy->user_id)
+                    ->where('disponibilidade', false)
+                    ->count();
+
+                $transactions = Transaction::where('user_id', $proxy->user_id)
+                    ->where('tipo', 'compra_proxy')
+                    ->where('status', 1)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+                $matchedTransaction = $transactions->first(function ($txn) use ($proxy) {
+                    return abs(strtotime($txn->created_at) - strtotime($proxy->updated_at)) < 120;
+                });
+
+                $metadata = [];
+                if ($matchedTransaction) {
+                    $metaRaw = $matchedTransaction->metadata;
+                    if (is_string($metaRaw)) {
+                        $metadata = json_decode($metaRaw, true);
+                    } elseif (is_array($metaRaw)) {
+                        $metadata = $metaRaw;
+                    }
+                }
+
+                return [
+                    'id' => $proxy->id,
+                    'stock_id' => $proxy->id,
+                    'data' => $proxy->updated_at->format('d/m/Y'),
+                    'endereco' => $proxy->ip . ':' . $proxy->porta,
+                    'comprador' => $proxy->user->username ?? 'Anônimo',
+                    'email' => $proxy->user->email ?? 'N/A',
+                    'ip' => $proxy->ip,
+                    'porta' => $proxy->porta,
+                    'usuario' => $proxy->usuario,
+                    'senha' => $proxy->senha,
+                    'status' => $proxy->bloqueada ? 'bloqueada' : 'ativa',
+                    'periodo' => $diasRestantes > 0 ? $diasRestantes : 0,
+                    'gasto_cliente' => 'R$ ' . number_format($gastoCliente, 2, ',', '.'),
+                    'pedidos' => $pedidos,
+                    'valor_unitario' => $metadata['valor_unitario'] ?? null,
+                    'periodo_comprado' => $metadata['periodo'] ?? null,
+                    'motivo' => $metadata['motivo'] ?? null,
+                ];
+            })->values();
+
+        return response()->json([
+            'soldProxyCards' => $soldProxyCards,
+            'soldProxies' => $soldProxies,
+        ]);
+    }
+
 }

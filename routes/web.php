@@ -123,4 +123,19 @@ Route::middleware(AdminMiddleware::class)->group(function () {
 
     // Atualizar cargo do usuário
     Route::patch('/admin/usuarios/{id}/cargo', [AdminController::class, 'atualizarCargo'])->name('usuarios.atualizar-cargo');
+
+    // Seções Master (super admin)
+    Route::get('/admin/colaboradores', [AdminController::class, 'colaboradores'])->name('admin.colaboradores');
+    Route::get('/admin/financeiro', [AdminController::class, 'financeiro'])->name('admin.financeiro');
+    Route::patch('/admin/colaboradores/{id}/cargo', [AdminController::class, 'atualizarCargoColaborador'])->name('admin.colaboradores.cargo');
+    Route::patch('/admin/colaboradores/{id}/status', [AdminController::class, 'toggleStatusColaborador'])->name('admin.colaboradores.toggle-status');
+
+    // Despesas manuais (financeiro)
+    Route::post('/admin/despesa/renovacao', [AdminController::class, 'lancarRenovacaoVps'])->name('admin.despesa.renovacao');
+
+    // Dados financeiros filtrados por período (AJAX)
+    Route::get('/admin/financeiro/data', [AdminController::class, 'financeiroData'])->name('admin.financeiro.data');
+
+    // Dados de transações/vendas filtrados por período (AJAX)
+    Route::get('/admin/transacoes/data', [AdminController::class, 'transacoesData'])->name('admin.transacoes.data');
 });

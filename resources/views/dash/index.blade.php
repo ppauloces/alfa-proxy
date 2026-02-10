@@ -1626,26 +1626,37 @@
                 @include('dash.partials.admin.historico-vps')
             </section>
 
-            <section class="dash-section {{ $currentSection === 'admin-transacoes' ? 'active' : 'hidden' }}"
-                data-section="admin-transacoes">
-                @include('dash.partials.admin.transacoes')
-            </section>
-
             <section class="dash-section {{ $currentSection === 'admin-usuarios' ? 'active' : 'hidden' }}"
                 data-section="admin-usuarios">
                 @include('dash.partials.admin.usuarios')
             </section>
 
-            <section class="dash-section {{ $currentSection === 'admin-relatorios' ? 'active' : 'hidden' }}"
-                data-section="admin-relatorios">
-                @include('dash.partials.admin.relatorios')
-            </section>
+            @if(Auth::user()->isSuperAdmin())
+                <section class="dash-section {{ $currentSection === 'admin-transacoes' ? 'active' : 'hidden' }}"
+                    data-section="admin-transacoes">
+                    @include('dash.partials.admin.transacoes')
+                </section>
 
-            <section class="dash-section {{ $currentSection === 'admin-cupons' ? 'active' : 'hidden' }}"
-                data-section="admin-cupons">
-                @include('dash.partials.admin.cupons')
-            </section>
+                <section class="dash-section {{ $currentSection === 'admin-relatorios' ? 'active' : 'hidden' }}"
+                    data-section="admin-relatorios">
+                    @include('dash.partials.admin.relatorios')
+                </section>
 
+                <section class="dash-section {{ $currentSection === 'admin-cupons' ? 'active' : 'hidden' }}"
+                    data-section="admin-cupons">
+                    @include('dash.partials.admin.cupons')
+                </section>
+
+                <section class="dash-section {{ $currentSection === 'admin-colaboradores' ? 'active' : 'hidden' }}"
+                    data-section="admin-colaboradores">
+                    @include('dash.partials.admin.colaboradores')
+                </section>
+
+                <section class="dash-section {{ $currentSection === 'admin-financeiro' ? 'active' : 'hidden' }}"
+                    data-section="admin-financeiro">
+                    @include('dash.partials.admin.financeiro')
+                </section>
+            @endif
 
         @endif
     </div>

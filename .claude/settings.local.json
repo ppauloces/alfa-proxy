@@ -7,7 +7,9 @@
       "Bash(php:*)",
       "Bash(curl:*)",
       "Bash(mkdir:*)",
-      "Bash(composer require:*)"
+      "Bash(composer require:*)",
+      "Bash(del \"c:\\\\laragon\\\\www\\\\alfa-proxy\\\\app\\\\Console\\\\Commands\\\\GerarDespesasRenovacao.php\")",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

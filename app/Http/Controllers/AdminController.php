@@ -1257,4 +1257,26 @@ class AdminController extends Controller
         ]);
     }
 
+    public function ipGeolocation(Request $request)
+    {
+        $ip = $request->input('ip');
+
+        if (!$ip || !filter_var($ip, FILTER_VALIDATE_IP)) {
+            return response()->json(['error' => 'IP inválido'], 422);
+        }
+
+        $response = Http::timeout(5)->get("http://ip-api.com/json/{$ip}?fields=status,city,regionName,country,countryCode");
+
+        if ($response->successful() && $response->json('status') === 'success') {
+            $data = $response->json();
+            return response()->json([
+                'city' => $data['city'] ?? null,
+                'region' => $data['regionName'] ?? null,
+                'country_name' => $data['country'] ?? null,
+                'country_code' => $data['countryCode'] ?? null,
+            ]);
+        }
+
+        return response()->json(['error' => 'Falha ao buscar geolocalização'], 502);
+    }
 }

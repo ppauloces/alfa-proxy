@@ -138,4 +138,7 @@ Route::middleware(AdminMiddleware::class)->group(function () {
 
     // Dados de transações/vendas filtrados por período (AJAX)
     Route::get('/admin/transacoes/data', [AdminController::class, 'transacoesData'])->name('admin.transacoes.data');
+
+    // Geolocalização de IP (proxy server-side para evitar CORS)
+    Route::get('/admin/ip-geolocation', [AdminController::class, 'ipGeolocation'])->name('admin.ip-geolocation');
 });

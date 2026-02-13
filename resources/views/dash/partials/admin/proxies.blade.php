@@ -1366,7 +1366,7 @@
     // Função para obter geolocalização do IP
     async function getIpGeolocation(ip) {
         try {
-            const response = await fetch(`https://ipapi.co/${ip}/json/`);
+            const response = await fetch(`/admin/ip-geolocation?ip=${encodeURIComponent(ip)}`);
             if (response.ok) {
                 const data = await response.json();
                 return {

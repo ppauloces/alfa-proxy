@@ -37,6 +37,73 @@
     </div>
 </div>
 
+{{-- Gráficos Analíticos --}}
+<div class="grid md:grid-cols-3 gap-6 mb-8">
+    {{-- Gráfico 1: Gateways --}}
+    <div class="admin-card">
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold text-slate-900">Gateways de Pagamento</h3>
+            <p class="text-xs text-slate-500">Distribuição por gateway</p>
+        </div>
+        <div class="relative" style="height: 260px;">
+            <canvas id="chartGateways"></canvas>
+        </div>
+        @if(count($chartGateways ?? []) > 0)
+            <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                @foreach($chartGateways as $gw)
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="font-medium text-slate-700">{{ $gw['label'] }}</span>
+                        <span class="text-slate-500">{{ $gw['count'] }} vendas &middot; R$ {{ number_format($gw['value'], 2, ',', '.') }}</span>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
+    {{-- Gráfico 2: Formas de Pagamento --}}
+    <div class="admin-card">
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold text-slate-900">Formas de Pagamento</h3>
+            <p class="text-xs text-slate-500">PIX, Cartão, Saldo e outros</p>
+        </div>
+        <div class="relative" style="height: 260px;">
+            <canvas id="chartPaymentMethods"></canvas>
+        </div>
+        @if(count($chartPaymentMethods ?? []) > 0)
+            <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                @foreach($chartPaymentMethods as $pm)
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="font-medium text-slate-700">{{ $pm['label'] }}</span>
+                        <span class="text-slate-500">{{ $pm['count'] }} vendas &middot; R$ {{ number_format($pm['value'], 2, ',', '.') }}</span>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
+    {{-- Gráfico 3: Motivos de Compra --}}
+    <div class="admin-card">
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold text-slate-900">Motivos de Compra</h3>
+            <p class="text-xs text-slate-500">Por que os clientes compram proxies</p>
+        </div>
+        <div class="relative" style="height: 260px;">
+            <canvas id="chartPurchaseReasons"></canvas>
+        </div>
+        @if(count($chartPurchaseReasons ?? []) > 0)
+            <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                @foreach($chartPurchaseReasons as $pr)
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="font-medium text-slate-700">{{ $pr['label'] }}</span>
+                        <span class="text-slate-500">{{ $pr['count'] }} {{ $pr['count'] === 1 ? 'proxy' : 'proxies' }}</span>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+</div>
+
+
 
 
 {{-- Seção de Uso Interno --}}
@@ -103,72 +170,6 @@
             <p class="text-sm">Proxies marcadas como uso interno aparecerão aqui</p>
         </div>
     @endif
-</div>
-
-{{-- Gráficos Analíticos --}}
-<div class="grid md:grid-cols-3 gap-6 mb-8">
-    {{-- Gráfico 1: Gateways --}}
-    <div class="admin-card">
-        <div class="mb-4">
-            <h3 class="text-lg font-semibold text-slate-900">Gateways de Pagamento</h3>
-            <p class="text-xs text-slate-500">Distribuição por gateway</p>
-        </div>
-        <div class="relative" style="height: 260px;">
-            <canvas id="chartGateways"></canvas>
-        </div>
-        @if(count($chartGateways ?? []) > 0)
-            <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
-                @foreach($chartGateways as $gw)
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="font-medium text-slate-700">{{ $gw['label'] }}</span>
-                        <span class="text-slate-500">{{ $gw['count'] }} vendas &middot; R$ {{ number_format($gw['value'], 2, ',', '.') }}</span>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-    </div>
-
-    {{-- Gráfico 2: Formas de Pagamento --}}
-    <div class="admin-card">
-        <div class="mb-4">
-            <h3 class="text-lg font-semibold text-slate-900">Formas de Pagamento</h3>
-            <p class="text-xs text-slate-500">PIX, Cartão, Saldo e outros</p>
-        </div>
-        <div class="relative" style="height: 260px;">
-            <canvas id="chartPaymentMethods"></canvas>
-        </div>
-        @if(count($chartPaymentMethods ?? []) > 0)
-            <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
-                @foreach($chartPaymentMethods as $pm)
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="font-medium text-slate-700">{{ $pm['label'] }}</span>
-                        <span class="text-slate-500">{{ $pm['count'] }} vendas &middot; R$ {{ number_format($pm['value'], 2, ',', '.') }}</span>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-    </div>
-
-    {{-- Gráfico 3: Motivos de Compra --}}
-    <div class="admin-card">
-        <div class="mb-4">
-            <h3 class="text-lg font-semibold text-slate-900">Motivos de Compra</h3>
-            <p class="text-xs text-slate-500">Por que os clientes compram proxies</p>
-        </div>
-        <div class="relative" style="height: 260px;">
-            <canvas id="chartPurchaseReasons"></canvas>
-        </div>
-        @if(count($chartPurchaseReasons ?? []) > 0)
-            <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
-                @foreach($chartPurchaseReasons as $pr)
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="font-medium text-slate-700">{{ $pr['label'] }}</span>
-                        <span class="text-slate-500">{{ $pr['count'] }} {{ $pr['count'] === 1 ? 'proxy' : 'proxies' }}</span>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-    </div>
 </div>
 
 {{-- Relatórios & Previsões --}}

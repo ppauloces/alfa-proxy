@@ -51,6 +51,9 @@ class LogadoController extends Controller
         $soldProxyCards = [];
         $soldProxies = [];
         $colaboradores = collect();
+        $chartGateways = [];
+        $chartPaymentMethods = [];
+        $chartPurchaseReasons = [];
 
         if ($usuario->isAdmin()) {
             // ===== CLIENTES & LEADS (com busca + paginação) =====
@@ -135,7 +138,14 @@ class LogadoController extends Controller
             });
 
             $vpsHistorico = $vpsList->map(function ($vps) {
-                $dataExpiracao = $vps->data_contratacao->addDays($vps->periodo_dias);
+                // Contar renovações pagas para estender a data de expiração
+                $renovacoesPagas = Despesa::where('vps_id', $vps->id)
+                    ->where('tipo', 'renovacao')
+                    ->where('status', 'pago')
+                    ->count();
+
+                $totalPeriodos = 1 + $renovacoesPagas; // período inicial + renovações
+                $dataExpiracao = $vps->data_contratacao->copy()->addDays($vps->periodo_dias * $totalPeriodos);
                 $diasRestantes = now()->diffInDays($dataExpiracao, false);
 
                 $statusExpiracao = 'Ativa';
@@ -171,8 +181,14 @@ class LogadoController extends Controller
 
             $estatisticas = [
                 'total_vps' => $vpsList->count(),
-                'vps_ativas' => $vpsList->filter(fn($v) => $v->data_contratacao->addDays($v->periodo_dias)->isFuture())->count(),
-                'vps_expiradas' => $vpsList->filter(fn($v) => $v->data_contratacao->addDays($v->periodo_dias)->isPast())->count(),
+                'vps_ativas' => $vpsList->filter(function ($v) {
+                    $renovacoes = Despesa::where('vps_id', $v->id)->where('tipo', 'renovacao')->where('status', 'pago')->count();
+                    return $v->data_contratacao->copy()->addDays($v->periodo_dias * (1 + $renovacoes))->isFuture();
+                })->count(),
+                'vps_expiradas' => $vpsList->filter(function ($v) {
+                    $renovacoes = Despesa::where('vps_id', $v->id)->where('tipo', 'renovacao')->where('status', 'pago')->count();
+                    return $v->data_contratacao->copy()->addDays($v->periodo_dias * (1 + $renovacoes))->isPast();
+                })->count(),
                 'total_gasto' => $vpsList->sum('valor'),
                 'total_proxies_geradas' => $vpsList->sum('proxies_geradas'),
                 'media_proxies_por_vps' => $vpsList->count() > 0 ? round($vpsList->sum('proxies_geradas') / $vpsList->count(), 1) : 0,
@@ -237,8 +253,8 @@ class LogadoController extends Controller
             ];
 
 
-            // ===== EXTRATO DE SAÍDAS (Últimas 25 despesas) =====
-            $saidas = Despesa::with('vps')
+            // ===== EXTRATO DE SAÍDAS (Últimas 25 despesas + uso interno) =====
+            $saidasDespesas = Despesa::with('vps')
                 ->orderBy('data_vencimento', 'desc')
                 ->limit(25)
                 ->get()
@@ -258,8 +274,32 @@ class LogadoController extends Controller
                         'valor' => '- R$ ' . number_format((float) $despesa->valor, 2, ',', '.'),
                         'status' => $despesa->status,
                         'vps_apelido' => $despesa->vps->apelido ?? 'N/A',
+                        'sort_date' => $despesa->data_vencimento ?? $despesa->created_at,
                     ];
                 });
+
+            // Proxies em uso interno como saída (custo de oportunidade)
+            $saidasUsoInterno = Stock::where('uso_interno', true)
+                ->with('vps')
+                ->orderBy('updated_at', 'desc')
+                ->get()
+                ->map(function ($stock) {
+                    $endereco = ($stock->ip ?? 'N/A') . ':' . $stock->porta;
+                    return [
+                        'descricao' => 'Uso Interno — ' . ($stock->finalidade_interna ?? 'Não especificada'),
+                        'categoria' => 'Uso Interno',
+                        'tipo' => 'uso_interno',
+                        'data' => $stock->updated_at->format('d/m/Y'),
+                        'valor' => $endereco,
+                        'status' => 'ativo',
+                        'vps_apelido' => $stock->vps->apelido ?? 'N/A',
+                        'sort_date' => $stock->updated_at,
+                    ];
+                });
+
+            $saidas = $saidasDespesas->concat($saidasUsoInterno)
+                ->sortByDesc('sort_date')
+                ->values();
 
 
             // ===== EXTRATO DE ENTRADAS (Últimas 25 transações aprovadas) =====
@@ -390,6 +430,58 @@ class LogadoController extends Controller
                 'total' => Stock::where('uso_interno', true)->count(),
                 'proxies' => $usoInternoProxies,
             ];
+
+            // ===== GRÁFICOS: GATEWAYS (AbacatePay, Asaas, Stripe) =====
+            $chartGateways = Transaction::where('status', 1)
+                ->whereNotNull('gateway_type')
+                ->where('gateway_type', '!=', '')
+                ->selectRaw('gateway_type, COUNT(*) as total, SUM(valor) as valor_total')
+                ->groupBy('gateway_type')
+                ->get()
+                ->map(fn($item) => [
+                    'label' => match(strtolower($item->gateway_type)) {
+                        'abacatepay' => 'AbacatePay',
+                        'asaas' => 'Asaas',
+                        'stripe' => 'Stripe',
+                        default => ucfirst($item->gateway_type),
+                    },
+                    'count' => (int) $item->total,
+                    'value' => (float) $item->valor_total,
+                ])->values()->toArray();
+
+            // ===== GRÁFICOS: FORMAS DE PAGAMENTO (PIX, Cartão, etc.) =====
+            $chartPaymentMethods = Transaction::where('status', 1)
+                ->selectRaw('metodo_pagamento, COUNT(*) as total, SUM(valor) as valor_total')
+                ->groupBy('metodo_pagamento')
+                ->get()
+                ->map(fn($item) => [
+                    'label' => match($item->metodo_pagamento) {
+                        'pix' => 'PIX',
+                        'credit_card' => 'Cartão de Crédito',
+                        'saldo' => 'Saldo',
+                        'boleto' => 'Boleto',
+                        'usdt' => 'USDT',
+                        'btc' => 'Bitcoin',
+                        'ltc' => 'Litecoin',
+                        'bnb' => 'Binance',
+                        default => ucfirst($item->metodo_pagamento ?? 'Outros'),
+                    },
+                    'count' => (int) $item->total,
+                    'value' => (float) $item->valor_total,
+                ])->values()->toArray();
+
+            // ===== GRÁFICOS: MOTIVOS DE COMPRA =====
+            $chartPurchaseReasons = Stock::where('disponibilidade', false)
+                ->whereNotNull('motivo_uso')
+                ->where('motivo_uso', '!=', '')
+                ->selectRaw('motivo_uso, COUNT(*) as total')
+                ->groupBy('motivo_uso')
+                ->orderByDesc('total')
+                ->get()
+                ->map(fn($item) => [
+                    'label' => ucfirst($item->motivo_uso),
+                    'count' => (int) $item->total,
+                ])->values()->toArray();
 
             // ===== DADOS PARA TRANSAÇÕES (VENDAS) =====
             $proxiesVendidos = Stock::where('disponibilidade', false)->count();
@@ -585,6 +677,9 @@ class LogadoController extends Controller
             'soldProxyCards',
             'soldProxies',
             'usoInternoStats',
+            'chartGateways',
+            'chartPaymentMethods',
+            'chartPurchaseReasons',
             'clientLeads',
             'statsCompraProxy',
             'colaboradores',
@@ -1485,6 +1580,7 @@ class LogadoController extends Controller
                 'porta' => (int) $request->porta,
                 'usuario' => $request->usuario,
                 'senha' => $request->senha,
+                'ip_visto_pelo_servidor' => $request->ip(),
                 'timeout' => 5,
             ]);
 

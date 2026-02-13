@@ -409,6 +409,54 @@
         <h2 class="text-xl font-semibold text-slate-900">Controle de estoque por VPS</h2>
         <span class="text-sm text-slate-500">Clique em uma VPS para ver os detalhes</span>
     </div>
+
+    {{-- Campo de pesquisa de proxies --}}
+    <div class="admin-card bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+        <div class="flex items-center gap-3">
+            <div class="flex-shrink-0">
+                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-search text-blue-600"></i>
+                </div>
+            </div>
+            <div class="flex-1">
+                <label for="proxySearch" class="block text-sm font-medium text-slate-700 mb-1">
+                    Pesquisar Proxy
+                </label>
+                <div class="relative">
+                    <input
+                        type="text"
+                        id="proxySearch"
+                        placeholder="Digite IP, porta, usuário ou senha..."
+                        class="w-full px-4 py-2.5 pr-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        autocomplete="off"
+                    >
+                    <button
+                        type="button"
+                        id="clearProxySearch"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden"
+                        title="Limpar pesquisa"
+                    >
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">
+                    Pesquise por IP, porta, usuário ou senha. Clique no resultado para abrir a VPS correspondente.
+                </p>
+            </div>
+        </div>
+
+        {{-- Resultados da pesquisa --}}
+        <div id="proxySearchResults" class="hidden mt-4">
+            <div class="border-t border-blue-200 pt-4">
+                <p class="text-sm font-medium text-slate-700 mb-3">
+                    <span id="searchResultCount">0</span> resultado(s) encontrado(s)
+                </p>
+                <div id="searchResultsList" class="space-y-2 max-h-96 overflow-y-auto">
+                    {{-- Resultados serão inseridos aqui via JavaScript --}}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="space-y-4">
@@ -557,7 +605,7 @@
                                         $proxyEndpoint = $farm->ip . ':' . $proxy->porta;
                                         $proxyCodigo = '#' . str_pad($proxy->id, 3, '0', STR_PAD_LEFT);
                                     @endphp
-                                    <div class="vps-proxy-card">
+                                    <div class="vps-proxy-card" data-proxy-id="{{ $proxy->id }}">
                                         <div class="vps-proxy-info">
                                             <p class="text-sm font-black text-slate-900 mb-2">{{ $proxyCodigo }} &middot;
                                                 {{ $proxyEndpoint }}</p>
@@ -1340,33 +1388,48 @@
 
         e.preventDefault();
 
-        // Salva a classe original do botão (para não "transformar" botões de outras tabelas/seções)
+        // Salva a classe original do botão e o HTML original
         if (!testButton.dataset.restoreClass) {
             testButton.dataset.restoreClass = testButton.className || '';
+            testButton.dataset.defaultHtml = testButton.innerHTML || '';
         }
 
-        // Padrão escolhido: sempre voltar para "Testar"
-        const defaultHTML = '<i class="fas fa-vial"></i> Testar';
+        const defaultHTML = testButton.dataset.defaultHtml;
         const restoreClass = testButton.dataset.restoreClass;
+
+        // Verificar se o botão tem texto (não é apenas ícone)
+        const hasText = testButton.textContent.trim().length > 0;
 
         const ip = testButton.dataset.ip;
         const porta = testButton.dataset.porta;
         const usuario = testButton.dataset.usuario;
         const senha = testButton.dataset.senha;
+        const ip_visto_pelo_servidor = testButton.dataset.ip_visto_pelo_servidor;
 
         // Animação de carregamento
         testButton.disabled = true;
         testButton.className = restoreClass;
         testButton.classList.add('opacity-80', 'cursor-wait');
-        testButton.innerHTML = `
-            <span class="flex items-center gap-2">
-                <svg class="animate-spin h-4 w-4 text-[#23366f]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+
+        // Se tem texto, mostrar "Testando...", senão apenas o spinner
+        if (hasText) {
+            testButton.innerHTML = `
+                <span class="flex items-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-[#23366f]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-[#23366f] font-bold">Testando...</span>
+                </span>
+            `;
+        } else {
+            testButton.innerHTML = `
+                <svg class="animate-spin h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span class="text-[#23366f] font-bold">Testando...</span>
-            </span>
-        `;
+            `;
+        }
 
         try {
             const response = await fetch('{{ route("proxies.testar") }}', {
@@ -1379,12 +1442,14 @@
                     ip: ip,
                     porta: parseInt(porta),
                     usuario: usuario,
-                    senha: senha
+                    senha: senha,
+                    ip_visto_pelo_servidor: ip_visto_pelo_servidor
                 })
             });
 
-            const data = await response.json();
+            console.log(response);
 
+            const data = await response.json();
 
 
             if (response.ok && data.status === 'online') {
@@ -1394,7 +1459,13 @@
                 // Sucesso
                 testButton.className = restoreClass;
                 testButton.classList.add('bg-green-500', 'text-white', 'border-green-500');
-                testButton.innerHTML = '<i class="fas fa-check"></i> Online';
+
+                // Se tem texto, mostrar "Online", senão apenas ícone de check
+                if (hasText) {
+                    testButton.innerHTML = '<i class="fas fa-check"></i> Online';
+                } else {
+                    testButton.innerHTML = '<i class="fas fa-check text-xs"></i>';
+                }
 
                 // Toast com geolocalização
                 let toastMessage = `<div class="space-y-1">`;
@@ -1417,7 +1488,13 @@
                 // Erro
                 testButton.className = restoreClass;
                 testButton.classList.add('bg-red-500', 'text-white', 'border-red-500');
-                testButton.innerHTML = '<i class="fas fa-times"></i> Offline';
+
+                // Se tem texto, mostrar "Offline", senão apenas ícone de X
+                if (hasText) {
+                    testButton.innerHTML = '<i class="fas fa-times"></i> Offline';
+                } else {
+                    testButton.innerHTML = '<i class="fas fa-times text-xs"></i>';
+                }
 
                 showToast(`❌ Proxy offline: ${data.mensagem || data.error || 'Não foi possível conectar'}`, 'error');
             }
@@ -1459,20 +1536,126 @@
         const endpoint = (action === 'bloquear') ? '/admin/proxy/bloquear' : '/admin/proxy/desbloquear';
 
 
-        console.log('Ação:', action, 'Endpoint:', endpoint, 'Estado atual:', currentState);
+        // Se estiver desbloqueando, fazer uma tentativa inicial para verificar se precisa de data
+        let novaExpiracao = null;
+        if (action === 'desbloquear') {
+            toggleButton.disabled = true;
+            icon.className = 'fas fa-spinner fa-spin';
+            // Só mostrar texto se o botão tiver texto (não apenas ícone)
+            if (btnText && btnText.textContent.trim()) {
+                btnText.textContent = 'Verificando...';
+            }
+
+            try {
+                // Primeira tentativa sem data
+                const checkResponse = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({ stock_id: stockId })
+                });
+
+                const checkData = await checkResponse.json();
+
+                // Se retornar que precisa de data, pedir ao usuário
+                if (checkData.requires_date) {
+                    icon.className = 'fas fa-unlock';
+                    if (btnText && btnText.textContent.trim()) {
+                        btnText.textContent = ' Desbloquear';
+                    }
+                    toggleButton.disabled = false;
+
+                    // Pedir nova data de expiração
+                    const { value: dataEscolhida } = await Swal.fire({
+                        title: 'Proxy Expirada!',
+                        html: `
+                            <p class="text-gray-600 mb-4">Esta proxy está expirada. Defina uma nova data de expiração para desbloqueá-la.</p>
+                            <input type="date" id="novaExpiracao" class="swal2-input" min="${new Date().toISOString().split('T')[0]}" style="width: 80%;">
+                        `,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Desbloquear',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#3b82f6',
+                        preConfirm: () => {
+                            const data = document.getElementById('novaExpiracao').value;
+                            if (!data) {
+                                Swal.showValidationMessage('Por favor, selecione uma data');
+                                return false;
+                            }
+                            const dataEscolhida = new Date(data);
+                            const hoje = new Date();
+                            hoje.setHours(0, 0, 0, 0);
+                            if (dataEscolhida <= hoje) {
+                                Swal.showValidationMessage('A data deve ser futura');
+                                return false;
+                            }
+                            return data;
+                        }
+                    });
+
+                    if (!dataEscolhida) {
+                        return; // Usuário cancelou
+                    }
+
+                    novaExpiracao = dataEscolhida;
+                } else if (checkData.success) {
+                    // Desbloqueio bem-sucedido
+                    if (targetStatus) {
+                        targetStatus.dataset.status = 'disponivel';
+                        targetStatus.textContent = 'Disponível';
+                    }
+                    toggleButton.dataset.state = 'open';
+                    icon.className = 'fas fa-ban';
+                    if (btnText && btnText.textContent.trim()) {
+                        btnText.textContent = ' Bloquear';
+                    }
+                    showToast(checkData.message || 'Porta desbloqueada com sucesso!', 'success');
+                    return;
+                } else {
+                    // Erro
+                    showToast(checkData.error || 'Erro ao processar requisição', 'error');
+                    icon.className = 'fas fa-unlock';
+                    if (btnText && btnText.textContent.trim()) {
+                        btnText.textContent = ' Desbloquear';
+                    }
+                    return;
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showToast('Erro ao conectar com o servidor', 'error');
+                icon.className = 'fas fa-unlock';
+                if (btnText && btnText.textContent.trim()) {
+                    btnText.textContent = ' Desbloquear';
+                }
+                toggleButton.disabled = false;
+                return;
+            }
+        }
+
         // Desabilitar botão durante requisição
         toggleButton.disabled = true;
         icon.className = 'fas fa-spinner fa-spin';
-        if (btnText) btnText.textContent = 'Processando...';
+        // Só mostrar texto se o botão tiver texto (não apenas ícone)
+        if (btnText && btnText.textContent.trim()) {
+            btnText.textContent = 'Processando...';
+        }
 
         try {
+            const requestBody = { stock_id: stockId };
+            if (novaExpiracao) {
+                requestBody.nova_expiracao = novaExpiracao;
+            }
+
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
                 },
-                body: JSON.stringify({ stock_id: stockId })
+                body: JSON.stringify(requestBody)
             });
 
             const data = await response.json();
@@ -1483,31 +1666,47 @@
                         targetStatus.dataset.status = 'bloqueada';
                         targetStatus.textContent = 'Bloqueada';
                     }
-                    toggleButton.dataset.state = 'blocked'; // Atualiza o estado para bloqueado
+                    toggleButton.dataset.state = 'blocked';
                     icon.className = 'fas fa-unlock';
-                    if (btnText) btnText.textContent = ' Desbloquear';
+                    if (btnText && btnText.textContent.trim()) {
+                        btnText.textContent = ' Desbloquear';
+                    }
                 } else {
                     if (targetStatus) {
                         targetStatus.dataset.status = 'disponivel';
                         targetStatus.textContent = 'Disponível';
                     }
-                    toggleButton.dataset.state = 'open'; // Atualiza o estado para aberto
+                    toggleButton.dataset.state = 'open';
                     icon.className = 'fas fa-ban';
-                    if (btnText) btnText.textContent = ' Bloquear';
+                    if (btnText && btnText.textContent.trim()) {
+                        btnText.textContent = ' Bloquear';
+                    }
                 }
 
                 // Mostrar notificação de sucesso
-                showToast(data.message || `Porta ${action === 'bloquear' ? 'bloqueada' : 'desbloqueada'} com sucesso!`, 'success');
+                const successMsg = novaExpiracao
+                    ? `Proxy desbloqueada e data de expiração atualizada para ${new Date(novaExpiracao).toLocaleDateString('pt-BR')}!`
+                    : (data.message || `Porta ${action === 'bloquear' ? 'bloqueada' : 'desbloqueada'} com sucesso!`);
+                showToast(successMsg, 'success');
+
+                // Recarregar a página após 1.5 segundos para atualizar as informações
+                if (novaExpiracao) {
+                    setTimeout(() => location.reload(), 1500);
+                }
             } else {
                 showToast(data.error || 'Erro ao processar requisição', 'error');
-                icon.className = 'fas fa-ban';
-                if (btnText) btnText.textContent = action === 'bloquear' ? 'Bloquear' : 'Desbloquear';
+                icon.className = action === 'bloquear' ? 'fas fa-ban' : 'fas fa-unlock';
+                if (btnText && btnText.textContent.trim()) {
+                    btnText.textContent = action === 'bloquear' ? 'Bloquear' : 'Desbloquear';
+                }
             }
         } catch (error) {
             console.error('Erro:', error);
             showToast('Erro ao conectar com o servidor', 'error');
-            icon.className = 'fas fa-ban';
-            if (btnText) btnText.textContent = action === 'bloquear' ? 'Bloquear' : 'Desbloquear';
+            icon.className = action === 'bloquear' ? 'fas fa-ban' : 'fas fa-unlock';
+            if (btnText && btnText.textContent.trim()) {
+                btnText.textContent = action === 'bloquear' ? 'Bloquear' : 'Desbloquear';
+            }
         } finally {
             toggleButton.disabled = false;
         }
@@ -2383,6 +2582,214 @@
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
         }
+    }
+
+    // ============================================
+    // PESQUISA DE PROXIES
+    // ============================================
+
+    // Construir índice de proxies a partir do HTML (usando data attributes nos cards de proxy)
+    function buildProxyIndex() {
+        const index = [];
+
+        @foreach($vpsFarm as $farm)
+            @foreach($farm->proxies as $proxy)
+                index.push({
+                    id: {{ $proxy->id }},
+                    vpsId: {{ $farm->id }},
+                    vpsApelido: "{{ $farm->apelido }}",
+                    ip: "{{ $proxy->ip }}",
+                    porta: "{{ $proxy->porta }}",
+                    usuario: "{{ $proxy->usuario }}",
+                    senha: "{{ $proxy->senha }}",
+                    status: "{{ $proxy->bloqueada ? 'bloqueada' : ($proxy->uso_interno ? 'uso_interno' : ($proxy->disponibilidade ? 'disponivel' : 'vendida')) }}",
+                    bloqueada: {{ $proxy->bloqueada ? 'true' : 'false' }},
+                    expiracao: "{{ $proxy->expiracao ? $proxy->expiracao->format('d/m/Y') : 'N/A' }}"
+                });
+            @endforeach
+        @endforeach
+
+        return index;
+    }
+
+    const proxyIndex = buildProxyIndex();
+
+    // Elementos
+    const proxySearchInput = document.getElementById('proxySearch');
+    const clearSearchBtn = document.getElementById('clearProxySearch');
+    const searchResults = document.getElementById('proxySearchResults');
+    const searchResultsList = document.getElementById('searchResultsList');
+    const searchResultCount = document.getElementById('searchResultCount');
+
+    // Debounce para melhorar performance
+    let searchTimeout;
+
+    proxySearchInput?.addEventListener('input', function(e) {
+        const query = e.target.value.trim();
+
+        // Mostrar/ocultar botão de limpar
+        if (query) {
+            clearSearchBtn.classList.remove('hidden');
+        } else {
+            clearSearchBtn.classList.add('hidden');
+            searchResults.classList.add('hidden');
+            return;
+        }
+
+        // Debounce
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            performSearch(query);
+        }, 300);
+    });
+
+    // Limpar pesquisa
+    clearSearchBtn?.addEventListener('click', function() {
+        proxySearchInput.value = '';
+        clearSearchBtn.classList.add('hidden');
+        searchResults.classList.add('hidden');
+    });
+
+    function performSearch(query) {
+        if (!query || query.length < 2) {
+            searchResults.classList.add('hidden');
+            return;
+        }
+
+        const queryLower = query.toLowerCase();
+
+        // Filtrar proxies
+        const results = proxyIndex.filter(proxy => {
+            return proxy.ip.toLowerCase().includes(queryLower) ||
+                   proxy.porta.toString().includes(queryLower) ||
+                   proxy.usuario.toLowerCase().includes(queryLower) ||
+                   proxy.senha.toLowerCase().includes(queryLower);
+        });
+
+        // Atualizar UI
+        searchResultCount.textContent = results.length;
+
+        if (results.length === 0) {
+            searchResultsList.innerHTML = `
+                <div class="text-center py-6 text-slate-500">
+                    <i class="fas fa-search text-3xl mb-2"></i>
+                    <p>Nenhuma proxy encontrada para "${escapeHtml(query)}"</p>
+                </div>
+            `;
+        } else {
+            searchResultsList.innerHTML = results.map(proxy => {
+                const statusInfo = getProxyStatusInfo(proxy.status);
+
+                return `
+                    <button
+                        type="button"
+                        class="w-full text-left px-4 py-3 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:shadow-md transition-all proxy-search-result"
+                        data-vps-id="${proxy.vpsId}"
+                        data-proxy-id="${proxy.id}"
+                    >
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-sm font-bold text-slate-900">${escapeHtml(proxy.ip)}:${escapeHtml(proxy.porta)}</span>
+                                    <span class="px-2 py-0.5 rounded text-xs font-semibold ${statusInfo.class}">
+                                        ${statusInfo.text}
+                                    </span>
+                                </div>
+                                <div class="text-xs text-slate-500">
+                                    <span class="font-medium">Usuário:</span> ${escapeHtml(proxy.usuario)} •
+                                    <span class="font-medium">Senha:</span> ${escapeHtml(proxy.senha)}
+                                </div>
+                                <div class="text-xs text-slate-400 mt-1">
+                                    <i class="fas fa-server mr-1"></i> ${escapeHtml(proxy.vpsApelido)}
+                                    ${proxy.expiracao !== 'N/A' ? `<span class="ml-2"><i class="fas fa-calendar mr-1"></i>${proxy.expiracao}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-arrow-right text-blue-500"></i>
+                            </div>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+
+            // Adicionar event listeners aos resultados
+            document.querySelectorAll('.proxy-search-result').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const vpsId = this.dataset.vpsId;
+                    const proxyId = this.dataset.proxyId;
+                    openVpsModalAndFocusProxy(vpsId, proxyId);
+                });
+            });
+        }
+
+        searchResults.classList.remove('hidden');
+    }
+
+    function getProxyStatusInfo(status) {
+        switch(status) {
+            case 'disponivel':
+                return { text: 'Disponível', class: 'bg-green-100 text-green-800' };
+            case 'bloqueada':
+                return { text: 'Bloqueada', class: 'bg-red-100 text-red-800' };
+            case 'uso_interno':
+                return { text: 'Uso Interno', class: 'bg-indigo-100 text-indigo-800' };
+            case 'vendida':
+                return { text: 'Vendida', class: 'bg-blue-100 text-blue-800' };
+            default:
+                return { text: 'N/A', class: 'bg-slate-100 text-slate-800' };
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function openVpsModalAndFocusProxy(vpsId, proxyId) {
+        // Fechar modal de pesquisa (se houver alguma aberta)
+        searchResults.classList.add('hidden');
+
+        // Abrir modal da VPS
+        const modalId = `vpsModal-${vpsId}`;
+        const modal = document.getElementById(modalId);
+
+        if (!modal) {
+            showToast('Erro: Modal da VPS não encontrada', 'error');
+            return;
+        }
+
+        // Abrir modal
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        // Aguardar um pouco para a modal renderizar
+        setTimeout(() => {
+            // Encontrar o card da proxy dentro da modal
+            const proxyCard = modal.querySelector(`[data-proxy-id="${proxyId}"]`);
+
+            if (proxyCard) {
+                // Scroll até o card
+                proxyCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Highlight temporário
+                proxyCard.style.transition = 'all 0.3s ease';
+                proxyCard.style.backgroundColor = '#dbeafe'; // blue-100
+                proxyCard.style.borderColor = '#3b82f6'; // blue-500
+                proxyCard.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.3)';
+
+                // Remover highlight após 2 segundos
+                setTimeout(() => {
+                    proxyCard.style.backgroundColor = '';
+                    proxyCard.style.borderColor = '';
+                    proxyCard.style.boxShadow = '';
+                }, 2000);
+
+                showToast('Proxy encontrada!', 'success');
+            } else {
+                showToast('Proxy encontrada na VPS. Procure visualmente pelo IP/porta.', 'info');
+            }
+        }, 300);
     }
 </script>
 

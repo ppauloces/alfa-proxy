@@ -9,6 +9,15 @@
             animation: fadeIn 0.25s ease;
         }
 
+        @keyframes slide-in-right {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .animate-slide-in {
+            animation: slide-in-right 0.3s ease-out;
+        }
+
         .dash-section.active {
             display: block;
         }
@@ -254,57 +263,21 @@
         .transactions-table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
         }
 
         .proxy-table th,
         .transactions-table th {
-            text-align: left;
+            text-align: center;
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.15em;
             color: #94a3b8;
             padding-bottom: 0.65rem;
+            white-space: nowrap;
         }
 
-        .proxy-table th:nth-child(1) {
-            width: 40px;
-        }
-
-        /* Checkbox */
-        .proxy-table th:nth-child(2) {
-            width: 33%;
-        }
-
-        /* Endereço / Ações */
-        .proxy-table th:nth-child(3) {
-            width: 8%;
-        }
-
-        /* País */
-        .proxy-table th:nth-child(4) {
-            width: 13%;
-        }
-
-        /* Compra */
-        .proxy-table th:nth-child(5) {
-            width: 14%;
-        }
-
-        /* Expiração */
-        .proxy-table th:nth-child(6) {
-            width: 15%;
-        }
-
-        /* Status */
-        .proxy-table th:nth-child(7) {
-            width: 15%;
-        }
-
-        /* Auto Renovação */
         .proxy-table td,
         .transactions-table td {
-            padding: 0.85rem 0.5rem;
             border-top: 1px solid rgba(226, 232, 240, 0.85);
             font-size: 0.9rem;
             vertical-align: middle;
@@ -1422,8 +1395,8 @@
                 @foreach ($proxyGroups as $group => $proxies)
                     <div class="proxy-card {{ $loop->first ? '' : 'hidden' }}" data-tab-panel="{{ $group }}">
                         @if(count($proxies))
-                            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
-                                <table class="proxy-table w-full">
+                            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-x-auto">
+                                <table class="proxy-table w-full" style="min-width: 1100px;">
                                     <thead>
                                         <tr class="bg-slate-50/50 border-b border-slate-100">
                                             <th class="px-4 py-5 text-center" style="width: 40px;">
@@ -1434,7 +1407,8 @@
                                             <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Contratação</th>
                                             <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Expiração</th>
                                             <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Status</th>
-                                            <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Renovação</th>
+                                            <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Renovar via Pix</th>
+                                            <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Renovação Automática</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-50">
@@ -1503,9 +1477,9 @@
                                                         Ativo
                                                     </span>
                                                 </td>
-                                                <td class="px-8 py-6">
-                                                    <div class="flex flex-col items-center gap-3">
-                                                        {{-- Botão Renovar --}}
+                                                {{-- Coluna: Renovar via Pix --}}
+                                                <td class="px-6 py-6 text-center">
+                                                    <div class="flex flex-col items-center gap-2">
                                                         <button
                                                             type="button"
                                                             onclick="abrirModalRenovacao({{ json_encode([
@@ -1516,21 +1490,26 @@
                                                                 'bloqueado' => $proxy['blocked'] ?? false,
                                                                 'expirado' => \Carbon\Carbon::parse($proxy['expires_at'])->isPast(),
                                                             ]) }})"
-                                                            class="action-btn px-4 py-2 rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-500 hover:!text-white hover:border-amber-500 font-bold text-[11px] transition-all shadow-sm hover:shadow-amber-500/30"
+                                                            class="action-btn px-4 py-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-500 hover:!text-white hover:border-emerald-500 font-bold text-[11px] transition-all shadow-sm hover:shadow-emerald-500/30"
                                                         >
-                                                            <i class="fas fa-sync-alt mr-1.5"></i> Renovar
+                                                            <i class="fas fa-qrcode mr-1.5"></i> Renovar via Pix
                                                         </button>
-
-                                                        {{-- Toggle Renovação Automática (Desabilitado por enquanto) --}}
-                                                        <div class="flex flex-col items-center gap-1">
-    <label class="switch scale-75">
-        <input type="checkbox" class="auto-renew-toggle" data-proxy-id="{{ $proxy['id'] }}" {{ $proxy['auto_renew'] ? 'checked' : '' }}>
-        <span class="slider"></span>
-    </label>
-    <p class="text-[8px] text-slate-400 mt-1 text-center">Cobrança automatica automática via cartão</p>
-</div>
-</div>
-</td>
+                                                        <p class="text-[8px] text-slate-400 text-center">Pagamento instantâneo</p>
+                                                    </div>
+                                                </td>
+                                                {{-- Coluna: Renovação Automática com Cartão --}}
+                                                <td class="px-6 py-6 text-center">
+                                                    <div class="flex flex-col items-center gap-2">
+                                                        <div class="flex items-center gap-2 mb-1">
+                                                            <i class="fas fa-credit-card text-sm text-slate-400"></i>
+                                                            <label class="switch scale-75">
+                                                                <input type="checkbox" class="auto-renew-toggle" data-proxy-id="{{ $proxy['id'] }}" {{ $proxy['auto_renew'] ? 'checked' : '' }}>
+                                                                <span class="slider"></span>
+                                                            </label>
+                                                        </div>
+                                                        <p class="text-[8px] text-slate-400 text-center leading-tight">Cobrança automática<br>via cartão de crédito</p>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -2364,8 +2343,51 @@
                 }
             };
 
+            const hasCardSaved = {{ isset($savedCards) && count($savedCards) > 0 ? 'true' : 'false' }};
+
+            const checkCardBeforeAutoRenew = (toggle) => {
+                if (toggle.checked && !hasCardSaved) {
+                    toggle.checked = false;
+
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-6 right-6 z-[9999] bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 max-w-sm animate-slide-in';
+                    toast.innerHTML = `
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-credit-card text-amber-500 text-lg"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-sm font-bold text-slate-900 mb-1">Nenhum cartão cadastrado</h4>
+                                <p class="text-xs text-slate-500 mb-4">Para ativar a renovação automática, você precisa ter um cartão de crédito cadastrado.</p>
+                                <button type="button" class="go-to-cards-btn px-4 py-2 rounded-xl bg-[#23366f] text-white text-xs font-bold hover:scale-[1.02] transition-all">
+                                    <i class="fas fa-plus mr-1.5"></i> Cadastrar cartão
+                                </button>
+                            </div>
+                            <button type="button" class="close-toast text-slate-300 hover:text-slate-500 transition-colors">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    document.body.appendChild(toast);
+
+                    toast.querySelector('.go-to-cards-btn').addEventListener('click', () => {
+                        toast.remove();
+                        const cartoesLink = document.querySelector('[data-section-link="cartoes"]');
+                        if (cartoesLink) cartoesLink.click();
+                    });
+
+                    toast.querySelector('.close-toast').addEventListener('click', () => toast.remove());
+
+                    setTimeout(() => toast.remove(), 8000);
+
+                    return false;
+                }
+                return true;
+            };
+
             document.querySelectorAll('.auto-renew-toggle').forEach(toggle => {
                 toggle.addEventListener('change', () => {
+                    if (!checkCardBeforeAutoRenew(toggle)) return;
                     const proxyId = toggle.dataset.proxyId;
                     setAutoRenew(proxyId, toggle.checked, toggle);
                 });
@@ -2374,6 +2396,7 @@
             const modalAutoRenewToggle = document.getElementById('renovacao-auto-toggle');
             if (modalAutoRenewToggle) {
                 modalAutoRenewToggle.addEventListener('change', () => {
+                    if (!checkCardBeforeAutoRenew(modalAutoRenewToggle)) return;
                     const proxyId = modalAutoRenewToggle.dataset.proxyId;
                     setAutoRenew(proxyId, modalAutoRenewToggle.checked, modalAutoRenewToggle);
                 });

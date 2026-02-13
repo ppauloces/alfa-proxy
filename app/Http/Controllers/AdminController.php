@@ -316,6 +316,10 @@ class AdminController extends Controller
         try {
             $validated = $request->validate([
                 'stock_id' => 'required|exists:stocks,id',
+                'nova_expiracao' => 'nullable|date|after:now',
+            ], [
+                'nova_expiracao.date' => 'A data de expiração deve ser uma data válida.',
+                'nova_expiracao.after' => 'A data de expiração deve ser futura.',
             ]);
 
             // Buscar o proxy e sua VPS
@@ -326,6 +330,17 @@ class AdminController extends Controller
                     'success' => false,
                     'error' => 'VPS não encontrada para este proxy.',
                 ], 404);
+            }
+
+            // Verificar se a proxy está expirada e se foi fornecida uma nova data
+            $isExpirada = $stock->expiracao && Carbon::parse($stock->expiracao)->isPast();
+
+            if ($isExpirada && !isset($validated['nova_expiracao'])) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Proxy expirada! Você deve fornecer uma nova data de expiração.',
+                    'requires_date' => true,
+                ], 422);
             }
 
             $vps = $stock->vps;
@@ -345,13 +360,22 @@ class AdminController extends Controller
             if ($response->successful()) {
                 $data = $response->json();
 
+                // Preparar dados de atualização
+                $updateData = ['bloqueada' => false];
+
+                // Se foi fornecida uma nova data de expiração, atualizar
+                if (isset($validated['nova_expiracao'])) {
+                    $updateData['expiracao'] = $validated['nova_expiracao'];
+                }
+
                 // Atualizar status no banco de dados
-                $stock->update(['bloqueada' => false]);
+                $stock->update($updateData);
 
                 Log::info('Porta desbloqueada com sucesso', [
                     'stock_id' => $stock->id,
                     'porta' => $stock->porta,
                     'vps_ip' => $vps->ip,
+                    'nova_expiracao' => $validated['nova_expiracao'] ?? null,
                 ]);
 
                 return response()->json([
@@ -920,15 +944,7 @@ class AdminController extends Controller
                 'data_pagamento' => $validated['status'] === 'pago' ? $validated['data_vencimento'] : null,
                 'status' => $validated['status'],
             ]);
-
-            Log::info('Renovação de VPS lançada manualmente', [
-                'despesa_id' => $despesa->id,
-                'vps_id' => $vps->id,
-                'vps_apelido' => $vps->apelido,
-                'valor' => $validated['valor'],
-                'status' => $validated['status'],
-                'lancado_por' => Auth::id(),
-            ]);
+            
 
             return response()->json([
                 'success' => true,
@@ -1022,7 +1038,7 @@ class AdminController extends Controller
         ];
 
         // ===== EXTRATO DE SAÍDAS =====
-        $extratoSaidas = Despesa::with('vps')
+        $saidasDespesas = Despesa::with('vps')
             ->whereIn('status', ['pago', 'pendente'])
             ->whereBetween('data_vencimento', [$startDate, $endDate])
             ->orderBy('data_vencimento', 'desc')
@@ -1043,8 +1059,32 @@ class AdminController extends Controller
                     'data' => $despesa->data_vencimento ? $despesa->data_vencimento->format('d/m/Y') : $despesa->created_at->format('d/m/Y'),
                     'valor' => '- R$ ' . number_format((float) $despesa->valor, 2, ',', '.'),
                     'status' => $despesa->status,
+                    'sort_date' => ($despesa->data_vencimento ?? $despesa->created_at)->toISOString(),
                 ];
             });
+
+        // Proxies em uso interno como saída
+        $saidasUsoInterno = Stock::where('uso_interno', true)
+            ->with('vps')
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(function ($stock) {
+                $endereco = ($stock->ip ?? 'N/A') . ':' . $stock->porta;
+                return [
+                    'descricao' => 'Uso Interno — ' . ($stock->finalidade_interna ?? 'Não especificada'),
+                    'categoria' => 'Uso Interno',
+                    'tipo' => 'uso_interno',
+                    'data' => $stock->updated_at->format('d/m/Y'),
+                    'valor' => $endereco,
+                    'status' => 'ativo',
+                    'sort_date' => $stock->updated_at->toISOString(),
+                ];
+            });
+
+        $extratoSaidas = $saidasDespesas->concat($saidasUsoInterno)
+            ->sortByDesc('sort_date')
+            ->values();
 
         // ===== EXTRATO DE ENTRADAS (agrupadas por user+dia) =====
         $entradas = Transaction::with('user')

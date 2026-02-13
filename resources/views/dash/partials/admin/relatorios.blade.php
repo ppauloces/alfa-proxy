@@ -37,102 +37,6 @@
     </div>
 </div>
 
-{{-- Extratos de Saídas e Entradas --}}
-<div class="grid lg:grid-cols-2 gap-6 mb-8">
-    {{-- Extrato de Saídas --}}
-    <div class="admin-card">
-        <div class="flex items-center justify-between mb-3">
-            <div>
-                <h2 class="text-xl font-semibold text-slate-900">Extrato de saídas</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Últimas 25 despesas registradas</p>
-            </div>
-            <button type="button" class="btn-secondary text-xs px-3 py-2" onclick="alert('Funcionalidade em desenvolvimento')">
-                <i class="fas fa-plus"></i> Despesa manual
-            </button>
-        </div>
-
-        @if(count($financeExtract['saida']) > 0)
-            <div class="space-y-3 text-sm max-h-[400px] overflow-y-auto">
-                @foreach($financeExtract['saida'] as $saida)
-                    <div class="timeline-item">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <p class="font-semibold text-slate-900">{{ $saida['descricao'] }}</p>
-                                @if(($saida['tipo'] ?? '') === 'renovacao')
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-100 to-cyan-100 border border-blue-200 rounded-full">
-                                        <i class="fas fa-sync-alt text-[8px] text-blue-600"></i>
-                                        <span class="text-[9px] font-black text-blue-700 uppercase tracking-wider">Renovação</span>
-                                    </span>
-                                @endif
-                            </div>
-                            <p class="text-xs text-slate-500">{{ $saida['categoria'] }} • {{ $saida['data'] }}</p>
-                        </div>
-                        <span class="text-red-500 font-semibold">{{ $saida['valor'] }}</span>
-                    </div>
-                @endforeach
-            </div>
-
-            <div class="mt-4 pt-3 border-t border-slate-100">
-                <a href="{{ route('admin.proxies', ['section' => 'admin-historico-vps']) }}"
-                   class="text-xs text-[#448ccb] font-bold uppercase tracking-wider hover:underline">
-                    <i class="fas fa-arrow-right mr-1"></i> Ver histórico completo de VPS
-                </a>
-            </div>
-        @else
-            <div class="text-center py-8 text-slate-400">
-                <i class="fas fa-inbox text-4xl mb-3"></i>
-                <p class="text-sm">Nenhuma despesa registrada</p>
-            </div>
-        @endif
-    </div>
-
-    {{-- Extrato de Entradas --}}
-    <div class="admin-card">
-        <div class="flex items-center justify-between mb-3">
-            <div>
-                <h2 class="text-xl font-semibold text-slate-900">Extrato de entradas</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Últimas 25 transações aprovadas</p>
-            </div>
-            <button type="button" class="btn-secondary text-xs px-3 py-2" onclick="alert('Funcionalidade em desenvolvimento')">
-                <i class="fas fa-file-invoice-dollar"></i> Gerar recibos
-            </button>
-        </div>
-
-        @if(count($financeExtract['entrada']) > 0)
-            <div class="space-y-3 text-sm max-h-[400px] overflow-y-auto">
-                @foreach($financeExtract['entrada'] as $entrada)
-                    <div class="timeline-item">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <p class="font-semibold text-slate-900">{{ $entrada['descricao'] }}</p>
-                                @if($entrada['is_revendedor'] ?? false)
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 rounded-full">
-                                        <i class="fas fa-crown text-[8px] text-amber-600"></i>
-                                        <span class="text-[9px] font-black text-amber-700 uppercase tracking-wider">Revendedor</span>
-                                    </span>
-                                @endif
-                            </div>
-                            <p class="text-xs text-slate-500">{{ $entrada['categoria'] }} • {{ $entrada['data'] }}</p>
-                        </div>
-                        <span class="text-emerald-500 font-semibold">{{ $entrada['valor'] }}</span>
-                    </div>
-                @endforeach
-            </div>
-
-            <div class="mt-4 pt-3 border-t border-slate-100">
-                <a href="{{ route('admin.transacoes') }}"
-                   class="text-xs text-[#448ccb] font-bold uppercase tracking-wider hover:underline">
-                    <i class="fas fa-arrow-right mr-1"></i> Ver todas as transações
-                </a>
-            </div>
-        @else
-            <div class="text-center py-8 text-slate-400">
-                <i class="fas fa-inbox text-4xl mb-3"></i>
-                <p class="text-sm">Nenhuma transação registrada</p>
-            </div>
-        @endif
-    </div>
-</div>
 
 
 {{-- Seção de Uso Interno --}}
@@ -201,6 +105,72 @@
     @endif
 </div>
 
+{{-- Gráficos Analíticos --}}
+<div class="grid md:grid-cols-3 gap-6 mb-8">
+    {{-- Gráfico 1: Gateways --}}
+    <div class="admin-card">
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold text-slate-900">Gateways de Pagamento</h3>
+            <p class="text-xs text-slate-500">Distribuição por gateway</p>
+        </div>
+        <div class="relative" style="height: 260px;">
+            <canvas id="chartGateways"></canvas>
+        </div>
+        @if(count($chartGateways ?? []) > 0)
+            <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                @foreach($chartGateways as $gw)
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="font-medium text-slate-700">{{ $gw['label'] }}</span>
+                        <span class="text-slate-500">{{ $gw['count'] }} vendas &middot; R$ {{ number_format($gw['value'], 2, ',', '.') }}</span>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
+    {{-- Gráfico 2: Formas de Pagamento --}}
+    <div class="admin-card">
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold text-slate-900">Formas de Pagamento</h3>
+            <p class="text-xs text-slate-500">PIX, Cartão, Saldo e outros</p>
+        </div>
+        <div class="relative" style="height: 260px;">
+            <canvas id="chartPaymentMethods"></canvas>
+        </div>
+        @if(count($chartPaymentMethods ?? []) > 0)
+            <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                @foreach($chartPaymentMethods as $pm)
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="font-medium text-slate-700">{{ $pm['label'] }}</span>
+                        <span class="text-slate-500">{{ $pm['count'] }} vendas &middot; R$ {{ number_format($pm['value'], 2, ',', '.') }}</span>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
+    {{-- Gráfico 3: Motivos de Compra --}}
+    <div class="admin-card">
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold text-slate-900">Motivos de Compra</h3>
+            <p class="text-xs text-slate-500">Por que os clientes compram proxies</p>
+        </div>
+        <div class="relative" style="height: 260px;">
+            <canvas id="chartPurchaseReasons"></canvas>
+        </div>
+        @if(count($chartPurchaseReasons ?? []) > 0)
+            <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                @foreach($chartPurchaseReasons as $pr)
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="font-medium text-slate-700">{{ $pr['label'] }}</span>
+                        <span class="text-slate-500">{{ $pr['count'] }} {{ $pr['count'] === 1 ? 'proxy' : 'proxies' }}</span>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+</div>
+
 {{-- Relatórios & Previsões --}}
 <div class="admin-card">
     <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
@@ -224,3 +194,142 @@
         @endforeach
     </div>
 </div>
+
+{{-- Chart.js --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chartColors = {
+        gateways: ['#23366f', '#448ccb', '#6ab7ff'],
+        payments: ['#10b981', '#6366f1', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899'],
+        reasons: ['#23366f', '#448ccb', '#6ab7ff', '#93c5fd', '#3b82f6', '#1e40af', '#1d4ed8', '#60a5fa']
+    };
+
+    const defaultOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 16,
+                    usePointStyle: true,
+                    pointStyleWidth: 10,
+                    font: { size: 11, weight: '600' }
+                }
+            }
+        }
+    };
+
+    // Gráfico 1: Gateways (Doughnut)
+    const gatewaysData = @json($chartGateways ?? []);
+    if (gatewaysData.length > 0) {
+        new Chart(document.getElementById('chartGateways'), {
+            type: 'doughnut',
+            data: {
+                labels: gatewaysData.map(i => i.label),
+                datasets: [{
+                    data: gatewaysData.map(i => i.count),
+                    backgroundColor: chartColors.gateways.slice(0, gatewaysData.length),
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                ...defaultOptions,
+                cutout: '65%',
+                plugins: {
+                    ...defaultOptions.plugins,
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => {
+                                const item = gatewaysData[ctx.dataIndex];
+                                return ` ${item.label}: ${item.count} vendas — R$ ${item.value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        document.getElementById('chartGateways').parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-slate-400 text-sm">Sem dados</div>';
+    }
+
+    // Gráfico 2: Formas de Pagamento (Doughnut)
+    const paymentsData = @json($chartPaymentMethods ?? []);
+    if (paymentsData.length > 0) {
+        new Chart(document.getElementById('chartPaymentMethods'), {
+            type: 'doughnut',
+            data: {
+                labels: paymentsData.map(i => i.label),
+                datasets: [{
+                    data: paymentsData.map(i => i.count),
+                    backgroundColor: chartColors.payments.slice(0, paymentsData.length),
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                ...defaultOptions,
+                cutout: '65%',
+                plugins: {
+                    ...defaultOptions.plugins,
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => {
+                                const item = paymentsData[ctx.dataIndex];
+                                return ` ${item.label}: ${item.count} vendas — R$ ${item.value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        document.getElementById('chartPaymentMethods').parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-slate-400 text-sm">Sem dados</div>';
+    }
+
+    // Gráfico 3: Motivos de Compra (Bar horizontal)
+    const reasonsData = @json($chartPurchaseReasons ?? []);
+    if (reasonsData.length > 0) {
+        new Chart(document.getElementById('chartPurchaseReasons'), {
+            type: 'bar',
+            data: {
+                labels: reasonsData.map(i => i.label),
+                datasets: [{
+                    data: reasonsData.map(i => i.count),
+                    backgroundColor: chartColors.reasons.slice(0, reasonsData.length),
+                    borderRadius: 8,
+                    barThickness: 24
+                }]
+            },
+            options: {
+                ...defaultOptions,
+                indexAxis: 'y',
+                plugins: {
+                    ...defaultOptions.plugins,
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.parsed.x} ${ctx.parsed.x === 1 ? 'proxy' : 'proxies'}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, font: { size: 11 } },
+                        grid: { color: 'rgba(0,0,0,0.04)' }
+                    },
+                    y: {
+                        ticks: { font: { size: 11, weight: '600' } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    } else {
+        document.getElementById('chartPurchaseReasons').parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-slate-400 text-sm">Sem dados</div>';
+    }
+});
+</script>

@@ -162,8 +162,8 @@
                             :class="idx < saidas.length - 1 ? 'border-b border-slate-100' : ''">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                                    :class="saida.tipo === 'renovacao' ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-500'">
-                                    <i class="fas text-xs" :class="saida.tipo === 'renovacao' ? 'fa-sync-alt' : 'fa-arrow-down'"></i>
+                                    :class="saida.tipo === 'renovacao' ? 'bg-blue-100 text-blue-600' : (saida.tipo === 'uso_interno' ? 'bg-indigo-100 text-indigo-600' : (saida.tipo === 'compra' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-500'))">
+                                    <i class="fas text-xs" :class="saida.tipo === 'renovacao' ? 'fa-sync-alt' : (saida.tipo === 'uso_interno' ? 'fa-briefcase' : (saida.tipo === 'compra' ? 'fa-server' : 'fa-arrow-down'))"></i>
                                 </div>
                                 <div>
                                     <div class="flex items-center gap-2">
@@ -172,6 +172,18 @@
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-100 to-cyan-100 border border-blue-200 rounded-full">
                                                 <i class="fas fa-sync-alt text-[8px] text-blue-600"></i>
                                                 <span class="text-[9px] font-black text-blue-700 uppercase tracking-wider">Renovação</span>
+                                            </span>
+                                        </template>
+                                        <template x-if="saida.tipo === 'compra'">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-emerald-100 to-green-100 border border-emerald-200 rounded-full">
+                                                <i class="fas fa-server text-[8px] text-emerald-600"></i>
+                                                <span class="text-[9px] font-black text-emerald-700 uppercase tracking-wider">Contratação</span>
+                                            </span>
+                                        </template>
+                                        <template x-if="saida.tipo === 'uso_interno'">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-200 rounded-full">
+                                                <i class="fas fa-briefcase text-[8px] text-indigo-600"></i>
+                                                <span class="text-[9px] font-black text-indigo-700 uppercase tracking-wider">Uso Interno</span>
                                             </span>
                                         </template>
                                         <template x-if="saida.status === 'pendente'">
@@ -183,7 +195,9 @@
                                     <p class="text-xs text-slate-400" x-text="saida.categoria + ' • ' + saida.data"></p>
                                 </div>
                             </div>
-                            <span class="text-red-500 font-bold whitespace-nowrap" x-text="saida.valor"></span>
+                            <span class="font-bold whitespace-nowrap"
+                                :class="saida.tipo === 'uso_interno' ? 'text-indigo-500 font-mono text-xs' : 'text-red-500'"
+                                x-text="saida.valor"></span>
                         </div>
                     </template>
                 </div>

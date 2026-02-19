@@ -1571,6 +1571,7 @@
                 const checkData = await checkResponse.json();
 
                 // Se retornar que precisa de data, pedir ao usuário
+                console.log('requires_date:', checkData.requires_date, '| success:', checkData.success, '| full:', JSON.stringify(checkData));
                 if (checkData.requires_date) {
                     icon.className = 'fas fa-unlock';
                     if (btnText && btnText.textContent.trim()) {

@@ -665,6 +665,17 @@
                                                     <i class="fas fa-ban"></i>
                                                     <span data-btn-text>Bloquear</span>
                                                 </button>
+                                                @if($proxy->expiracao && \Carbon\Carbon::parse($proxy->expiracao)->isPast())
+                                                    {{-- Botão para RENOVAR DATA (proxy expirada mas não bloqueada) --}}
+                                                    <button type="button" class="vps-proxy-action-btn" data-toggle-port
+                                                        data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}"
+                                                        data-state="blocked" data-ip="{{ $farm->ip }}"
+                                                        data-porta="{{ $proxy->porta }}" data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
+                                                        data-senha-ssh="{{ $farm->senha_ssh ?? '' }}">
+                                                        <i class="fas fa-calendar-plus"></i>
+                                                        <span data-btn-text>Renovar data</span>
+                                                    </button>
+                                                @endif
                                             @else
                                                 {{-- Bot\u00e3o para DESBLOQUEAR (apenas para proxies bloqueadas) --}}
                                                 <button type="button" class="vps-proxy-action-btn danger" data-toggle-port

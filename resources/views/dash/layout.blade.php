@@ -16,6 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/pt-br.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Meta Pixel Code -->
     <script>

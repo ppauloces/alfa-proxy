@@ -1562,7 +1562,9 @@
                 confirmButtonText: 'Desbloquear',
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#3b82f6',
-                zIndex: 99999,
+                didOpen: () => {
+                    document.querySelector('.swal2-container').style.zIndex = '99999';
+                },
                 preConfirm: () => {
                     const data = document.getElementById('novaExpiracao').value;
                     if (!data) {

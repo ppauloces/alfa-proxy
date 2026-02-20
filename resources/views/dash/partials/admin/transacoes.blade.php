@@ -153,6 +153,7 @@
                                         data-toggle-port
                                         :data-stock-id="proxy.stock_id"
                                         :data-state="proxy.status === 'bloqueada' ? 'blocked' : 'open'"
+                                        :data-expirada="parseInt(proxy.periodo) <= 0 ? 'true' : 'false'"
                                         :title="proxy.status === 'bloqueada' ? 'Desbloquear' : 'Bloquear'">
                                         <i class="fas text-xs" :class="proxy.status === 'bloqueada' ? 'fa-lock-open' : 'fa-ban'"></i>
                                     </button>
@@ -338,7 +339,8 @@
                         :class="sel?.status === 'bloqueada' ? 'bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700' : 'bg-slate-50 hover:bg-red-50 text-slate-600 hover:text-red-600'"
                         data-toggle-port
                         :data-stock-id="sel?.stock_id"
-                        :data-state="sel?.status === 'bloqueada' ? 'blocked' : 'open'">
+                        :data-state="sel?.status === 'bloqueada' ? 'blocked' : 'open'"
+                        :data-expirada="parseInt(sel?.periodo) <= 0 ? 'true' : 'false'">
                         <i class="fas text-xs" :class="sel?.status === 'bloqueada' ? 'fa-lock-open' : 'fa-ban'"></i>
                         <span x-text="sel?.status === 'bloqueada' ? 'Desbloquear' : 'Bloquear'"></span>
                     </button>
@@ -524,6 +526,95 @@ if (!window.transacoesScriptLoaded) {
     document.addEventListener('click', async function handleTogglePort(e) {
         const toggleButton = e.target.closest('[data-toggle-port]');
         if (!toggleButton) return;
+
+        e.preventDefault();
+
+        const stockId = toggleButton.dataset.stockId;
+        const currentState = toggleButton.dataset.state;
+        const icon = toggleButton.querySelector('i');
+        const btnText = toggleButton.querySelector('span');
+
+        const action = (currentState === 'blocked') ? 'desbloquear' : 'bloquear';
+        const endpoint = (action === 'bloquear') ? '/admin/proxy/bloquear' : '/admin/proxy/desbloquear';
+        const isExpirada = toggleButton.dataset.expirada === 'true';
+
+        // Se proxy expirada, pedir nova data ANTES de qualquer fetch
+        let novaExpiracao = null;
+        if (action === 'desbloquear' && isExpirada) {
+            const { value: dataEscolhida } = await Swal.fire({
+                title: 'Proxy Expirada!',
+                html: `
+                    <p style="margin-bottom:12px">Defina uma nova data de expiração para desbloquear.</p>
+                    <input type="date" id="novaExpiracaoTx" class="swal2-input" min="${new Date().toISOString().split('T')[0]}" style="width:80%">
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Desbloquear',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#3b82f6',
+                didOpen: () => {
+                    document.querySelector('.swal2-container').style.zIndex = '99999';
+                },
+                preConfirm: () => {
+                    const data = document.getElementById('novaExpiracaoTx').value;
+                    if (!data) {
+                        Swal.showValidationMessage('Por favor, selecione uma data');
+                        return false;
+                    }
+                    const escolhida = new Date(data);
+                    const hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
+                    if (escolhida <= hoje) {
+                        Swal.showValidationMessage('A data deve ser futura');
+                        return false;
+                    }
+                    return data;
+                }
+            });
+
+            if (!dataEscolhida) return;
+            novaExpiracao = dataEscolhida;
+        }
+
+        // Desabilitar botão durante requisição
+        toggleButton.disabled = true;
+        if (icon) icon.className = 'fas fa-spinner fa-spin text-xs';
+        if (btnText) btnText.textContent = 'Aguarde...';
+
+        try {
+            const requestBody = { stock_id: stockId };
+            if (novaExpiracao) requestBody.nova_expiracao = novaExpiracao;
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                const successMsg = novaExpiracao
+                    ? `Proxy desbloqueada e data atualizada para ${new Date(novaExpiracao).toLocaleDateString('pt-BR')}!`
+                    : (data.message || `Porta ${action === 'bloquear' ? 'bloqueada' : 'desbloqueada'} com sucesso!`);
+                showToast(successMsg, 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showToast(data.error || 'Erro ao processar requisição', 'error');
+                toggleButton.disabled = false;
+                if (icon) icon.className = `fas ${currentState === 'blocked' ? 'fa-lock-open' : 'fa-ban'} text-xs`;
+                if (btnText) btnText.textContent = currentState === 'blocked' ? 'Desbloquear' : 'Bloquear';
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            showToast('Erro ao conectar com o servidor', 'error');
+            toggleButton.disabled = false;
+            if (icon) icon.className = `fas ${currentState === 'blocked' ? 'fa-lock-open' : 'fa-ban'} text-xs`;
+            if (btnText) btnText.textContent = currentState === 'blocked' ? 'Desbloquear' : 'Bloquear';
+        }
     });
 }
 </script>

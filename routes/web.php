@@ -108,6 +108,9 @@ Route::middleware(AdminMiddleware::class)->group(function () {
     Route::post('/admin/proxy/bloquear', [AdminController::class, 'bloquearProxy'])->name('proxy.bloquear');
     Route::post('/admin/proxy/desbloquear', [AdminController::class, 'desbloquearProxy'])->name('proxy.desbloquear');
 
+    // Substituição de proxy caído
+    Route::post('/admin/proxy/substituir', [AdminController::class, 'substituirProxy'])->name('proxy.substituir');
+
     // Gerenciamento de uso interno
     Route::post('/admin/proxy/uso-interno', [AdminController::class, 'marcarUsoInterno'])->name('proxy.uso-interno');
     Route::post('/admin/proxy/remover-uso-interno', [AdminController::class, 'removerUsoInterno'])->name('proxy.remover-uso-interno');

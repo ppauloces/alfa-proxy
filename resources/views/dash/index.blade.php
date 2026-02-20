@@ -1533,6 +1533,63 @@
                 @endforeach
             </div>
 
+            {{-- Proxies Substituídos (histórico) --}}
+            @if(!empty($proxiesSubstituidos))
+                <div class="mt-8">
+                    <button type="button" id="toggleSubstituidos"
+                        class="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors mb-4">
+                        <i class="fas fa-history"></i>
+                        Proxies substituídos ({{ count($proxiesSubstituidos) }})
+                        <i class="fas fa-chevron-down text-xs transition-transform" id="chevronSubstituidos"></i>
+                    </button>
+                    <div id="substituidos-list" class="hidden">
+                        <div class="bg-slate-50 border border-slate-200 rounded-3xl overflow-hidden">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-slate-200">
+                                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Proxy</th>
+                                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">País</th>
+                                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Expiração</th>
+                                        <th class="px-6 py-4 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @foreach($proxiesSubstituidos as $ps)
+                                        <tr class="opacity-60">
+                                            <td class="px-6 py-4">
+                                                <span class="font-mono text-slate-600">{{ $ps['ip'] }}:{{ $ps['port'] }}</span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                @if($ps['country_code'])
+                                                    <img src="https://flagcdn.com/20x15/{{ strtolower($ps['country_code']) }}.png" class="inline mr-1" alt="">
+                                                @endif
+                                                <span class="text-slate-600">{{ $ps['country'] }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-slate-500">
+                                                {{ $ps['expires_at'] ? \Carbon\Carbon::parse($ps['expires_at'])->format('d/m/Y') : '—' }}
+                                            </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-200 text-slate-600">
+                                                    <i class="fas fa-exchange-alt"></i> Substituído
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    document.getElementById('toggleSubstituidos').addEventListener('click', function () {
+                        const list = document.getElementById('substituidos-list');
+                        const chevron = document.getElementById('chevronSubstituidos');
+                        list.classList.toggle('hidden');
+                        chevron.classList.toggle('rotate-180');
+                    });
+                </script>
+            @endif
+
             {{-- Modal de Renovação --}}
             @include('dash.partials.modal-renovacao')
 

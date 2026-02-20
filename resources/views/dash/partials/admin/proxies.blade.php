@@ -175,7 +175,8 @@
     #usoInternoModal,
     #removerUsoInternoModal {
         z-index: 99999 !important;
-        background-color: rgba(15, 23, 42, 0.75) !important; /* Backdrop mais escuro */
+        background-color: rgba(15, 23, 42, 0.75) !important;
+        /* Backdrop mais escuro */
     }
 
     #usoInternoModal.active,
@@ -284,11 +285,10 @@
             <label class="flex flex-col gap-2">
                 <span class="text-slate-500 font-semibold">Valor da VPS*</span>
                 <div class="relative">
-                    <input type="text" id="vps_valor_mask" 
-                        class="form-input pl-10 @error('valor') border-red-500 @enderror" 
-                        placeholder="0,00"
+                    <input type="text" id="vps_valor_mask"
+                        class="form-input pl-10 @error('valor') border-red-500 @enderror" placeholder="0,00"
                         value="{{ old('valor') ? number_format(old('valor'), 2, ',', '.') : '' }}" required>
-                    
+
                     <input type="hidden" name="valor" id="vps_valor_real" value="{{ old('valor') }}">
                 </div>
                 @error('valor')
@@ -298,12 +298,13 @@
             <label class="flex flex-col gap-2">
                 <span class="text-slate-500 font-semibold">Valor de Renovação da VPS</span>
                 <div class="relative">
-                    <input type="text" id="vps_valor_renovacao_mask" 
-                        class="form-input pl-10 @error('valor_renovacao') border-red-500 @enderror" 
-                        placeholder="0,00"
-                        value="{{ old('valor_renovacao') ? number_format(old('valor_renovacao'), 2, ',', '.') : '' }}" required>
-                    
-                    <input type="hidden" name="valor_renovacao" id="vps_valor_renovacao_real" value="{{ old('valor_renovacao') }}">
+                    <input type="text" id="vps_valor_renovacao_mask"
+                        class="form-input pl-10 @error('valor_renovacao') border-red-500 @enderror" placeholder="0,00"
+                        value="{{ old('valor_renovacao') ? number_format(old('valor_renovacao'), 2, ',', '.') : '' }}"
+                        required>
+
+                    <input type="hidden" name="valor_renovacao" id="vps_valor_renovacao_real"
+                        value="{{ old('valor_renovacao') }}">
                 </div>
                 @error('valor_renovacao')
                     <span class="text-xs text-red-500">{{ $message }}</span>
@@ -312,17 +313,17 @@
             <label class="flex flex-col gap-2">
                 <span class="text-slate-500 font-semibold">País*</span>
                 <x-ui.select name="pais" :value="old('pais')" placeholder="Selecione" :options="[
-                    'Brasil' => 'Brasil',
-                    'Estados Unidos' => 'Estados Unidos',
-                    'Reino Unido' => 'Reino Unido',
-                    'Alemanha' => 'Alemanha',
-                    'França' => 'França',
-                    'Itália' => 'Itália',
-                    'Espanha' => 'Espanha',
-                    'Portugal' => 'Portugal',
-                    'Canadá' => 'Canadá',
-                    'Austrália' => 'Austrália'
-                ]" required>
+        'Brasil' => 'Brasil',
+        'Estados Unidos' => 'Estados Unidos',
+        'Reino Unido' => 'Reino Unido',
+        'Alemanha' => 'Alemanha',
+        'França' => 'França',
+        'Itália' => 'Itália',
+        'Espanha' => 'Espanha',
+        'Portugal' => 'Portugal',
+        'Canadá' => 'Canadá',
+        'Austrália' => 'Austrália'
+    ]" required>
                 </x-ui.select>
                 @error('pais')
                     <span class="text-xs text-red-500">{{ $message }}</span>
@@ -339,11 +340,11 @@
             <label class="flex flex-col gap-2">
                 <span class="text-slate-500 font-semibold">Período contratado*</span>
                 <x-ui.select name="periodo_dias" :value="old('periodo_dias')" placeholder="Selecione" :options="[
-                    '30' => '30 dias',
-                    '60' => '60 dias',
-                    '90' => '90 dias',
-                    '180' => '180 dias'
-                ]" required>
+        '30' => '30 dias',
+        '60' => '60 dias',
+        '90' => '90 dias',
+        '180' => '180 dias'
+    ]" required>
                 </x-ui.select>
                 @error('periodo_dias')
                     <span class="text-xs text-red-500">{{ $message }}</span>
@@ -372,7 +373,7 @@
                     <span class="text-slate-700 font-semibold">VPS paga (entrar como despesa)</span>
                 </label>
             </div>
-            
+
 
             <div class="md:col-span-3 flex flex-wrap gap-3 mt-6">
                 <button type="submit" class="btn-secondary">
@@ -423,19 +424,12 @@
                     Pesquisar Proxy
                 </label>
                 <div class="relative">
-                    <input
-                        type="text"
-                        id="proxySearch"
-                        placeholder="Digite IP, porta, usuário ou senha..."
+                    <input type="text" id="proxySearch" placeholder="Digite IP, porta, usuário ou senha..."
                         class="w-full px-4 py-2.5 pr-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        autocomplete="off"
-                    >
-                    <button
-                        type="button"
-                        id="clearProxySearch"
+                        autocomplete="off">
+                    <button type="button" id="clearProxySearch"
                         class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden"
-                        title="Limpar pesquisa"
-                    >
+                        title="Limpar pesquisa">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -483,50 +477,50 @@
 
                 <div class="admin-card w-full text-left hover:shadow-md transition-shadow relative">
                     <button type="button" class="w-full text-left" data-open-vps-modal="vpsModal-{{ $farm->id }}">
-                    <div class="flex items-start justify-between gap-4">
-                        <div class="min-w-0">
-                            <p class="text-lg font-semibold text-slate-900 truncate">{{ $farm->apelido }}</p>
-                            <p class="text-sm text-slate-500 truncate">{{ $farm->ip }} &middot; {{ $farm->pais }} &middot;
-                                {{ $farm->hospedagem }}</p>
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="min-w-0">
+                                <p class="text-lg font-semibold text-slate-900 truncate">{{ $farm->apelido }}</p>
+                                <p class="text-sm text-slate-500 truncate">{{ $farm->ip }} &middot; {{ $farm->pais }} &middot;
+                                    {{ $farm->hospedagem }}
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-3 flex-shrink-0">
+                                <span class="badge-status"
+                                    data-status="{{ \Illuminate\Support\Str::slug($farm->status, '-') }}">{{ $farm->status }}</span>
+                                <i class="fas fa-pen-to-square text-slate-400 text-sm"></i>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-3 flex-shrink-0">
-                            <span class="badge-status"
-                                data-status="{{ \Illuminate\Support\Str::slug($farm->status, '-') }}">{{ $farm->status }}</span>
-                            <i class="fas fa-pen-to-square text-slate-400 text-sm"></i>
-                        </div>
-                    </div>
 
-                    <div class="vps-meta mt-3">
-                        <span><i class="fas fa-wallet"></i> {{ $farm->valor }}</span>
-                        <span><i class="fas fa-calendar-alt"></i> {{ $farm->periodo }}</span>
-                        <span><i class="fas fa-clock"></i> Contratada em {{ $farm->contratada }}</span>
-                    </div>
+                        <div class="vps-meta mt-3">
+                            <span><i class="fas fa-wallet"></i> {{ $farm->valor }}</span>
+                            <span><i class="fas fa-calendar-alt"></i> {{ $farm->periodo }}</span>
+                            <span><i class="fas fa-clock"></i> Contratada em {{ $farm->contratada }}</span>
+                        </div>
 
-                    <div class="mt-4 grid grid-cols-4 gap-2 text-xs">
-                        <div class="bg-slate-50 rounded-lg p-2 text-center">
-                            <p class="text-slate-500">Disponíveis</p>
-                            <p class="font-bold text-slate-900">{{ $disponiveis }}</p>
+                        <div class="mt-4 grid grid-cols-4 gap-2 text-xs">
+                            <div class="bg-slate-50 rounded-lg p-2 text-center">
+                                <p class="text-slate-500">Disponíveis</p>
+                                <p class="font-bold text-slate-900">{{ $disponiveis }}</p>
+                            </div>
+                            <div class="bg-slate-50 rounded-lg p-2 text-center">
+                                <p class="text-slate-500">Bloqueadas</p>
+                                <p class="font-bold text-slate-900">{{ $bloqueadas }}</p>
+                            </div>
+                            <div class="bg-slate-50 rounded-lg p-2 text-center">
+                                <p class="text-slate-500">Vendidas</p>
+                                <p class="font-bold text-slate-900">{{ $vendidas }}</p>
+                            </div>
+                            <div class="bg-indigo-50 rounded-lg p-2 text-center">
+                                <p class="text-indigo-600">Uso Interno</p>
+                                <p class="font-bold text-indigo-900">{{ $usoInterno }}</p>
+                            </div>
                         </div>
-                        <div class="bg-slate-50 rounded-lg p-2 text-center">
-                            <p class="text-slate-500">Bloqueadas</p>
-                            <p class="font-bold text-slate-900">{{ $bloqueadas }}</p>
-                        </div>
-                        <div class="bg-slate-50 rounded-lg p-2 text-center">
-                            <p class="text-slate-500">Vendidas</p>
-                            <p class="font-bold text-slate-900">{{ $vendidas }}</p>
-                        </div>
-                        <div class="bg-indigo-50 rounded-lg p-2 text-center">
-                            <p class="text-indigo-600">Uso Interno</p>
-                            <p class="font-bold text-indigo-900">{{ $usoInterno }}</p>
-                        </div>
-                    </div>
                     </button>
 
                     {{-- Botão de Editar VPS (fora do botão principal) --}}
                     <button type="button"
                         class="edit-vps-btn absolute top-3 right-3 w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-[#448ccb] hover:bg-blue-50 transition-all flex items-center justify-center z-10"
-                        data-vps-id="{{ $farm->id }}"
-                        title="Editar VPS">
+                        data-vps-id="{{ $farm->id }}" title="Editar VPS">
                         <i class="fas fa-cog text-sm"></i>
                     </button>
                 </div>
@@ -540,18 +534,21 @@
                     <div class="vps-modal-header flex items-start justify-between gap-4">
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2">
-                                <h3 id="vps-apelido-{{ $farm->id }}" class="text-xl lg:text-2xl font-black text-slate-900 truncate tracking-tight">
-                                    {{ $farm->apelido }}</h3>
+                                <h3 id="vps-apelido-{{ $farm->id }}"
+                                    class="text-xl lg:text-2xl font-black text-slate-900 truncate tracking-tight">
+                                    {{ $farm->apelido }}
+                                </h3>
                                 <button type="button"
                                     class="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-200 transition-all flex items-center justify-center"
-                                    data-edit-apelido="{{ $farm->id }}"
-                                    title="Editar apelido">
+                                    data-edit-apelido="{{ $farm->id }}" title="Editar apelido">
                                     <i class="fas fa-pen text-xs"></i>
                                 </button>
                             </div>
                             <p class="text-xs lg:text-sm text-slate-400 font-medium truncate">
                                 {{ $farm->ip }} &middot;
-                                <span id="vps-pais-{{ $farm->id }}" class="inline-flex items-center gap-1 cursor-pointer hover:text-slate-600 transition-colors" data-edit-pais="{{ $farm->id }}" title="Clique para editar o país">
+                                <span id="vps-pais-{{ $farm->id }}"
+                                    class="inline-flex items-center gap-1 cursor-pointer hover:text-slate-600 transition-colors"
+                                    data-edit-pais="{{ $farm->id }}" title="Clique para editar o país">
                                     {{ $farm->pais }}
                                     <i class="fas fa-pen text-[8px] opacity-50"></i>
                                 </span>
@@ -593,7 +590,9 @@
                                 @foreach($farm->proxies as $proxy)
                                     @php
                                         $statusId = "proxy-status-{$farm->id}-{$proxy->id}";
-                                        if ($proxy->bloqueada) {
+                                        if ($proxy->substituido) {
+                                            $proxyStatus = 'substituido';
+                                        } elseif ($proxy->bloqueada) {
                                             $proxyStatus = 'bloqueada';
                                         } elseif ($proxy->uso_interno) {
                                             $proxyStatus = 'uso_interno';
@@ -608,7 +607,8 @@
                                     <div class="vps-proxy-card" data-proxy-id="{{ $proxy->id }}">
                                         <div class="vps-proxy-info">
                                             <p class="text-sm font-black text-slate-900 mb-2">{{ $proxyCodigo }} &middot;
-                                                {{ $proxyEndpoint }}</p>
+                                                {{ $proxyEndpoint }}
+                                            </p>
                                             <span id="{{ $statusId }}" class="vps-proxy-status" data-status="{{ $proxyStatus }}">
                                                 @if($proxyStatus === 'disponivel')
                                                     <span class="text-green-600 px-2 py-0.5 rounded">Disponível</span>
@@ -616,6 +616,8 @@
                                                     <span class="text-red-600 px-2 py-0.5 rounded">Bloqueada</span>
                                                 @elseif($proxyStatus === 'uso_interno')
                                                     <span class="text-indigo-600 px-2 py-0.5 rounded">Uso Interno</span>
+                                                @elseif($proxyStatus === 'substituido')
+                                                    <span class="text-slate-500 px-2 py-0.5 rounded">Substituído</span>
                                                 @else
                                                     <span class="text-amber-600 px-2 py-0.5 rounded">Vendida</span>
                                                 @endif
@@ -639,6 +641,18 @@
                                                 <span>Testar proxy</span>
                                             </button>
 
+                                            @if($proxyStatus === 'vendida' && !$proxy->substituido)
+                                                {{-- Botão para SUBSTITUIR proxy caído --}}
+                                                <button type="button" class="vps-proxy-action-btn substituir-proxy-btn"
+                                                    data-stock-id="{{ $proxy->id }}" data-ip="{{ $farm->ip }}"
+                                                    data-porta="{{ $proxy->porta }}" data-pais="{{ $proxy->pais }}"
+                                                    data-usuario="{{ $proxy->user?->username ?? $proxy->user?->name ?? 'N/A' }}"
+                                                    data-expiracao="{{ $proxy->expiracao?->format('d/m/Y') ?? 'N/A' }}">
+                                                    <i class="fas fa-exchange-alt"></i>
+                                                    <span>Substituir</span>
+                                                </button>
+                                            @endif
+
                                             @if($proxy->uso_interno)
                                                 {{-- Bot\u00e3o para REMOVER uso interno --}}
                                                 <button type="button" class="vps-proxy-action-btn" data-action="remover-uso-interno"
@@ -647,7 +661,8 @@
                                                     <span>Remover uso interno</span>
                                                 </button>
                                             @elseif($proxy->disponibilidade && !$proxy->bloqueada)
-                                                {{-- Bot\u00e3o para MARCAR como uso interno (apenas para proxies dispon\u00edveis e n\u00e3o bloqueadas) --}}
+                                                {{-- Bot\u00e3o para MARCAR como uso interno (apenas para proxies dispon\u00edveis e
+                                                n\u00e3o bloqueadas) --}}
                                                 <button type="button" class="vps-proxy-action-btn" data-action="marcar-uso-interno"
                                                     data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}">
                                                     <i class="fas fa-briefcase"></i>
@@ -658,9 +673,9 @@
                                             @if(!$proxy->bloqueada)
                                                 {{-- Bot\u00e3o para BLOQUEAR (apenas para proxies n\u00e3o bloqueadas) --}}
                                                 <button type="button" class="vps-proxy-action-btn danger" data-toggle-port
-                                                    data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}"
-                                                    data-state="open" data-ip="{{ $farm->ip }}"
-                                                    data-porta="{{ $proxy->porta }}" data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
+                                                    data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}" data-state="open"
+                                                    data-ip="{{ $farm->ip }}" data-porta="{{ $proxy->porta }}"
+                                                    data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
                                                     data-senha-ssh="{{ $farm->senha_ssh ?? '' }}">
                                                     <i class="fas fa-ban"></i>
                                                     <span data-btn-text>Bloquear</span>
@@ -668,9 +683,9 @@
                                                 @if($proxy->expiracao && \Carbon\Carbon::parse($proxy->expiracao)->isPast())
                                                     {{-- Botão para RENOVAR DATA (proxy expirada mas não bloqueada) --}}
                                                     <button type="button" class="vps-proxy-action-btn" data-toggle-port
-                                                        data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}"
-                                                        data-state="blocked" data-expirada="true" data-ip="{{ $farm->ip }}"
-                                                        data-porta="{{ $proxy->porta }}" data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
+                                                        data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}" data-state="blocked"
+                                                        data-expirada="true" data-ip="{{ $farm->ip }}" data-porta="{{ $proxy->porta }}"
+                                                        data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
                                                         data-senha-ssh="{{ $farm->senha_ssh ?? '' }}">
                                                         <i class="fas fa-calendar-plus"></i>
                                                         <span data-btn-text>Renovar data</span>
@@ -679,10 +694,10 @@
                                             @else
                                                 {{-- Bot\u00e3o para DESBLOQUEAR (apenas para proxies bloqueadas) --}}
                                                 <button type="button" class="vps-proxy-action-btn danger" data-toggle-port
-                                                    data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}"
-                                                    data-state="blocked" data-expirada="{{ ($proxy->expiracao && \Carbon\Carbon::parse($proxy->expiracao)->isPast()) ? 'true' : 'false' }}"
-                                                    data-ip="{{ $farm->ip }}"
-                                                    data-porta="{{ $proxy->porta }}" data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
+                                                    data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}" data-state="blocked"
+                                                    data-expirada="{{ ($proxy->expiracao && \Carbon\Carbon::parse($proxy->expiracao)->isPast()) ? 'true' : 'false' }}"
+                                                    data-ip="{{ $farm->ip }}" data-porta="{{ $proxy->porta }}"
+                                                    data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
                                                     data-senha-ssh="{{ $farm->senha_ssh ?? '' }}">
                                                     <i class="fas fa-unlock"></i>
                                                     <span data-btn-text>Desbloquear</span>
@@ -714,7 +729,8 @@
                                     <p class="text-sm text-slate-500 mt-1">{{ $farm->apelido }} - {{ $farm->ip }}</p>
                                 </div>
                             </div>
-                            <button type="button" class="text-slate-400 hover:text-slate-600 transition-colors" data-close-edit-vps-modal>
+                            <button type="button" class="text-slate-400 hover:text-slate-600 transition-colors"
+                                data-close-edit-vps-modal>
                                 <i class="fas fa-times text-xl"></i>
                             </button>
                         </div>
@@ -725,32 +741,27 @@
                                 {{-- Valor da VPS --}}
                                 <label class="flex flex-col gap-2">
                                     <span class="text-sm text-slate-600 font-semibold">Valor da VPS (R$)</span>
-                                    <input type="text"
-                                        id="edit_valor_mask_{{ $farm->id }}"
-                                        class="form-input"
-                                        placeholder="0,00"
-                                        value="{{ number_format((float)$farm->valor, 2, ',', '.') }}">
-                                    <input type="hidden" name="valor" id="edit_valor_real_{{ $farm->id }}" value="{{ $farm->valor }}">
+                                    <input type="text" id="edit_valor_mask_{{ $farm->id }}" class="form-input"
+                                        placeholder="0,00" value="{{ number_format((float) $farm->valor, 2, ',', '.') }}">
+                                    <input type="hidden" name="valor" id="edit_valor_real_{{ $farm->id }}"
+                                        value="{{ $farm->valor }}">
                                 </label>
 
                                 {{-- Valor de Renovação --}}
                                 <label class="flex flex-col gap-2">
                                     <span class="text-sm text-slate-600 font-semibold">Valor de Renovação (R$)</span>
-                                    <input type="text"
-                                        id="edit_valor_renovacao_mask_{{ $farm->id }}"
-                                        class="form-input"
+                                    <input type="text" id="edit_valor_renovacao_mask_{{ $farm->id }}" class="form-input"
                                         placeholder="0,00"
-                                        value="{{ $farm->valor_renovacao ? number_format((float)$farm->valor_renovacao, 2, ',', '.') : '' }}">
-                                    <input type="hidden" name="valor_renovacao" id="edit_valor_renovacao_real_{{ $farm->id }}" value="{{ $farm->valor_renovacao }}">
+                                        value="{{ $farm->valor_renovacao ? number_format((float) $farm->valor_renovacao, 2, ',', '.') : '' }}">
+                                    <input type="hidden" name="valor_renovacao" id="edit_valor_renovacao_real_{{ $farm->id }}"
+                                        value="{{ $farm->valor_renovacao }}">
                                     <span class="text-xs text-slate-400">Deixe vazio para usar o valor da VPS</span>
                                 </label>
 
                                 {{-- Data de Contratação --}}
                                 <label class="flex flex-col gap-2">
                                     <span class="text-sm text-slate-600 font-semibold">Data de Contratação</span>
-                                    <input type="date"
-                                        name="data_contratacao"
-                                        class="form-input"
+                                    <input type="date" name="data_contratacao" class="form-input"
                                         value="{{ $farm->data_contratacao ? $farm->data_contratacao->format('Y-m-d') : '' }}">
                                 </label>
 
@@ -768,10 +779,7 @@
                                 {{-- Hospedagem --}}
                                 <label class="flex flex-col gap-2">
                                     <span class="text-sm text-slate-600 font-semibold">Hospedagem</span>
-                                    <input type="text"
-                                        name="hospedagem"
-                                        class="form-input"
-                                        placeholder="OVH, Hetzner..."
+                                    <input type="text" name="hospedagem" class="form-input" placeholder="OVH, Hetzner..."
                                         value="{{ $farm->hospedagem }}">
                                 </label>
 
@@ -779,9 +787,12 @@
                                 <label class="flex flex-col gap-2">
                                     <span class="text-sm text-slate-600 font-semibold">Status</span>
                                     <select name="status" class="form-input">
-                                        <option value="Operacional" {{ $farm->status == 'Operacional' ? 'selected' : '' }}>Operacional</option>
-                                        <option value="Desabilitada" {{ $farm->status == 'Desabilitada' ? 'selected' : '' }}>Desabilitada</option>
-                                        <option value="Excluída" {{ $farm->status == 'Excluída' ? 'selected' : '' }}>Excluída</option>
+                                        <option value="Operacional" {{ $farm->status == 'Operacional' ? 'selected' : '' }}>
+                                            Operacional</option>
+                                        <option value="Desabilitada" {{ $farm->status == 'Desabilitada' ? 'selected' : '' }}>
+                                            Desabilitada</option>
+                                        <option value="Excluída" {{ $farm->status == 'Excluída' ? 'selected' : '' }}>Excluída
+                                        </option>
                                     </select>
                                 </label>
                             </div>
@@ -793,8 +804,11 @@
                                     <div class="text-sm text-amber-800">
                                         <p class="font-semibold mb-1">Sobre o Status:</p>
                                         <ul class="text-xs space-y-1 text-amber-700">
-                                            <li><strong>Operacional:</strong> VPS ativa, despesas de renovação são geradas automaticamente</li>
-                                            <li><strong>Desabilitada:</strong> VPS inativa, despesas de renovação <strong>NÃO</strong> são geradas</li>
+                                            <li><strong>Operacional:</strong> VPS ativa, despesas de renovação são geradas
+                                                automaticamente</li>
+                                            <li><strong>Desabilitada:</strong> VPS inativa, despesas de renovação
+                                                <strong>NÃO</strong> são geradas
+                                            </li>
                                             <li><strong>Excluída:</strong> VPS removida do sistema</li>
                                         </ul>
                                     </div>
@@ -803,8 +817,7 @@
 
                             {{-- Ações --}}
                             <div class="flex gap-3">
-                                <button type="button"
-                                    data-close-edit-vps-modal
+                                <button type="button" data-close-edit-vps-modal
                                     class="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors">
                                     <i class="fas fa-times"></i> Cancelar
                                 </button>
@@ -907,7 +920,8 @@
                         <p class="text-sm text-slate-500 mt-1">Esta proxy ficará indisponível para venda</p>
                     </div>
                 </div>
-                <button type="button" class="text-slate-400 hover:text-slate-600 transition-colors" onclick="closeUsoInternoModal()">
+                <button type="button" class="text-slate-400 hover:text-slate-600 transition-colors"
+                    onclick="closeUsoInternoModal()">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
@@ -918,14 +932,9 @@
                     <label for="finalidadeInput" class="block text-sm font-semibold text-slate-700 mb-2">
                         Finalidade do uso interno *
                     </label>
-                    <input
-                        type="text"
-                        id="finalidadeInput"
+                    <input type="text" id="finalidadeInput"
                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all outline-none"
-                        placeholder="Ex: Testes, Marketing, Monitoramento..."
-                        required
-                        autocomplete="off"
-                    >
+                        placeholder="Ex: Testes, Marketing, Monitoramento..." required autocomplete="off">
                     <p class="text-xs text-slate-500 mt-2">
                         <i class="fas fa-info-circle"></i> Descreva para que esta proxy será utilizada internamente
                     </p>
@@ -971,14 +980,11 @@
 
                 <!-- Ações -->
                 <div class="flex gap-3">
-                    <button
-                        type="button"
-                        onclick="closeUsoInternoModal()"
+                    <button type="button" onclick="closeUsoInternoModal()"
                         class="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors">
                         <i class="fas fa-times"></i> Cancelar
                     </button>
-                    <button
-                        type="submit"
+                    <button type="submit"
                         class="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors">
                         <i class="fas fa-check"></i> Confirmar
                     </button>
@@ -999,7 +1005,8 @@
                 </div>
                 <div class="flex-1">
                     <h3 class="text-xl font-bold text-slate-900 mb-2">Remover Uso Interno</h3>
-                    <p class="text-sm text-slate-600">Esta proxy voltará ao estoque disponível para venda aos clientes.</p>
+                    <p class="text-sm text-slate-600">Esta proxy voltará ao estoque disponível para venda aos clientes.
+                    </p>
                 </div>
             </div>
 
@@ -1020,15 +1027,11 @@
 
             <!-- Ações -->
             <div class="flex gap-3">
-                <button
-                    type="button"
-                    onclick="closeRemoverUsoInternoModal()"
+                <button type="button" onclick="closeRemoverUsoInternoModal()"
                     class="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
-                <button
-                    type="button"
-                    onclick="confirmarRemoverUsoInterno()"
+                <button type="button" onclick="confirmarRemoverUsoInterno()"
                     class="flex-1 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors">
                     <i class="fas fa-check"></i> Confirmar
                 </button>
@@ -1187,7 +1190,9 @@
         if (openBtn) {
             const modalId = openBtn.dataset.openVpsModal;
             const modal = document.getElementById(modalId);
-            if (modal) openVpsModal(modal);
+            if (modal) {
+                openVpsModal(modal);
+            }
             return;
         }
 
@@ -1670,32 +1675,32 @@
 
     // Função auxiliar para copiar texto (com fallback para ambientes não-HTTPS)
     const copyToClipboardSafe = (text) => {
-    // Tentar Clipboard API moderna (HTTPS/localhost)
-    if (navigator.clipboard?.writeText && window.isSecureContext) {
-        return navigator.clipboard.writeText(text);
-    }
-
-    // Fallback (HTTP)
-    return new Promise((resolve, reject) => {
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-
-        try {
-            const successful = document.execCommand('copy');
-            textArea.remove();
-            successful ? resolve() : reject(new Error('Comando copy falhou'));
-        } catch (err) {
-            textArea.remove();
-            reject(err);
+        // Tentar Clipboard API moderna (HTTPS/localhost)
+        if (navigator.clipboard?.writeText && window.isSecureContext) {
+            return navigator.clipboard.writeText(text);
         }
-    });
-};
+
+        // Fallback (HTTP)
+        return new Promise((resolve, reject) => {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                textArea.remove();
+                successful ? resolve() : reject(new Error('Comando copy falhou'));
+            } catch (err) {
+                textArea.remove();
+                reject(err);
+            }
+        });
+    };
 
     document.addEventListener('click', async function (e) {
         const copyButton = e.target.closest('[data-action="copy-proxy"]');
@@ -1889,14 +1894,14 @@
     }
 
     // Fechar modal ao clicar fora
-    document.getElementById('usoInternoModal')?.addEventListener('click', function(e) {
+    document.getElementById('usoInternoModal')?.addEventListener('click', function (e) {
         if (e.target === this) {
             closeUsoInternoModal();
         }
     });
 
     // Fechar modal com ESC
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             if (!document.getElementById('usoInternoModal').classList.contains('hidden')) {
                 closeUsoInternoModal();
@@ -2003,13 +2008,13 @@
     }
 
     // Fechar modal ao clicar fora
-    document.getElementById('removerUsoInternoModal')?.addEventListener('click', function(e) {
+    document.getElementById('removerUsoInternoModal')?.addEventListener('click', function (e) {
         if (e.target === this) {
             closeRemoverUsoInternoModal();
         }
     });
 
-    document.addEventListener('click', async function(e) {
+    document.addEventListener('click', async function (e) {
         // MARCAR COMO USO INTERNO
         const marcarButton = e.target.closest('[data-action="marcar-uso-interno"]');
         if (marcarButton) {
@@ -2037,72 +2042,72 @@
 
     //MASCARA DE VALOR
 
-        //MASCARA DE VALOR
+    //MASCARA DE VALOR
 
-        document.addEventListener('DOMContentLoaded', function() {
-    const inputMask = document.getElementById('vps_valor_mask');
-    const inputMaskRenovacao = document.getElementById('vps_valor_renovacao_mask');
-    const inputReal = document.getElementById('vps_valor_real');
-    const inputRealRenovacao = document.getElementById('vps_valor_renovacao_real');
+    document.addEventListener('DOMContentLoaded', function () {
+        const inputMask = document.getElementById('vps_valor_mask');
+        const inputMaskRenovacao = document.getElementById('vps_valor_renovacao_mask');
+        const inputReal = document.getElementById('vps_valor_real');
+        const inputRealRenovacao = document.getElementById('vps_valor_renovacao_real');
 
-    // Máscara para o campo de valor da VPS
-    if (inputMask && inputReal) {
-        inputMask.addEventListener('input', function(e) {
-            // Remove tudo que não é dígito
-            let value = e.target.value.replace(/\D/g, '');
+        // Máscara para o campo de valor da VPS
+        if (inputMask && inputReal) {
+            inputMask.addEventListener('input', function (e) {
+                // Remove tudo que não é dígito
+                let value = e.target.value.replace(/\D/g, '');
 
-            if (value === '') {
-                inputReal.value = '';
-                e.target.value = '';
-                return;
-            }
+                if (value === '') {
+                    inputReal.value = '';
+                    e.target.value = '';
+                    return;
+                }
 
-            // Transforma em decimal (ex: 1500 -> 15.00)
-            const floatValue = (parseInt(value) / 100).toFixed(2);
+                // Transforma em decimal (ex: 1500 -> 15.00)
+                const floatValue = (parseInt(value) / 100).toFixed(2);
 
-            // Atualiza o input hidden (valor que o PHP vai ler)
-            inputReal.value = floatValue;
+                // Atualiza o input hidden (valor que o PHP vai ler)
+                inputReal.value = floatValue;
 
-            // Formata para exibição (ex: 1.500,00)
-            e.target.value = new Intl.NumberFormat('pt-BR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(floatValue);
-        });
-    }
+                // Formata para exibição (ex: 1.500,00)
+                e.target.value = new Intl.NumberFormat('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(floatValue);
+            });
+        }
 
-    // Máscara para o campo de valor de renovação da VPS
-    if (inputMaskRenovacao && inputRealRenovacao) {
-        inputMaskRenovacao.addEventListener('input', function(e) {
-            // Remove tudo que não é dígito
-            let value = e.target.value.replace(/\D/g, '');
+        // Máscara para o campo de valor de renovação da VPS
+        if (inputMaskRenovacao && inputRealRenovacao) {
+            inputMaskRenovacao.addEventListener('input', function (e) {
+                // Remove tudo que não é dígito
+                let value = e.target.value.replace(/\D/g, '');
 
-            if (value === '') {
-                inputRealRenovacao.value = '';
-                e.target.value = '';
-                return;
-            }
+                if (value === '') {
+                    inputRealRenovacao.value = '';
+                    e.target.value = '';
+                    return;
+                }
 
-            // Transforma em decimal (ex: 1500 -> 15.00)
-            const floatValue = (parseInt(value) / 100).toFixed(2);
+                // Transforma em decimal (ex: 1500 -> 15.00)
+                const floatValue = (parseInt(value) / 100).toFixed(2);
 
-            // Atualiza o input hidden (valor que o PHP vai ler)
-            inputRealRenovacao.value = floatValue;
+                // Atualiza o input hidden (valor que o PHP vai ler)
+                inputRealRenovacao.value = floatValue;
 
-            // Formata para exibição (ex: 1.500,00)
-            e.target.value = new Intl.NumberFormat('pt-BR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(floatValue);
-        });
-    }
-});
+                // Formata para exibição (ex: 1.500,00)
+                e.target.value = new Intl.NumberFormat('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(floatValue);
+            });
+        }
+    });
 
     // ============================================
     // EDITAR APELIDO DA VPS
     // ============================================
 
-    document.addEventListener('click', async function(e) {
+    document.addEventListener('click', async function (e) {
         const editButton = e.target.closest('[data-edit-apelido]');
         if (!editButton) return;
 
@@ -2198,7 +2203,7 @@
         };
 
         // Salvar ao pressionar Enter
-        input.addEventListener('keydown', function(e) {
+        input.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 saveApelido();
@@ -2220,7 +2225,7 @@
     // EDITAR PAÍS DA VPS
     // ============================================
 
-    document.addEventListener('click', async function(e) {
+    document.addEventListener('click', async function (e) {
         const editButton = e.target.closest('[data-edit-pais]');
         if (!editButton) return;
 
@@ -2354,7 +2359,7 @@
         select.addEventListener('change', savePais);
 
         // Cancelar edição ao pressionar Escape
-        select.addEventListener('keydown', function(e) {
+        select.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 const span = document.createElement('span');
                 span.id = `vps-pais-${vpsId}`;
@@ -2375,7 +2380,7 @@
     // ============================================
 
     // Abrir modal de edição de VPS
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         // Botão de edição de VPS
         const editBtn = e.target.closest('.edit-vps-btn');
         if (editBtn) {
@@ -2419,7 +2424,7 @@
     });
 
     // Fechar com ESC
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             const openModals = document.querySelectorAll('[data-edit-vps-modal]:not(.hidden)');
             openModals.forEach(modal => {
@@ -2442,7 +2447,7 @@
         // Máscara para valor
         if (valorMask && valorReal && !valorMask.dataset.maskInitialized) {
             valorMask.dataset.maskInitialized = 'true';
-            valorMask.addEventListener('input', function(e) {
+            valorMask.addEventListener('input', function (e) {
                 let value = e.target.value.replace(/\D/g, '');
                 if (value === '') {
                     valorReal.value = '';
@@ -2461,7 +2466,7 @@
         // Máscara para valor de renovação
         if (renovacaoMask && renovacaoReal && !renovacaoMask.dataset.maskInitialized) {
             renovacaoMask.dataset.maskInitialized = 'true';
-            renovacaoMask.addEventListener('input', function(e) {
+            renovacaoMask.addEventListener('input', function (e) {
                 let value = e.target.value.replace(/\D/g, '');
                 if (value === '') {
                     renovacaoReal.value = '';
@@ -2576,7 +2581,7 @@
     // Debounce para melhorar performance
     let searchTimeout;
 
-    proxySearchInput?.addEventListener('input', function(e) {
+    proxySearchInput?.addEventListener('input', function (e) {
         const query = e.target.value.trim();
 
         // Mostrar/ocultar botão de limpar
@@ -2596,7 +2601,7 @@
     });
 
     // Limpar pesquisa
-    clearSearchBtn?.addEventListener('click', function() {
+    clearSearchBtn?.addEventListener('click', function () {
         proxySearchInput.value = '';
         clearSearchBtn.classList.add('hidden');
         searchResults.classList.add('hidden');
@@ -2613,9 +2618,9 @@
         // Filtrar proxies
         const results = proxyIndex.filter(proxy => {
             return proxy.ip.toLowerCase().includes(queryLower) ||
-                   proxy.porta.toString().includes(queryLower) ||
-                   proxy.usuario.toLowerCase().includes(queryLower) ||
-                   proxy.senha.toLowerCase().includes(queryLower);
+                proxy.porta.toString().includes(queryLower) ||
+                proxy.usuario.toLowerCase().includes(queryLower) ||
+                proxy.senha.toLowerCase().includes(queryLower);
         });
 
         // Atualizar UI
@@ -2666,7 +2671,7 @@
 
             // Adicionar event listeners aos resultados
             document.querySelectorAll('.proxy-search-result').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     const vpsId = this.dataset.vpsId;
                     const proxyId = this.dataset.proxyId;
                     openVpsModalAndFocusProxy(vpsId, proxyId);
@@ -2678,7 +2683,7 @@
     }
 
     function getProxyStatusInfo(status) {
-        switch(status) {
+        switch (status) {
             case 'disponivel':
                 return { text: 'Disponível', class: 'bg-green-100 text-green-800' };
             case 'bloqueada':
@@ -2766,6 +2771,7 @@
 
     /* Mobile - Até 640px */
     @media (max-width: 640px) {
+
         /* Modais VPS */
         .admin-modal.vps-modal {
             width: 95vw !important;
@@ -2914,6 +2920,7 @@
 
     /* Ajustes gerais para telas pequenas */
     @media (max-width: 768px) {
+
         /* Esconder colunas menos importantes */
         .admin-table th:nth-child(3),
         .admin-table td:nth-child(3) {
@@ -2934,6 +2941,7 @@
 
     /* Touch devices */
     @media (hover: none) and (pointer: coarse) {
+
         .vps-proxy-action-btn,
         button,
         .admin-card button {
@@ -2946,3 +2954,166 @@
         }
     }
 </style>
+
+{{-- Modal de confirmação: Substituir Proxy --}}
+<div id="modalSubstituirProxy" class="admin-modal-overlay hidden"
+    style="position:fixed; inset:0; z-index:100002; background:rgba(15,23,42,0.55); align-items:center; justify-content:center; display:none;">
+    <div class="admin-modal"
+        style="max-width:460px; width:100%; padding:2rem; border-radius:20px; background:#fff; box-shadow:0 25px 60px rgba(15,23,42,0.18);">
+        <div class="flex items-center gap-3 mb-4">
+            <div
+                style="width:40px;height:40px;border-radius:12px;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;">
+                <i class="fas fa-exchange-alt" style="color:#d97706;font-size:1.1rem;"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Substituir Proxy</h3>
+                <p class="text-sm text-slate-500">Esta ação é irreversível</p>
+            </div>
+        </div>
+
+        <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 mb-5 space-y-2 text-sm">
+            <div class="flex justify-between"><span class="text-slate-500">Proxy atual</span><span
+                    class="font-mono font-semibold text-slate-800" id="modalSubstituirIp">—</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">País</span><span
+                    class="font-semibold text-slate-800" id="modalSubstituirPais">—</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Usuário dono</span><span
+                    class="font-semibold text-slate-800" id="modalSubstituirUsuario">—</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Expira em</span><span
+                    class="font-semibold text-slate-800" id="modalSubstituirExpiracao">—</span></div>
+        </div>
+
+        <p class="text-sm text-slate-600 mb-4">
+            Um novo proxy disponível será atribuído ao usuário com a <strong>mesma data de expiração</strong>. O
+            proxy atual ficará marcado como <strong>Substituído</strong> no histórico.
+        </p>
+
+        <div class="mb-5">
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Selecione a VPS de Origem</label>
+            <select id="modalSubstituirVpsSelect"
+                class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors">
+                <option value="">Selecione uma VPS...</option>
+                @foreach(\App\Models\Vps::whereIn('status', ['Operacional'])->get() as $v)
+                    <option value="{{ $v->id }}">{{ $v->apelido }} ({{ $v->pais }} - {{ $v->ip }})</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="button" id="modalSubstituirCancelar"
+                class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
+                Cancelar
+            </button>
+            <button type="button" id="modalSubstituirConfirmar"
+                class="flex-1 px-4 py-2.5 rounded-xl font-semibold text-white transition-colors"
+                style="background:#d97706;" data-stock-id="">
+                <span id="modalSubstituirBtnText"><i class="fas fa-exchange-alt mr-1"></i> Substituir</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        function fecharModalSubstituir() {
+            const modal = document.getElementById('modalSubstituirProxy');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Tudo via event delegation no document — nunca falha por elemento ausente
+        document.addEventListener('click', function (e) {
+
+            // Abrir modal via delegation
+            const btnAbrir = e.target.closest('.substituir-proxy-btn');
+
+            if (btnAbrir) {
+                const modal = document.getElementById('modalSubstituirProxy');
+                if (!modal) return;
+                document.getElementById('modalSubstituirIp').textContent = btnAbrir.dataset.ip + ':' + btnAbrir.dataset.porta;
+                document.getElementById('modalSubstituirPais').textContent = btnAbrir.dataset.pais;
+                document.getElementById('modalSubstituirUsuario').textContent = btnAbrir.dataset.usuario;
+                document.getElementById('modalSubstituirExpiracao').textContent = btnAbrir.dataset.expiracao;
+                const btnConfirmar = document.getElementById('modalSubstituirConfirmar');
+                btnConfirmar.dataset.stockId = btnAbrir.dataset.stockId;
+                btnConfirmar.disabled = false;
+                document.getElementById('modalSubstituirVpsSelect').value = ""; // Reseta o select
+                document.getElementById('modalSubstituirBtnText').innerHTML = '<i class="fas fa-exchange-alt mr-1"></i> Substituir';
+                if (modal.parentNode !== document.body) document.body.appendChild(modal);
+                modal.style.display = 'flex';
+                modal.classList.remove('hidden');
+                return;
+            }
+
+            // Cancelar
+            if (e.target.closest('#modalSubstituirCancelar')) {
+                fecharModalSubstituir();
+                return;
+            }
+
+            // Clique no backdrop
+            if (e.target.id === 'modalSubstituirProxy') {
+                fecharModalSubstituir();
+                return;
+            }
+
+            // Confirmar substituição
+            const btnConfirmar = e.target.closest('#modalSubstituirConfirmar');
+            if (btnConfirmar) {
+                const stockId = btnConfirmar.dataset.stockId;
+                const vpsId = document.getElementById('modalSubstituirVpsSelect').value;
+
+                if (!stockId) return;
+                if (!vpsId) {
+                    showToast('❌ Por favor, selecione a VPS de origem.', 'error');
+                    return;
+                }
+
+                btnConfirmar.disabled = true;
+                document.getElementById('modalSubstituirBtnText').innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Substituindo...';
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                fetch('{{ route("proxy.substituir") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
+                    },
+                    body: JSON.stringify({
+                        stock_id: parseInt(stockId),
+                        vps_id: parseInt(vpsId)
+                    }),
+                })
+                    .then(function (resp) { return resp.json(); })
+                    .then(function (data) {
+                        if (data.success) {
+                            showToast('✅ Proxy substituído! Novo: ' + data.novo_proxy.ip + ':' + data.novo_proxy.porta, 'success');
+                            fecharModalSubstituir();
+
+                            const card = document.querySelector('.vps-proxy-card[data-proxy-id="' + stockId + '"]');
+                            if (card) {
+                                const statusEl = card.querySelector('.vps-proxy-status');
+                                if (statusEl) {
+                                    statusEl.dataset.status = 'substituido';
+                                    statusEl.innerHTML = '<span class="text-slate-500 px-2 py-0.5 rounded">Substituído</span>';
+                                }
+                                const sub = card.querySelector('.substituir-proxy-btn');
+                                if (sub) sub.remove();
+                            }
+                        } else {
+                            showToast('❌ ' + (data.error || 'Erro ao substituir proxy.'), 'error');
+                            document.getElementById('modalSubstituirBtnText').innerHTML = '<i class="fas fa-exchange-alt mr-1"></i> Substituir';
+                            btnConfirmar.disabled = false;
+                        }
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                        showToast('❌ Erro ao conectar com o servidor.', 'error');
+                        document.getElementById('modalSubstituirBtnText').innerHTML = '<i class="fas fa-exchange-alt mr-1"></i> Substituir';
+                        btnConfirmar.disabled = false;
+                    });
+            }
+        });
+    })();
+</script>

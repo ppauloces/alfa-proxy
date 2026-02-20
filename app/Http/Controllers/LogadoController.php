@@ -578,7 +578,7 @@ class LogadoController extends Controller
         }
 
         // Buscar proxies do usuário agrupados por tipo
-        $stocks = Stock::where('user_id', Auth::id())->orderBy('id', 'desc')->get();
+        $allStocks = Stock::where('user_id', Auth::id())->orderBy('id', 'desc')->get();
 
         $proxyGroups = [
             'SOCKS5' => [],
@@ -586,13 +586,10 @@ class LogadoController extends Controller
             'HTTPS' => [],
         ];
 
-        foreach ($stocks as $stock) {
-            $tipo = strtoupper($stock->tipo ?? 'SOCKS5');
-            if (!isset($proxyGroups[$tipo])) {
-                $proxyGroups[$tipo] = [];
-            }
+        $proxiesSubstituidos = [];
 
-            $proxyGroups[$tipo][] = [
+        foreach ($allStocks as $stock) {
+            $proxyData = [
                 'id' => $stock->id,
                 'ip' => $stock->ip,
                 'port' => $stock->porta,
@@ -602,9 +599,20 @@ class LogadoController extends Controller
                 'country_code' => $stock->codigo_pais ?? 'BR',
                 'purchased_at' => $stock->updated_at,
                 'expires_at' => $stock->expiracao,
-                'remaining' => Carbon::parse($stock->expiracao)->diffForHumans(),
+                'remaining' => $stock->expiracao ? Carbon::parse($stock->expiracao)->diffForHumans() : null,
                 'auto_renew' => $stock->renovacao_automatica ?? false,
+                'substituido' => $stock->substituido ?? false,
             ];
+
+            if ($stock->substituido) {
+                $proxiesSubstituidos[] = $proxyData;
+            } else {
+                $tipo = strtoupper($stock->tipo ?? 'SOCKS5');
+                if (!isset($proxyGroups[$tipo])) {
+                    $proxyGroups[$tipo] = [];
+                }
+                $proxyGroups[$tipo][] = $proxyData;
+            }
         }
 
         // Remover grupos vazios
@@ -683,6 +691,7 @@ class LogadoController extends Controller
             'clientLeads',
             'statsCompraProxy',
             'colaboradores',
+            'proxiesSubstituidos',
         ));
     }
 

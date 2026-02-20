@@ -25,7 +25,9 @@ class Stock extends Model
         'renovacao_automatica',
         'bloqueada',
         'uso_interno',
-        'finalidade_interna'
+        'finalidade_interna',
+        'substituido',
+        'substituido_por'
     ];
 
 
@@ -46,6 +48,12 @@ class Stock extends Model
         'expiracao' => 'datetime',
         'bloqueada' => 'boolean',
         'uso_interno' => 'boolean',
+        'substituido' => 'boolean',
     ];
+
+    public function substituto()
+    {
+        return $this->belongsTo(Stock::class, 'substituido_por');
+    }
 
 }

@@ -23,7 +23,7 @@ class AdminController extends Controller
         ]);
     }
     public function historicoVps(Request $request)
-    { 
+    {
         return redirect()->route('dash.show', ['section' => $request->query('section', 'admin-historico-vps')]);
     }
 
@@ -406,6 +406,72 @@ class AdminController extends Controller
                 'error' => 'Erro ao conectar com o servidor: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Substituir proxy caído por outro disponível do mesmo país
+     */
+    public function substituirProxy(Request $request)
+    {
+        $validated = $request->validate([
+            'stock_id' => 'required|integer|exists:stocks,id',
+            'vps_id' => 'required|integer|exists:vps,id',
+        ]);
+
+        $stockAntigo = \App\Models\Stock::find($validated['stock_id']);
+
+        if (!$stockAntigo->user_id) {
+            return response()->json(['success' => false, 'error' => 'Este proxy não está atribuído a nenhum usuário.'], 422);
+        }
+
+        if ($stockAntigo->substituido) {
+            return response()->json(['success' => false, 'error' => 'Este proxy já foi substituído anteriormente.'], 422);
+        }
+
+        $novoStock = \App\Models\Stock::whereNull('user_id')
+            ->where('disponibilidade', true)
+            ->where('uso_interno', false)
+            ->where('vps_id', $validated['vps_id'])
+            ->first();
+
+        if (!$novoStock) {
+            return response()->json(['success' => false, 'error' => 'Sem estoque disponível na VPS selecionada.'], 422);
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($stockAntigo, $novoStock) {
+            $novoStock->update([
+                'user_id' => $stockAntigo->user_id,
+                'codigo_pais' => $stockAntigo->codigo_pais,
+                'motivo_uso' => $stockAntigo->motivo_uso,
+                'periodo_dias' => $stockAntigo->periodo_dias,
+                'expiracao' => $stockAntigo->expiracao,
+                'disponibilidade' => false,
+                'renovacao_automatica' => false,
+            ]);
+
+            $stockAntigo->update([
+                'substituido' => true,
+                'substituido_por' => $novoStock->id,
+            ]);
+        });
+
+        Log::info('Proxy substituído pelo admin', [
+            'stock_antigo_id' => $stockAntigo->id,
+            'stock_novo_id' => $novoStock->id,
+            'user_id' => $stockAntigo->user_id,
+            'pais' => $stockAntigo->pais,
+            'admin_id' => auth()->id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Proxy substituído com sucesso!',
+            'novo_proxy' => [
+                'id' => $novoStock->id,
+                'ip' => $novoStock->ip,
+                'porta' => $novoStock->porta,
+            ],
+        ]);
     }
 
     /**
@@ -944,7 +1010,7 @@ class AdminController extends Controller
                 'data_pagamento' => $validated['status'] === 'pago' ? $validated['data_vencimento'] : null,
                 'status' => $validated['status'],
             ]);
-            
+
 
             return response()->json([
                 'success' => true,

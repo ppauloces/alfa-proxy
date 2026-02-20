@@ -669,7 +669,7 @@
                                                     {{-- Botão para RENOVAR DATA (proxy expirada mas não bloqueada) --}}
                                                     <button type="button" class="vps-proxy-action-btn" data-toggle-port
                                                         data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}"
-                                                        data-state="blocked" data-ip="{{ $farm->ip }}"
+                                                        data-state="blocked" data-expirada="true" data-ip="{{ $farm->ip }}"
                                                         data-porta="{{ $proxy->porta }}" data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
                                                         data-senha-ssh="{{ $farm->senha_ssh ?? '' }}">
                                                         <i class="fas fa-calendar-plus"></i>
@@ -680,7 +680,8 @@
                                                 {{-- Bot\u00e3o para DESBLOQUEAR (apenas para proxies bloqueadas) --}}
                                                 <button type="button" class="vps-proxy-action-btn danger" data-toggle-port
                                                     data-stock-id="{{ $proxy->id }}" data-target="#{{ $statusId }}"
-                                                    data-state="blocked" data-ip="{{ $farm->ip }}"
+                                                    data-state="blocked" data-expirada="{{ ($proxy->expiracao && \Carbon\Carbon::parse($proxy->expiracao)->isPast()) ? 'true' : 'false' }}"
+                                                    data-ip="{{ $farm->ip }}"
                                                     data-porta="{{ $proxy->porta }}" data-usuario-ssh="{{ $farm->usuario_ssh ?? 'root' }}"
                                                     data-senha-ssh="{{ $farm->senha_ssh ?? '' }}">
                                                     <i class="fas fa-unlock"></i>
@@ -1545,106 +1546,42 @@
 
         const action = (currentState === 'blocked') ? 'desbloquear' : 'bloquear';
         const endpoint = (action === 'bloquear') ? '/admin/proxy/bloquear' : '/admin/proxy/desbloquear';
+        const isExpirada = toggleButton.dataset.expirada === 'true';
 
-
-        // Se estiver desbloqueando, fazer uma tentativa inicial para verificar se precisa de data
+        // Se proxy expirada, pedir nova data ANTES de qualquer fetch
         let novaExpiracao = null;
-        if (action === 'desbloquear') {
-            toggleButton.disabled = true;
-            icon.className = 'fas fa-spinner fa-spin';
-            // Só mostrar texto se o botão tiver texto (não apenas ícone)
-            if (btnText && btnText.textContent.trim()) {
-                btnText.textContent = 'Verificando...';
-            }
-
-            try {
-                // Primeira tentativa sem data
-                const checkResponse = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                    },
-                    body: JSON.stringify({ stock_id: stockId })
-                });
-
-                const checkData = await checkResponse.json();
-
-                // Se retornar que precisa de data, pedir ao usuário
-                console.log('requires_date:', checkData.requires_date, '| success:', checkData.success, '| full:', JSON.stringify(checkData));
-                if (checkData.requires_date) {
-                    icon.className = 'fas fa-unlock';
-                    if (btnText && btnText.textContent.trim()) {
-                        btnText.textContent = ' Desbloquear';
+        if (action === 'desbloquear' && isExpirada) {
+            const { value: dataEscolhida } = await Swal.fire({
+                title: 'Proxy Expirada!',
+                html: `
+                    <p style="margin-bottom:12px">Defina uma nova data de expiração para desbloquear.</p>
+                    <input type="date" id="novaExpiracao" class="swal2-input" min="${new Date().toISOString().split('T')[0]}" style="width:80%">
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Desbloquear',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#3b82f6',
+                preConfirm: () => {
+                    const data = document.getElementById('novaExpiracao').value;
+                    if (!data) {
+                        Swal.showValidationMessage('Por favor, selecione uma data');
+                        return false;
                     }
-                    toggleButton.disabled = false;
-
-                    // Pedir nova data de expiração
-                    const { value: dataEscolhida } = await Swal.fire({
-                        title: 'Proxy Expirada!',
-                        html: `
-                            <p class="text-gray-600 mb-4">Esta proxy está expirada. Defina uma nova data de expiração para desbloqueá-la.</p>
-                            <input type="date" id="novaExpiracao" class="swal2-input" min="${new Date().toISOString().split('T')[0]}" style="width: 80%;">
-                        `,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Desbloquear',
-                        cancelButtonText: 'Cancelar',
-                        confirmButtonColor: '#3b82f6',
-                        preConfirm: () => {
-                            const data = document.getElementById('novaExpiracao').value;
-                            if (!data) {
-                                Swal.showValidationMessage('Por favor, selecione uma data');
-                                return false;
-                            }
-                            const dataEscolhida = new Date(data);
-                            const hoje = new Date();
-                            hoje.setHours(0, 0, 0, 0);
-                            if (dataEscolhida <= hoje) {
-                                Swal.showValidationMessage('A data deve ser futura');
-                                return false;
-                            }
-                            return data;
-                        }
-                    });
-
-                    if (!dataEscolhida) {
-                        return; // Usuário cancelou
+                    const escolhida = new Date(data);
+                    const hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
+                    if (escolhida <= hoje) {
+                        Swal.showValidationMessage('A data deve ser futura');
+                        return false;
                     }
-
-                    novaExpiracao = dataEscolhida;
-                } else if (checkData.success) {
-                    // Desbloqueio bem-sucedido
-                    if (targetStatus) {
-                        targetStatus.dataset.status = 'disponivel';
-                        targetStatus.textContent = 'Disponível';
-                    }
-                    toggleButton.dataset.state = 'open';
-                    icon.className = 'fas fa-ban';
-                    if (btnText && btnText.textContent.trim()) {
-                        btnText.textContent = ' Bloquear';
-                    }
-                    showToast(checkData.message || 'Porta desbloqueada com sucesso!', 'success');
-                    return;
-                } else {
-                    // Erro
-                    showToast(checkData.error || 'Erro ao processar requisição', 'error');
-                    icon.className = 'fas fa-unlock';
-                    if (btnText && btnText.textContent.trim()) {
-                        btnText.textContent = ' Desbloquear';
-                    }
-                    return;
+                    return data;
                 }
-            } catch (error) {
-                console.error('Erro:', error);
-                showToast('Erro ao conectar com o servidor', 'error');
-                icon.className = 'fas fa-unlock';
-                if (btnText && btnText.textContent.trim()) {
-                    btnText.textContent = ' Desbloquear';
-                }
-                toggleButton.disabled = false;
-                return;
-            }
+            });
+
+            if (!dataEscolhida) return; // Usuário cancelou
+
+            novaExpiracao = dataEscolhida;
         }
 
         // Desabilitar botão durante requisição

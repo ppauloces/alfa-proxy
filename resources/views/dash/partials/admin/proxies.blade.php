@@ -102,8 +102,8 @@
     }
 
     .vps-proxy-status[data-status="vendida"] {
-        background: rgba(245, 158, 11, 0.14);
-        color: #b45309;
+        background: #DBEAFE;
+        color: #1E40AF;
     }
 
     .vps-proxy-status[data-status="bloqueada"] {
@@ -465,7 +465,20 @@
     @endif
 
     @if($vpsFarm->count() > 0)
-        <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <!-- Tabs para status da VPS -->
+        <div class="flex flex-wrap gap-2 mb-6">
+            <button type="button"
+                class="vps-tab-btn active px-4 py-2 rounded-xl text-sm font-bold bg-[#23366f] text-white transition-all shadow-sm"
+                data-tab="Operacional">Operacionais</button>
+            <button type="button"
+                class="vps-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all"
+                data-tab="Inativa">Inativas</button>
+            <button type="button"
+                class="vps-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all"
+                data-tab="Excluída">Excluídas</button>
+        </div>
+
+        <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4" id="vpsGrid">
             @foreach($vpsFarm as $farm)
                 @php
                     $totalProxies = $farm->proxies->count();
@@ -475,7 +488,8 @@
                     $vendidas = max(0, $totalProxies - $bloqueadas - $usoInterno - $disponiveis);
                 @endphp
 
-                <div class="admin-card w-full text-left hover:shadow-md transition-shadow relative">
+                <div class="admin-card w-full text-left hover:shadow-md transition-shadow relative vps-card-item"
+                    data-status="{{ $farm->status }}">
                     <button type="button" class="w-full text-left" data-open-vps-modal="vpsModal-{{ $farm->id }}">
                         <div class="flex items-start justify-between gap-4">
                             <div class="min-w-0">
@@ -619,7 +633,7 @@
                                                 @elseif($proxyStatus === 'substituido')
                                                     <span class="text-slate-500 px-2 py-0.5 rounded">Substituído</span>
                                                 @else
-                                                    <span class="text-amber-600 px-2 py-0.5 rounded">Vendida</span>
+                                                    <span class="text-blue-800 px-2 py-0.5 rounded">Vendida</span>
                                                 @endif
                                             </span>
                                             @if($proxy->uso_interno && $proxy->finalidade_interna)
@@ -2534,10 +2548,47 @@
             }
         } catch (error) {
             console.error('Erro ao atualizar VPS:', error);
-            showToast('Erro ao conectar com o servidor', 'error');
+            showToast('Falha na comunicação com o servidor', 'error');
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
         }
+    }
+
+    // ============================================
+    // TABS DE FILTRAGEM VPS
+    // ============================================
+
+    const vpsTabBtns = document.querySelectorAll('.vps-tab-btn');
+    const vpsCardItems = document.querySelectorAll('.vps-card-item');
+
+    if (vpsTabBtns.length > 0) {
+        vpsTabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remover classes de "active" de todos os botoes
+                vpsTabBtns.forEach(b => {
+                    b.classList.remove('bg-[#23366f]', 'text-white', 'shadow-sm', 'active');
+                    b.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+                });
+
+                // Adicionar "active" styles no click
+                btn.classList.add('active', 'bg-[#23366f]', 'text-white', 'shadow-sm');
+                btn.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+
+                const targetStatus = btn.dataset.tab;
+
+                vpsCardItems.forEach(card => {
+                    const statusVal = card.dataset.status;
+                    if (statusVal === targetStatus) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Disparar click no botão do 'Operacional' logo que inicializar
+        document.querySelector('.vps-tab-btn[data-tab="Operacional"]')?.click();
     }
 
     // ============================================
@@ -2549,20 +2600,22 @@
         const index = [];
 
         @foreach($vpsFarm as $farm)
-            @foreach($farm->proxies as $proxy)
-                index.push({
-                    id: {{ $proxy->id }},
-                    vpsId: {{ $farm->id }},
-                    vpsApelido: "{{ $farm->apelido }}",
-                    ip: "{{ $proxy->ip }}",
-                    porta: "{{ $proxy->porta }}",
-                    usuario: "{{ $proxy->usuario }}",
-                    senha: "{{ $proxy->senha }}",
-                    status: "{{ $proxy->bloqueada ? 'bloqueada' : ($proxy->uso_interno ? 'uso_interno' : ($proxy->disponibilidade ? 'disponivel' : 'vendida')) }}",
-                    bloqueada: {{ $proxy->bloqueada ? 'true' : 'false' }},
-                    expiracao: "{{ $proxy->expiracao ? $proxy->expiracao->format('d/m/Y') : 'N/A' }}"
-                });
-            @endforeach
+            @if($farm->status === 'Operacional')
+                @foreach($farm->proxies as $proxy)
+                    index.push({
+                        id: {{ $proxy->id }},
+                        vpsId: {{ $farm->id }},
+                        vpsApelido: "{{ $farm->apelido }}",
+                        ip: "{{ $proxy->ip }}",
+                        porta: "{{ $proxy->porta }}",
+                        usuario: "{{ $proxy->usuario }}",
+                        senha: "{{ $proxy->senha }}",
+                        status: "{{ $proxy->bloqueada ? 'bloqueada' : ($proxy->uso_interno ? 'uso_interno' : ($proxy->disponibilidade ? 'disponivel' : 'vendida')) }}",
+                        bloqueada: {{ $proxy->bloqueada ? 'true' : 'false' }},
+                        expiracao: "{{ $proxy->expiracao ? $proxy->expiracao->format('d/m/Y') : 'N/A' }}"
+                    });
+                @endforeach
+            @endif
         @endforeach
 
         return index;

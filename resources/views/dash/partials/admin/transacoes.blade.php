@@ -44,23 +44,32 @@
             </div>
         </div>
 
-        {{-- Filtros --}}
-        <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl w-fit mb-5">
-            <button type="button" class="px-5 py-2 rounded-xl font-bold text-xs transition-all"
-                :class="filterStatus === 'all' ? 'bg-[#23366f] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:bg-white'"
-                @click="filterStatus = 'all'">Todas</button>
-            <button type="button" class="px-5 py-2 rounded-xl font-bold text-xs transition-all"
-                :class="filterStatus === 'ativa' ? 'bg-[#23366f] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:bg-white'"
-                @click="filterStatus = 'ativa'">Ativas</button>
-            <button type="button" class="px-5 py-2 rounded-xl font-bold text-xs transition-all"
-                :class="filterStatus === 'bloqueada' ? 'bg-[#23366f] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:bg-white'"
-                @click="filterStatus = 'bloqueada'">Bloqueadas</button>
-            <button type="button" class="px-5 py-2 rounded-xl font-bold text-xs transition-all"
-                :class="filterStatus === 'expirada' ? 'bg-[#23366f] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:bg-white'"
-                @click="filterStatus = 'expirada'">Expiradas</button>
-            <button type="button" class="px-5 py-2 rounded-xl font-bold text-xs transition-all"
-                :class="filterStatus === 'substituida' ? 'bg-[#23366f] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:bg-white'"
-                @click="filterStatus = 'substituida'">Substituídas</button>
+        {{-- Filtros e Pesquisa --}}
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-5">
+            <div class="flex flex-wrap items-center gap-2 bg-slate-50 p-1.5 rounded-2xl w-fit">
+                <button type="button" class="px-5 py-2 rounded-xl font-bold text-xs transition-all"
+                    :class="filterStatus === 'all' ? 'bg-[#23366f] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:bg-white'"
+                    @click="filterStatus = 'all'">Todas</button>
+                <button type="button" class="px-5 py-2 rounded-xl font-bold text-xs transition-all"
+                    :class="filterStatus === 'ativa' ? 'bg-[#23366f] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:bg-white'"
+                    @click="filterStatus = 'ativa'">Ativas</button>
+                <button type="button" class="px-5 py-2 rounded-xl font-bold text-xs transition-all"
+                    :class="filterStatus === 'bloqueada' ? 'bg-[#23366f] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:bg-white'"
+                    @click="filterStatus = 'bloqueada'">Bloqueadas</button>
+                <button type="button" class="px-5 py-2 rounded-xl font-bold text-xs transition-all"
+                    :class="filterStatus === 'expirada' ? 'bg-[#23366f] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:bg-white'"
+                    @click="filterStatus = 'expirada'">Expiradas</button>
+                <button type="button" class="px-5 py-2 rounded-xl font-bold text-xs transition-all"
+                    :class="filterStatus === 'substituida' ? 'bg-[#23366f] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:bg-white'"
+                    @click="filterStatus = 'substituida'">Substituídas</button>
+            </div>
+
+            {{-- Pesquisa --}}
+            <div class="relative w-full xl:w-72">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input type="text" x-model="searchQuery" placeholder="Pesquisar IP, cliente, email..."
+                    class="w-full h-11 pl-10 pr-4 rounded-xl bg-white border border-slate-200 font-medium text-sm text-slate-700 hover:border-[#448ccb] focus:outline-none focus:ring-4 focus:ring-[#448ccb]/20 focus:border-[#23366f] transition">
+            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -154,6 +163,13 @@
                                         class="w-8 h-8 rounded-lg bg-slate-50 hover:bg-[#23366f] text-slate-400 hover:text-white transition-all inline-flex items-center justify-center"
                                         title="Ver detalhes">
                                         <i class="fas fa-eye text-xs"></i>
+                                    </button>
+                                    {{-- Copiar Proxy --}}
+                                    <button type="button"
+                                        class="w-8 h-8 rounded-lg bg-slate-50 hover:bg-blue-500 text-slate-400 hover:text-white transition-all inline-flex items-center justify-center"
+                                        @click="if(typeof copyToClipboard === 'function') copyToClipboard(`socks5://${proxy.ip}:${proxy.porta}:${proxy.usuario}:${proxy.senha}`); else { navigator.clipboard.writeText(`socks5://${proxy.ip}:${proxy.porta}:${proxy.usuario}:${proxy.senha}`); showToast('Copiado!', 'success'); }"
+                                        title="Copiar proxy">
+                                        <i class="fas fa-copy text-xs"></i>
                                     </button>
                                     {{-- Testar --}}
                                     <button type="button"
@@ -394,6 +410,7 @@
         return {
             loading: false,
             filterStatus: 'all',
+            searchQuery: '',
             showModal: false,
             sel: null,
             showPass: false,
@@ -401,14 +418,27 @@
             proxies: @json($soldProxies),
 
             get filteredProxies() {
-                if (this.filterStatus === 'all') return this.proxies;
-                return this.proxies.filter(p => {
-                    if (this.filterStatus === 'ativa') return p.status === 'ativa' && parseInt(p.periodo) > 0;
-                    if (this.filterStatus === 'bloqueada') return p.status === 'bloqueada';
-                    if (this.filterStatus === 'substituida') return p.status === 'substituida';
-                    if (this.filterStatus === 'expirada') return p.status === 'ativa' && parseInt(p.periodo) <= 0;
-                    return true;
-                });
+                let list = this.proxies;
+
+                if (this.filterStatus !== 'all') {
+                    list = list.filter(p => {
+                        if (this.filterStatus === 'ativa') return p.status === 'ativa' && parseInt(p.periodo) > 0;
+                        if (this.filterStatus === 'bloqueada') return p.status === 'bloqueada';
+                        if (this.filterStatus === 'substituida') return p.status === 'substituida';
+                        if (this.filterStatus === 'expirada') return p.status === 'ativa' && parseInt(p.periodo) <= 0;
+                        return true;
+                    });
+                }
+
+                if (this.searchQuery.trim() !== '') {
+                    const q = this.searchQuery.toLowerCase();
+                    list = list.filter(p => {
+                        const str = `${p.ip}:${p.porta}:${p.usuario}:${p.senha} ${p.comprador} ${p.email} ${p.endereco}`.toLowerCase();
+                        return str.includes(q);
+                    });
+                }
+
+                return list;
             },
 
             openDetail(proxy) {

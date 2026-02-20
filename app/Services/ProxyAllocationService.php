@@ -34,6 +34,9 @@ class ProxyAllocationService
         $proxiesDisponiveis = Stock::whereNull('user_id')
             ->where('disponibilidade', true)
             ->where('uso_interno', false)
+            ->whereHas('vps', function ($query) {
+                $query->where('status', 'Operacional');
+            })
             ->where('pais', $paisNome)
             ->inRandomOrder() // Randomiza a ordem
             ->limit($quantidade)
@@ -183,6 +186,9 @@ class ProxyAllocationService
         return Stock::whereNull('user_id')
             ->where('disponibilidade', true)
             ->where('uso_interno', false)
+            ->whereHas('vps', function ($query) {
+                $query->where('status', 'Operacional');
+            })
             ->where('pais', $paisNome)
             ->exists();
     }
@@ -200,6 +206,9 @@ class ProxyAllocationService
         return Stock::whereNull('user_id')
             ->where('disponibilidade', true)
             ->where('uso_interno', false)
+            ->whereHas('vps', function ($query) {
+                $query->where('status', 'Operacional');
+            })
             ->where('pais', $paisNome)
             ->count();
     }

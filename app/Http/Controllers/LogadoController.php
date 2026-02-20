@@ -297,7 +297,26 @@ class LogadoController extends Controller
                     ];
                 });
 
-            $saidas = $saidasDespesas->concat($saidasUsoInterno)
+            // Proxies substituídas (custo de oportunidade)
+            $saidasSubstituidas = Stock::where('substituido', true)
+                ->with('vps')
+                ->orderBy('updated_at', 'desc')
+                ->get()
+                ->map(function ($stock) {
+                    $endereco = ($stock->ip ?? 'N/A') . ':' . $stock->porta;
+                    return [
+                        'descricao' => 'Substituição — ' . $endereco,
+                        'categoria' => 'Substituição',
+                        'tipo' => 'substituicao',
+                        'data' => $stock->updated_at->format('d/m/Y'),
+                        'valor' => '1 Proxy (Custo)',
+                        'status' => 'ativo',
+                        'vps_apelido' => $stock->vps->apelido ?? 'N/A',
+                        'sort_date' => $stock->updated_at,
+                    ];
+                });
+
+            $saidas = $saidasDespesas->concat($saidasUsoInterno)->concat($saidasSubstituidas)
                 ->sortByDesc('sort_date')
                 ->values();
 
@@ -388,6 +407,9 @@ class LogadoController extends Controller
 
             $proxiesDisponiveis = Stock::where('disponibilidade', true)
                 ->where('uso_interno', false)
+                ->whereHas('vps', function ($query) {
+                    $query->where('status', 'Operacional');
+                })
                 ->count();
             $precoMedio = array_sum($precosPorPeriodo) / count($precosPorPeriodo);
 
@@ -431,6 +453,23 @@ class LogadoController extends Controller
                 'proxies' => $usoInternoProxies,
             ];
 
+            $substituidasProxies = Stock::where('substituido', true)
+                ->with('vps')
+                ->orderBy('updated_at', 'desc')
+                ->get()
+                ->map(function ($stock) {
+                    return [
+                        'endereco' => ($stock->vps->ip ?? $stock->ip ?? 'N/A') . ':' . $stock->porta,
+                        'vps' => $stock->vps->apelido ?? 'N/A',
+                        'data' => $stock->updated_at->format('d/m/Y H:i'),
+                    ];
+                });
+
+            $substituidasStats = [
+                'total' => Stock::where('substituido', true)->count(),
+                'proxies' => $substituidasProxies,
+            ];
+
             // ===== GRÁFICOS: GATEWAYS (AbacatePay, Asaas, Stripe) =====
             $chartGateways = Transaction::where('status', 1)
                 ->whereNotNull('gateway_type')
@@ -439,7 +478,7 @@ class LogadoController extends Controller
                 ->groupBy('gateway_type')
                 ->get()
                 ->map(fn($item) => [
-                    'label' => match(strtolower($item->gateway_type)) {
+                    'label' => match (strtolower($item->gateway_type)) {
                         'abacatepay' => 'AbacatePay',
                         'asaas' => 'Asaas',
                         'stripe' => 'Stripe',
@@ -455,7 +494,7 @@ class LogadoController extends Controller
                 ->groupBy('metodo_pagamento')
                 ->get()
                 ->map(fn($item) => [
-                    'label' => match($item->metodo_pagamento) {
+                    'label' => match ($item->metodo_pagamento) {
                         'pix' => 'PIX',
                         'credit_card' => 'Cartão de Crédito',
                         'saldo' => 'Saldo',
@@ -563,7 +602,7 @@ class LogadoController extends Controller
                         'porta' => $proxy->porta,
                         'usuario' => $proxy->usuario,
                         'senha' => $proxy->senha,
-                        'status' => $proxy->bloqueada ? 'bloqueada' : 'ativa',
+                        'status' => $proxy->substituido ? 'substituida' : ($proxy->bloqueada ? 'bloqueada' : 'ativa'),
                         'periodo' => $diasRestantes > 0 ? $diasRestantes . ' dias' : 'Expirado',
                         'gasto_cliente' => 'R$ ' . number_format($gastoCliente, 2, ',', '.'),
                         'pedidos' => $pedidos,
@@ -691,6 +730,7 @@ class LogadoController extends Controller
             'clientLeads',
             'statsCompraProxy',
             'colaboradores',
+            'substituidasStats',
             'proxiesSubstituidos',
         ));
     }

@@ -812,7 +812,7 @@ class AdminController extends Controller
                 'data_contratacao' => 'required|date',
                 'periodo_dias' => 'required|integer|in:30,60,90,180',
                 'hospedagem' => 'required|string|max:255',
-                'status' => 'required|string|in:Operacional,Desabilitada,Excluída',
+                'status' => 'required|string|in:Operacional,Inativa,Excluída',
             ], [
                 'vps_id.required' => 'ID da VPS é obrigatório.',
                 'vps_id.exists' => 'VPS não encontrada.',
@@ -1148,7 +1148,25 @@ class AdminController extends Controller
                 ];
             });
 
-        $extratoSaidas = $saidasDespesas->concat($saidasUsoInterno)
+        $saidasSubstituidas = Stock::with('vps')
+            ->where('substituido', true)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(function ($stock) {
+                $endereco = ($stock->ip ?? 'N/A') . ':' . $stock->porta;
+                return [
+                    'descricao' => 'Substituição — ' . $endereco,
+                    'categoria' => 'Substituição',
+                    'tipo' => 'substituicao',
+                    'data' => $stock->updated_at->format('d/m/Y'),
+                    'valor' => '1 Proxy (Custo)',
+                    'status' => 'ativo',
+                    'sort_date' => $stock->updated_at->toISOString(),
+                ];
+            });
+
+        $extratoSaidas = $saidasDespesas->concat($saidasUsoInterno)->concat($saidasSubstituidas)
             ->sortByDesc('sort_date')
             ->values();
 
@@ -1307,7 +1325,7 @@ class AdminController extends Controller
                     'porta' => $proxy->porta,
                     'usuario' => $proxy->usuario,
                     'senha' => $proxy->senha,
-                    'status' => $proxy->bloqueada ? 'bloqueada' : 'ativa',
+                    'status' => $proxy->substituido ? 'substituida' : ($proxy->bloqueada ? 'bloqueada' : 'ativa'),
                     'periodo' => $diasRestantes > 0 ? $diasRestantes : 0,
                     'gasto_cliente' => 'R$ ' . number_format($gastoCliente, 2, ',', '.'),
                     'pedidos' => $pedidos,

@@ -742,9 +742,9 @@
                                 <label class="flex flex-col gap-2">
                                     <span class="text-sm text-slate-600 font-semibold">Valor da VPS (R$)</span>
                                     <input type="text" id="edit_valor_mask_{{ $farm->id }}" class="form-input"
-                                        placeholder="0,00" value="{{ number_format((float) $farm->valor, 2, ',', '.') }}">
+                                        placeholder="0,00" value="{{ number_format((float) $farm->valor_raw, 2, ',', '.') }}">
                                     <input type="hidden" name="valor" id="edit_valor_real_{{ $farm->id }}"
-                                        value="{{ $farm->valor }}">
+                                        value="{{ (float) $farm->valor_raw }}">
                                 </label>
 
                                 {{-- Valor de Renovação --}}
@@ -754,7 +754,7 @@
                                         placeholder="0,00"
                                         value="{{ $farm->valor_renovacao ? number_format((float) $farm->valor_renovacao, 2, ',', '.') : '' }}">
                                     <input type="hidden" name="valor_renovacao" id="edit_valor_renovacao_real_{{ $farm->id }}"
-                                        value="{{ $farm->valor_renovacao }}">
+                                        value="{{ $farm->valor_renovacao ? (float) $farm->valor_renovacao : '' }}">
                                     <span class="text-xs text-slate-400">Deixe vazio para usar o valor da VPS</span>
                                 </label>
 
@@ -789,8 +789,8 @@
                                     <select name="status" class="form-input">
                                         <option value="Operacional" {{ $farm->status == 'Operacional' ? 'selected' : '' }}>
                                             Operacional</option>
-                                        <option value="Desabilitada" {{ $farm->status == 'Desabilitada' ? 'selected' : '' }}>
-                                            Desabilitada</option>
+                                        <option value="Inativa" {{ $farm->status == 'Inativa' ? 'selected' : '' }}>
+                                            Inativa</option>
                                         <option value="Excluída" {{ $farm->status == 'Excluída' ? 'selected' : '' }}>Excluída
                                         </option>
                                     </select>
@@ -806,9 +806,8 @@
                                         <ul class="text-xs space-y-1 text-amber-700">
                                             <li><strong>Operacional:</strong> VPS ativa, despesas de renovação são geradas
                                                 automaticamente</li>
-                                            <li><strong>Desabilitada:</strong> VPS inativa, despesas de renovação
-                                                <strong>NÃO</strong> são geradas
-                                            </li>
+                                            <li><strong>Inativa:</strong> VPS inativa, despesas de renovação
+                                                pausadas, proxies não vendidos.</li>
                                             <li><strong>Excluída:</strong> VPS removida do sistema</li>
                                         </ul>
                                     </div>
@@ -2550,7 +2549,7 @@
         const index = [];
 
         @foreach($vpsFarm as $farm)
-            @foreach($farm->proxies as $proxy)
+             @foreach($farm->proxies as $proxy)
                 index.push({
                     id: {{ $proxy->id }},
                     vpsId: {{ $farm->id }},

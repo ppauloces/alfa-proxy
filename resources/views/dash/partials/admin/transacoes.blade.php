@@ -82,7 +82,7 @@
                         <th>Status</th>
                         <th>Período</th>
                         <th>Valor Unit.</th>
-                        <th class="text-center">Ações</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -156,8 +156,8 @@
                                     <span class="text-xs text-slate-400">&mdash;</span>
                                 </template>
                             </td>
-                            <td class="text-center">
-                                <div class="flex items-center justify-center gap-1.5">
+                            <td class="">
+                                <div class="flex gap-1.5">
                                     {{-- Olho: detalhes --}}
                                     <button type="button" @click="openDetail(proxy)"
                                         class="w-8 h-8 rounded-lg bg-slate-50 hover:bg-[#23366f] text-slate-400 hover:text-white transition-all inline-flex items-center justify-center"

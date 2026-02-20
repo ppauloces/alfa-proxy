@@ -1301,7 +1301,7 @@ class AdminController extends Controller
                     ->get();
 
                 $matchedTransaction = $transactions->first(function ($txn) use ($proxy) {
-                    return abs(strtotime($txn->created_at) - strtotime($proxy->updated_at)) < 120;
+                    return abs(strtotime($txn->updated_at) - strtotime($proxy->updated_at)) < 120;
                 });
 
                 $metadata = [];

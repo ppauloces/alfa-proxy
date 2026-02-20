@@ -568,16 +568,16 @@ class LogadoController extends Controller
                         ->where('disponibilidade', false)
                         ->count();
 
-                    // Busca transações pagas por esse user, ordenadas por data decrescente
+                    // Busca transações pagas por esse user, ordenadas por data iterada descrescente (updated_at)
                     $transactions = Transaction::where('user_id', $proxy->user_id)
                         ->where('tipo', 'compra_proxy')
                         ->where('status', 1)
-                        ->orderBy('created_at', 'desc')
+                        ->orderBy('updated_at', 'desc')
                         ->get();
 
-                    // Acha a transação mais próxima por tempo
+                    // Acha a transação mais próxima por tempo (quando foi concluída/paga)
                     $matchedTransaction = $transactions->first(function ($txn) use ($proxy) {
-                        return abs(strtotime($txn->created_at) - strtotime($proxy->updated_at)) < 120; // 2 minutos de tolerância
+                        return abs(strtotime($txn->updated_at) - strtotime($proxy->updated_at)) < 120; // 2 minutos de tolerância
                     });
 
                     $metadata = [];
@@ -1052,6 +1052,11 @@ class LogadoController extends Controller
                             'motivo' => $request->motivo,
                         ]);
 
+                        $metadata = $transacao->metadata;
+                        $metadata['proxy_ids'] = collect($proxiesAlocados)->pluck('id')->toArray();
+                        $transacao->metadata = $metadata;
+                        $transacao->save();
+
                         DB::commit();
 
                         if ($isAjax) {
@@ -1247,6 +1252,11 @@ class LogadoController extends Controller
                 'periodo_dias' => (int) $request->periodo,
                 'motivo' => $request->motivo,
             ]);
+
+            $metadata = $transacao->metadata;
+            $metadata['proxy_ids'] = collect($proxiesAlocados)->pluck('id')->toArray();
+            $transacao->metadata = $metadata;
+            $transacao->save();
 
             DB::commit();
 

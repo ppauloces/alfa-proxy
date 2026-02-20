@@ -107,6 +107,11 @@ class WebhookController extends Controller
                             'motivo' => $metadata['motivo'],
                         ]);
 
+                        // Salvar quais proxies foram alocados nesta transação
+                        $metadata['proxy_ids'] = collect($proxiesAlocados)->pluck('id')->toArray();
+                        $transacao->metadata = $metadata;
+                        $transacao->save();
+
                         DB::commit();
 
                         Log::info('Pagamento AbacatePay processado com sucesso', [
@@ -247,6 +252,11 @@ class WebhookController extends Controller
                             'periodo_dias' => (int) $metadata['periodo'],
                             'motivo' => $metadata['motivo'],
                         ]);
+
+                        // Salvar quais proxies foram alocados nesta transação
+                        $metadata['proxy_ids'] = collect($proxiesAlocados)->pluck('id')->toArray();
+                        $transacao->metadata = $metadata;
+                        $transacao->save();
 
                         DB::commit();
 

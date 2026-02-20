@@ -2549,7 +2549,7 @@
         const index = [];
 
         @foreach($vpsFarm as $farm)
-             @foreach($farm->proxies as $proxy)
+            @foreach($farm->proxies as $proxy)
                 index.push({
                     id: {{ $proxy->id }},
                     vpsId: {{ $farm->id }},
@@ -2616,8 +2616,10 @@
 
         // Filtrar proxies
         const results = proxyIndex.filter(proxy => {
+            const ipPort = `${proxy.ip}:${proxy.porta}`.toLowerCase();
             return proxy.ip.toLowerCase().includes(queryLower) ||
                 proxy.porta.toString().includes(queryLower) ||
+                ipPort.includes(queryLower) ||
                 proxy.usuario.toLowerCase().includes(queryLower) ||
                 proxy.senha.toLowerCase().includes(queryLower);
         });

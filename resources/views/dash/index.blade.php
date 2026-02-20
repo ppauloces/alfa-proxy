@@ -1028,8 +1028,8 @@
         }
 
         /* ===================================
-                       RESPONSIVIDADE MOBILE & TABLET
-                    =================================== */
+                                                                           RESPONSIVIDADE MOBILE & TABLET
+                                                                        =================================== */
 
         /* Mobile - Até 640px */
         @media (max-width: 640px) {
@@ -2040,8 +2040,7 @@
     return;
     }
     if (!amount || amount < 1) { event.preventDefault(); alert('Informe um valor valido (mínimo R$ 1,00).'); return; } //
-        Criar um input hidden com o valor numérico para enviar ao servidor const
-        hiddenInput=document.createElement('input'); hiddenInput.type='hidden' ; hiddenInput.name='valor' ;
+        const hiddenInput=document.createElement('input'); hiddenInput.type='hidden' ; hiddenInput.name='valor' ;
         hiddenInput.value=amount; // Remover o atributo name do input visível para não enviar o valor formatado
         customAmount.removeAttribute('name'); // Adicionar o input hidden ao formulário
         rechargeForm.appendChild(hiddenInput); }); })(); (()=> {
@@ -2470,8 +2469,7 @@
             toggle.checked = false;
 
             const toast = document.createElement('div');
-            toast.className = 'fixed top-6 right-6 z-[9999] bg-white border border-slate-200 rounded-2xl shadow-2xl p-6
-            max-w-sm animate-slide-in';
+
             toast.innerHTML = `
             <div class="flex items-start gap-4">
                 <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
@@ -2587,9 +2585,9 @@
             let novaExpiracao;
 
             if (expiracaoAtual < hoje) { // Proxy expirado: adiciona dias a partir de hoje novaExpiracao=new Date(hoje);
-                novaExpiracao.setDate(novaExpiracao.getDate() + dias); } else { // Proxy ativo: adiciona dias à expiração
-                atual novaExpiracao=new Date(expiracaoAtual); novaExpiracao.setDate(novaExpiracao.getDate() + dias); } //
-                Atualizar resumo document.getElementById('renovacao-resumo-periodo').textContent=`${dias} dias`;
+                novaExpiracao.setDate(novaExpiracao.getDate() + dias); } else { novaExpiracao=new Date(expiracaoAtual);
+                novaExpiracao.setDate(novaExpiracao.getDate() + dias); } // Atualizar resumo
+                document.getElementById('renovacao-resumo-periodo').textContent=`${dias} dias`;
                 document.getElementById('renovacao-resumo-valor').textContent=`R$ ${preco.toFixed(2).replace('.', ',' )}`;
                 document.getElementById('renovacao-resumo-total').textContent=`R$ ${preco.toFixed(2).replace('.', ',' )}`;
                 document.getElementById('renovacao-expiracao-nova').textContent=novaExpiracao.toLocaleDateString('pt-BR', {
@@ -2698,8 +2696,8 @@
                 const checkedCount = panel.querySelectorAll('.proxy-row-check:checked').length;
 
                 selectAll.checked = rowChecks.length > 0 && checkedCount === rowChecks.length;
-                selectAll.indeterminate = checkedCount > 0 && checkedCount < rowChecks.length; }); // Highlight de linhas
-                    selecionadas document.querySelectorAll('.proxy-row').forEach(row=> {
+                selectAll.indeterminate = checkedCount > 0 && checkedCount < rowChecks.length; });
+                    document.querySelectorAll('.proxy-row').forEach(row=> {
                     const check = row.querySelector('.proxy-row-check');
                     row.classList.toggle('proxy-row-selected', check?.checked ?? false);
                     });
@@ -2754,6 +2752,4 @@
                     document.querySelectorAll('.proxy-select-all').forEach(c => c.checked = false);
                     updateBulkBar();
                     });
-                    })();
-
-@endsection
+})();@endsection

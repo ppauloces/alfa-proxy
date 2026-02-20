@@ -40,6 +40,7 @@ class LogadoController extends Controller
         $generatedProxies = [];
         // Stats internos (mantém compatibilidade caso alguma view/compact espere essa variável)
         $usoInternoStats = [];
+        $substituidasStats = [];
         // Usuários + stats (admin - datatable)
         $clientLeads = collect();
         $statsCompraProxy = collect();

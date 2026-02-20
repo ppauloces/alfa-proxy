@@ -10,8 +10,15 @@
         }
 
         @keyframes slide-in-right {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         .animate-slide-in {
@@ -1021,11 +1028,12 @@
         }
 
         /* ===================================
-           RESPONSIVIDADE MOBILE & TABLET
-        =================================== */
+                       RESPONSIVIDADE MOBILE & TABLET
+                    =================================== */
 
         /* Mobile - Até 640px */
         @media (max-width: 640px) {
+
             /* Typography mobile */
             h1 {
                 font-size: 1.75rem !important;
@@ -1190,6 +1198,7 @@
 
         /* Ajustes para telas pequenas */
         @media (max-width: 768px) {
+
             /* Esconder colunas menos importantes em mobile */
             .proxy-table th:nth-child(5),
             .proxy-table td:nth-child(5) {
@@ -1222,6 +1231,7 @@
 
         /* Touch devices */
         @media (hover: none) and (pointer: coarse) {
+
             .tab-btn,
             .action-btn,
             .filter-tab,
@@ -1287,15 +1297,18 @@
                             <span class="w-2 h-2 rounded-full bg-[#448ccb] animate-pulse"></span>
                             Monitoramento em Tempo Real
                         </div>
-                        <h1 class="text-4xl font-black text-slate-900 tracking-tight">Gerencie seus <span class="text-[#23366f]">IPs</span></h1>
-                        <p class="text-slate-500 font-medium max-w-xl">Veja o que falta para cada contratação expirar, teste as rotas e controle a renovação automática.</p>
+                        <h1 class="text-4xl font-black text-slate-900 tracking-tight">Gerencie seus <span
+                                class="text-[#23366f]">IPs</span></h1>
+                        <p class="text-slate-500 font-medium max-w-xl">Veja o que falta para cada contratação expirar, teste
+                            as rotas e controle a renovação automática.</p>
                     </div>
 
                     <div class="flex items-center gap-3">
                         <button type="button" data-section-link="nova-compra"
                             class="group relative px-6 py-3 rounded-2xl bg-[#23366f] text-white text-sm font-bold overflow-hidden transition-all hover:pr-10">
                             <span class="relative z-10">Comprar novos proxies</span>
-                            <i class="fas fa-arrow-right absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all"></i>
+                            <i
+                                class="fas fa-arrow-right absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all"></i>
                         </button>
                     </div>
                 </div>
@@ -1307,14 +1320,17 @@
 
                 {{-- Banner de Promoção --}}
                 @if($emPromocao)
-                    <div class="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-[2rem] p-6 shadow-lg shadow-orange-500/20 border border-white/20">
+                    <div
+                        class="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-[2rem] p-6 shadow-lg shadow-orange-500/20 border border-white/20">
                         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                             <div class="flex items-center gap-3 flex-1">
                                 <i class="fas fa-fire text-white text-3xl md:text-4xl animate-pulse"></i>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 bg-white/90 backdrop-blur-sm rounded-full">
-                                            <span class="text-xs font-black text-red-600 uppercase tracking-wider">Promoção Ativa</span>
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-0.5 bg-white/90 backdrop-blur-sm rounded-full">
+                                            <span class="text-xs font-black text-red-600 uppercase tracking-wider">Promoção
+                                                Ativa</span>
                                         </span>
                                     </div>
                                     <h3 class="text-xl md:text-2xl font-black text-white drop-shadow-lg">
@@ -1343,6 +1359,29 @@
                     </div>
                 @endif
 
+                {{-- Aviso de Instabilidade --}}
+                <div
+                    class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-2 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+                        <div
+                            class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mx-auto md:mx-0">
+                            <i class="fab fa-facebook text-amber-600 text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-black text-amber-900 mb-1">Aviso de instabilidade</h3>
+                            <p class="text-sm font-medium text-amber-700">Devido a algumas instabilidades na
+                                <strong>Meta/Facebook</strong> algumas proxies apresentaram erros de carregamento. Retire
+                                sua substituição agora mesmo com nosso atendimento.
+                            </p>
+                        </div>
+                    </div>
+                    <a href="https://wa.me/557798374278" target="_blank"
+                        class="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 hover:scale-105 transition-all text-sm shadow-md">
+                        <i class="fab fa-whatsapp text-lg"></i>
+                        <span>Contatar via WhatsApp</span>
+                    </a>
+                </div>
+
                 {{-- Status Geral --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
@@ -1354,7 +1393,8 @@
                         <p class="text-3xl font-black text-slate-900">{{ count($proxyGroups['SOCKS5'] ?? []) }}</p>
                     </div>
                     <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Próximo Vencimento</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Próximo Vencimento
+                        </p>
                         @php
                             $allProxies = collect($proxyGroups)->flatten(1);
                             $nextExp = $allProxies
@@ -1370,12 +1410,14 @@
                 </div>
 
                 @if(session('proxies_success'))
-                    <div class="alert alert-success bg-green-50 text-green-700 border-green-100 rounded-2xl p-4 font-semibold flex items-center gap-3">
+                    <div
+                        class="alert alert-success bg-green-50 text-green-700 border-green-100 rounded-2xl p-4 font-semibold flex items-center gap-3">
                         <i class="fas fa-check-circle"></i> {{ session('proxies_success') }}
                     </div>
                 @endif
                 @if($errors->getBag('default')->has('error'))
-                    <div class="alert alert-error bg-red-50 text-red-700 border-red-100 rounded-2xl p-4 font-semibold flex items-center gap-3">
+                    <div
+                        class="alert alert-error bg-red-50 text-red-700 border-red-100 rounded-2xl p-4 font-semibold flex items-center gap-3">
                         <i class="fas fa-exclamation-circle"></i> {{ $errors->getBag('default')->first('error') }}
                     </div>
                 @endif
@@ -1383,9 +1425,7 @@
                 {{-- Filtros e Tabs --}}
                 <div class="tab-bar">
                     @foreach ($proxyGroups as $group => $proxies)
-                        <button type="button"
-                            class="tab-btn {{ $loop->first ? 'active' : '' }}"
-                            data-tab="{{ $group }}">
+                        <button type="button" class="tab-btn {{ $loop->first ? 'active' : '' }}" data-tab="{{ $group }}">
                             {{ \Illuminate\Support\Str::headline($group) }}
                             <span class="tab-count">{{ count($proxies) }}</span>
                         </button>
@@ -1400,117 +1440,148 @@
                                     <thead>
                                         <tr class="bg-slate-50/50 border-b border-slate-100">
                                             <th class="px-4 py-5 text-center" style="width: 40px;">
-                                                <input type="checkbox" class="proxy-checkbox proxy-select-all" data-group="{{ $group }}" title="Selecionar todos">
+                                                <input type="checkbox" class="proxy-checkbox proxy-select-all"
+                                                    data-group="{{ $group }}" title="Selecionar todos">
                                             </th>
-                                            <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-left">Endereço / Ações</th>
-                                            <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">País</th>
-                                            <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Contratação</th>
-                                            <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Expiração</th>
-                                            <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Status</th>
-                                            <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Renovar via Pix</th>
-                                            <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Renovação Automática</th>
+                                            <th
+                                                class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-left">
+                                                Endereço / Ações</th>
+                                            <th
+                                                class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
+                                                País</th>
+                                            <th
+                                                class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
+                                                Contratação</th>
+                                            <th
+                                                class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
+                                                Expiração</th>
+                                            <th
+                                                class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
+                                                Status</th>
+                                            <th
+                                                class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
+                                                Renovar via Pix</th>
+                                            <th
+                                                class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
+                                                Renovação Automática</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-50">
                                         @foreach ($proxies as $proxy)
-                                            <tr class="hover:bg-slate-50/50 transition-colors proxy-row" data-group="{{ $group }}" data-proxy-string="{{ $proxy['ip'] }}:{{ $proxy['port'] }}:{{ $proxy['user'] }}:{{ $proxy['password'] }}">
-                                                <td class="px-4 py-6 text-center">
-                                                    <input type="checkbox" class="proxy-checkbox proxy-row-check" data-group="{{ $group }}">
-                                                </td>
-                                                <td class="px-8 py-6">
-                                                    <div class="flex flex-col gap-3">
-                                                        <div class="address-chip group relative bg-slate-100 hover:bg-[#23366f] hover:text-white transition-all cursor-pointer">
-                                                            {{ $proxy['ip'] }}:{{ $proxy['port'] }} | {{ $proxy['user'] }} | {{ $proxy['password'] }}
-                                                            <div class="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-[#448ccb] text-white rounded-full scale-0 group-hover:scale-100 transition-transform">
-                                                                <i class="fas fa-lock text-[8px]"></i>
-                                                            </div>
-                                                        </div>
-                                                        <div class="flex items-center gap-2">
-                                                            <button class="action-btn px-4 py-2 rounded-xl border border-slate-200 text-[11px] font-bold hover:bg-[#23366f] hover:!text-white hover:border-[#23366f] transition-all"
-                                                                onclick="testarProxy('{{ $proxy['ip'] }}', '{{ $proxy['port'] }}', '{{ $proxy['user'] }}', '{{ $proxy['password'] }}', this)">
-                                                                <i class="fas fa-bolt mr-1.5"></i> Testar proxy
-                                                            </button>
-                                                            <button class="action-btn px-4 py-2 rounded-xl border border-slate-200 text-[11px] font-bold hover:bg-[#23366f] hover:!text-white hover:border-[#23366f] transition-all"
-                                                                onclick="copyToClipboard('socks5://{{ $proxy['ip'] }}:{{ $proxy['port'] }}:{{ $proxy['user'] }}:{{ $proxy['password'] }}')">
-                                                                <i class="fas fa-copy mr-1.5"></i> Copiar
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-6">
-                                                    <div class="flex flex-col items-center gap-2">
-                                                        @php $flagUrl = getCountryFlag($proxy['country_code'] ?? null); @endphp
-                                                        @if($flagUrl)
-                                                            <img src="{{ $flagUrl }}" class="w-8 h-6 rounded-md shadow-sm object-cover border border-slate-100">
-                                                        @else
-                                                            <span class="text-xl">🌐</span>
-                                                        @endif
-                                                        <span class="text-[10px] font-bold text-slate-500 uppercase">{{ $proxy['country'] ?? 'BR' }}</span>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-6 text-center">
-                                                    <p class="text-sm font-bold text-slate-700">{{ \Carbon\Carbon::parse($proxy['purchased_at'])->format('d/m/Y') }}</p>
-                                                    <p class="text-[10px] font-medium text-slate-400">{{ \Carbon\Carbon::parse($proxy['purchased_at'])->format('H:i') }}</p>
-                                                </td>
-                                                <td class="px-6 py-6 text-center">
-                                                    <p class="text-sm font-bold text-slate-700">{{ \Carbon\Carbon::parse($proxy['expires_at'])->format('d/m/Y') }}</p>
-                                                    @php
-                                                        $expiresAt = \Carbon\Carbon::parse($proxy['expires_at']);
-                                                        $now = now();
+                                                            <tr class="hover:bg-slate-50/50 transition-colors proxy-row" data-group="{{ $group }}"
+                                                                data-proxy-string="{{ $proxy['ip'] }}:{{ $proxy['port'] }}:{{ $proxy['user'] }}:{{ $proxy['password'] }}">
+                                                                <td class="px-4 py-6 text-center">
+                                                                    <input type="checkbox" class="proxy-checkbox proxy-row-check"
+                                                                        data-group="{{ $group }}">
+                                                                </td>
+                                                                <td class="px-8 py-6">
+                                                                    <div class="flex flex-col gap-3">
+                                                                        <div
+                                                                            class="address-chip group relative bg-slate-100 hover:bg-[#23366f] hover:text-white transition-all cursor-pointer">
+                                                                            {{ $proxy['ip'] }}:{{ $proxy['port'] }} | {{ $proxy['user'] }} |
+                                                                            {{ $proxy['password'] }}
+                                                                            <div
+                                                                                class="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-[#448ccb] text-white rounded-full scale-0 group-hover:scale-100 transition-transform">
+                                                                                <i class="fas fa-lock text-[8px]"></i>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="flex items-center gap-2">
+                                                                            <button
+                                                                                class="action-btn px-4 py-2 rounded-xl border border-slate-200 text-[11px] font-bold hover:bg-[#23366f] hover:!text-white hover:border-[#23366f] transition-all"
+                                                                                onclick="testarProxy('{{ $proxy['ip'] }}', '{{ $proxy['port'] }}', '{{ $proxy['user'] }}', '{{ $proxy['password'] }}', this)">
+                                                                                <i class="fas fa-bolt mr-1.5"></i> Testar proxy
+                                                                            </button>
+                                                                            <button
+                                                                                class="action-btn px-4 py-2 rounded-xl border border-slate-200 text-[11px] font-bold hover:bg-[#23366f] hover:!text-white hover:border-[#23366f] transition-all"
+                                                                                onclick="copyToClipboard('socks5://{{ $proxy['ip'] }}:{{ $proxy['port'] }}:{{ $proxy['user'] }}:{{ $proxy['password'] }}')">
+                                                                                <i class="fas fa-copy mr-1.5"></i> Copiar
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="px-6 py-6">
+                                                                    <div class="flex flex-col items-center gap-2">
+                                                                        @php $flagUrl = getCountryFlag($proxy['country_code'] ?? null); @endphp
+                                                                        @if($flagUrl)
+                                                                            <img src="{{ $flagUrl }}"
+                                                                                class="w-8 h-6 rounded-md shadow-sm object-cover border border-slate-100">
+                                                                        @else
+                                                                            <span class="text-xl">🌐</span>
+                                                                        @endif
+                                                                        <span
+                                                                            class="text-[10px] font-bold text-slate-500 uppercase">{{ $proxy['country'] ?? 'BR' }}</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="px-6 py-6 text-center">
+                                                                    <p class="text-sm font-bold text-slate-700">
+                                                                        {{ \Carbon\Carbon::parse($proxy['purchased_at'])->format('d/m/Y') }}
+                                                                    </p>
+                                                                    <p class="text-[10px] font-medium text-slate-400">
+                                                                        {{ \Carbon\Carbon::parse($proxy['purchased_at'])->format('H:i') }}
+                                                                    </p>
+                                                                </td>
+                                                                <td class="px-6 py-6 text-center">
+                                                                    <p class="text-sm font-bold text-slate-700">
+                                                                        {{ \Carbon\Carbon::parse($proxy['expires_at'])->format('d/m/Y') }}
+                                                                    </p>
+                                                                    @php
+                                                                        $expiresAt = \Carbon\Carbon::parse($proxy['expires_at']);
+                                                                        $now = now();
 
-                                                        if ($expiresAt->isPast()) {
-                                                            $days = 0;
-                                                            $colorClass = 'text-red-500 bg-red-50';
-                                                            $label = 'Expirado';
-                                                        } else {
-                                                            $days = (int) $now->diffInDays($expiresAt);
-                                                            $colorClass = $days < 3 ? 'text-red-500 bg-red-50' : ($days < 7 ? 'text-amber-500 bg-amber-50' : 'text-slate-500 bg-slate-50');
-                                                            $label = $days . ' dias restantes';
-                                                        }
-                                                    @endphp
-                                                    <span class="inline-block mt-1 px-3 py-1 rounded-lg text-[10px] font-bold {{ $colorClass }}">
-                                                        {{ $label }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-6 text-center">
-                                                    <span class="px-4 py-1.5 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-widest border border-green-100">
-                                                        Ativo
-                                                    </span>
-                                                </td>
-                                                {{-- Coluna: Renovar via Pix --}}
-                                                <td class="px-6 py-6 text-center">
-                                                    <div class="flex flex-col items-center gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onclick="abrirModalRenovacao({{ json_encode([
-                                                                'id' => $proxy['id'],
-                                                                'endereco' => $proxy['ip'] . ':' . $proxy['port'],
-                                                                'pais' => $proxy['country'] ?? 'BR',
-                                                                'expiracao' => $proxy['expires_at'],
-                                                                'bloqueado' => $proxy['blocked'] ?? false,
-                                                                'expirado' => \Carbon\Carbon::parse($proxy['expires_at'])->isPast(),
-                                                            ]) }})"
-                                                            class="action-btn px-4 py-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-500 hover:!text-white hover:border-emerald-500 font-bold text-[11px] transition-all shadow-sm hover:shadow-emerald-500/30"
-                                                        >
-                                                            <i class="fas fa-qrcode mr-1.5"></i> Renovar via Pix
-                                                        </button>
-                                                        <p class="text-[8px] text-slate-400 text-center">Pagamento instantâneo</p>
-                                                    </div>
-                                                </td>
-                                                {{-- Coluna: Renovação Automática com Cartão --}}
-                                                <td class="px-6 py-6 text-center">
-                                                    <div class="flex flex-col items-center gap-2">
-                                                        <div class="flex items-center gap-2 mb-1">
-                                                            <i class="fas fa-credit-card text-sm text-slate-400"></i>
-                                                            <label class="switch scale-75">
-                                                                <input type="checkbox" class="auto-renew-toggle" data-proxy-id="{{ $proxy['id'] }}" {{ $proxy['auto_renew'] ? 'checked' : '' }}>
-                                                                <span class="slider"></span>
-                                                            </label>
-                                                        </div>
-                                                        <p class="text-[8px] text-slate-400 text-center leading-tight">Cobrança automática<br>via cartão de crédito</p>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                                                        if ($expiresAt->isPast()) {
+                                                                            $days = 0;
+                                                                            $colorClass = 'text-red-500 bg-red-50';
+                                                                            $label = 'Expirado';
+                                                                        } else {
+                                                                            $days = (int) $now->diffInDays($expiresAt);
+                                                                            $colorClass = $days < 3 ? 'text-red-500 bg-red-50' : ($days < 7 ? 'text-amber-500 bg-amber-50' : 'text-slate-500 bg-slate-50');
+                                                                            $label = $days . ' dias restantes';
+                                                                        }
+                                                                    @endphp
+                                                                    <span
+                                                                        class="inline-block mt-1 px-3 py-1 rounded-lg text-[10px] font-bold {{ $colorClass }}">
+                                                                        {{ $label }}
+                                                                    </span>
+                                                                </td>
+                                                                <td class="px-6 py-6 text-center">
+                                                                    <span
+                                                                        class="px-4 py-1.5 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-widest border border-green-100">
+                                                                        Ativo
+                                                                    </span>
+                                                                </td>
+                                                                {{-- Coluna: Renovar via Pix --}}
+                                                                <td class="px-6 py-6 text-center">
+                                                                    <div class="flex flex-col items-center gap-2">
+                                                                        <button type="button" onclick="abrirModalRenovacao({{ json_encode([
+                                                'id' => $proxy['id'],
+                                                'endereco' => $proxy['ip'] . ':' . $proxy['port'],
+                                                'pais' => $proxy['country'] ?? 'BR',
+                                                'expiracao' => $proxy['expires_at'],
+                                                'bloqueado' => $proxy['blocked'] ?? false,
+                                                'expirado' => \Carbon\Carbon::parse($proxy['expires_at'])->isPast(),
+                                            ]) }})"
+                                                                            class="action-btn px-4 py-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-500 hover:!text-white hover:border-emerald-500 font-bold text-[11px] transition-all shadow-sm hover:shadow-emerald-500/30">
+                                                                            <i class="fas fa-qrcode mr-1.5"></i> Renovar via Pix
+                                                                        </button>
+                                                                        <p class="text-[8px] text-slate-400 text-center">Pagamento instantâneo</p>
+                                                                    </div>
+                                                                </td>
+                                                                {{-- Coluna: Renovação Automática com Cartão --}}
+                                                                <td class="px-6 py-6 text-center">
+                                                                    <div class="flex flex-col items-center gap-2">
+                                                                        <div class="flex items-center gap-2 mb-1">
+                                                                            <i class="fas fa-credit-card text-sm text-slate-400"></i>
+                                                                            <label class="switch scale-75">
+                                                                                <input type="checkbox" class="auto-renew-toggle"
+                                                                                    data-proxy-id="{{ $proxy['id'] }}" {{ $proxy['auto_renew'] ? 'checked' : '' }}>
+                                                                                <span class="slider"></span>
+                                                                            </label>
+                                                                        </div>
+                                                                        <p class="text-[8px] text-slate-400 text-center leading-tight">Cobrança
+                                                                            automática<br>via cartão de crédito</p>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -1521,7 +1592,8 @@
                                     <i class="fas fa-server text-3xl text-slate-300"></i>
                                 </div>
                                 <h3 class="text-xl font-black text-slate-900 mb-2">Nenhum proxy {{ $group }} ativo</h3>
-                                <p class="text-slate-500 mb-8 max-w-sm mx-auto">Você ainda não possui proxies ativos neste grupo. Comece agora mesmo!</p>
+                                <p class="text-slate-500 mb-8 max-w-sm mx-auto">Você ainda não possui proxies ativos neste grupo.
+                                    Comece agora mesmo!</p>
                                 <button type="button" data-section-link="nova-compra"
                                     class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-[#23366f] text-white font-bold hover:scale-105 transition-all">
                                     Comprar novos proxies
@@ -1547,10 +1619,18 @@
                             <table class="w-full text-sm">
                                 <thead>
                                     <tr class="border-b border-slate-200">
-                                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Proxy</th>
-                                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">País</th>
-                                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Expiração</th>
-                                        <th class="px-6 py-4 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                                        <th
+                                            class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                            Proxy</th>
+                                        <th
+                                            class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                            País</th>
+                                        <th
+                                            class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                            Expiração</th>
+                                        <th
+                                            class="px-6 py-4 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                            Status</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
@@ -1561,7 +1641,8 @@
                                             </td>
                                             <td class="px-6 py-4">
                                                 @if($ps['country_code'])
-                                                    <img src="https://flagcdn.com/20x15/{{ strtolower($ps['country_code']) }}.png" class="inline mr-1" alt="">
+                                                    <img src="https://flagcdn.com/20x15/{{ strtolower($ps['country_code']) }}.png"
+                                                        class="inline mr-1" alt="">
                                                 @endif
                                                 <span class="text-slate-600">{{ $ps['country'] }}</span>
                                             </td>
@@ -1569,7 +1650,8 @@
                                                 {{ $ps['expires_at'] ? \Carbon\Carbon::parse($ps['expires_at'])->format('d/m/Y') : '—' }}
                                             </td>
                                             <td class="px-6 py-4 text-center">
-                                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-200 text-slate-600">
+                                                <span
+                                                    class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-200 text-slate-600">
                                                     <i class="fas fa-exchange-alt"></i> Substituído
                                                 </span>
                                             </td>
@@ -1710,63 +1792,63 @@
     if (!tabBtns.length) return;
 
     tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const target = btn.dataset.tab;
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabPanels.forEach(panel => panel.classList.toggle('hidden', panel.dataset.tabPanel !== target));
-            btn.classList.add('active');
-        });
+    btn.addEventListener('click', () => {
+    const target = btn.dataset.tab;
+    tabBtns.forEach(b => b.classList.remove('active'));
+    tabPanels.forEach(panel => panel.classList.toggle('hidden', panel.dataset.tabPanel !== target));
+    btn.classList.add('active');
+    });
     });
     })();
 
     window.copyToClipboard = function (text, successMessage) {
     const toast = (msg, type = 'success') => {
-        if (typeof window.showToast === 'function') {
-            window.showToast(msg, type);
-        } else {
-            alert(msg);
-        }
+    if (typeof window.showToast === 'function') {
+    window.showToast(msg, type);
+    } else {
+    alert(msg);
+    }
     };
 
     const copyModern = async () => {
-        if (navigator.clipboard?.writeText && window.isSecureContext) {
-            await navigator.clipboard.writeText(text);
-            return true;
-        }
-        return false;
+    if (navigator.clipboard?.writeText && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return true;
+    }
+    return false;
     };
 
     const copyFallback = () => {
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
 
-        try {
-            const ok = document.execCommand('copy');
-            textArea.remove();
-            return ok;
-        } catch (e) {
-            textArea.remove();
-            return false;
-        }
+    try {
+    const ok = document.execCommand('copy');
+    textArea.remove();
+    return ok;
+    } catch (e) {
+    textArea.remove();
+    return false;
+    }
     };
 
     (async () => {
-        const okModern = await copyModern();
-        const ok = okModern || copyFallback();
+    const okModern = await copyModern();
+    const ok = okModern || copyFallback();
 
-        if (ok) {
-            toast(successMessage ?? `Proxy copiado: ${text}`, 'success');
-        } else {
-            toast('Não foi possível copiar. Use HTTPS/localhost ou copie manualmente.', 'error');
-        }
+    if (ok) {
+    toast(successMessage ?? `Proxy copiado: ${text}`, 'success');
+    } else {
+    toast('Não foi possível copiar. Use HTTPS/localhost ou copie manualmente.', 'error');
+    }
     })();
-};
+    };
 
 
     (() => {
@@ -1889,30 +1971,30 @@
 
     // Máscara de dinheiro para o input customAmount
     if (customAmount) {
-        customAmount.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value === '') {
-                e.target.value = '';
-                return;
-            }
+    customAmount.addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value === '') {
+    e.target.value = '';
+    return;
+    }
 
-            // Converter para centavos e formatar
-            value = (parseInt(value) / 100).toFixed(2);
-            value = value.replace('.', ',');
-            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    // Converter para centavos e formatar
+    value = (parseInt(value) / 100).toFixed(2);
+    value = value.replace('.', ',');
+    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-            e.target.value = value;
-        });
+    e.target.value = value;
+    });
 
-        // Ao clicar nos botões de valor, aplicar a máscara também
-        customAmount.addEventListener('blur', function(e) {
-            if (e.target.value && !e.target.value.includes(',')) {
-                let value = parseFloat(e.target.value).toFixed(2);
-                value = value.replace('.', ',');
-                value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                e.target.value = value;
-            }
-        });
+    // Ao clicar nos botões de valor, aplicar a máscara também
+    customAmount.addEventListener('blur', function(e) {
+    if (e.target.value && !e.target.value.includes(',')) {
+    let value = parseFloat(e.target.value).toFixed(2);
+    value = value.replace('.', ',');
+    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    e.target.value = value;
+    }
+    });
     }
 
     switchTabs.forEach(tab => {
@@ -1957,24 +2039,12 @@
     alert('Selecione um metodo de pagamento.');
     return;
     }
-    if (!amount || amount < 1) {
-        event.preventDefault();
-        alert('Informe um valor valido (mínimo R$ 1,00).');
-        return;
-    }
-
-    // Criar um input hidden com o valor numérico para enviar ao servidor
-    const hiddenInput = document.createElement('input');
-    hiddenInput.type = 'hidden';
-    hiddenInput.name = 'valor';
-    hiddenInput.value = amount;
-
-    // Remover o atributo name do input visível para não enviar o valor formatado
-    customAmount.removeAttribute('name');
-
-    // Adicionar o input hidden ao formulário
-    rechargeForm.appendChild(hiddenInput);
-    }); })(); (()=> {
+    if (!amount || amount < 1) { event.preventDefault(); alert('Informe um valor valido (mínimo R$ 1,00).'); return; } //
+        Criar um input hidden com o valor numérico para enviar ao servidor const
+        hiddenInput=document.createElement('input'); hiddenInput.type='hidden' ; hiddenInput.name='valor' ;
+        hiddenInput.value=amount; // Remover o atributo name do input visível para não enviar o valor formatado
+        customAmount.removeAttribute('name'); // Adicionar o input hidden ao formulário
+        rechargeForm.appendChild(hiddenInput); }); })(); (()=> {
         document.querySelectorAll('.faq-item').forEach(item => {
         item.addEventListener('click', () => {
         item.classList.toggle('open');
@@ -2043,163 +2113,156 @@
         });
         })();
 
-        
-            const renderPixModal = (pixData) => {
-                if (!pixData) {
-                    return;
-                }
 
-                const existing = document.getElementById('pixModal');
-                if (existing) {
-                    existing.remove();
-                }
+        const renderPixModal = (pixData) => {
+        if (!pixData) {
+        return;
+        }
 
-                const modalHTML = `
-                <div id="pixModal" class="admin-modal-overlay active">
-                    <div class="admin-modal" style="max-width: 500px;">
-                        <div class="flex justify-between items-start mb-6">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#23366f] flex items-center justify-center text-xl">
-                                <i class="fa-brands fa-pix"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-xl font-black text-slate-900 tracking-tight">Pagamento PIX</h3>
-                                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Aguardando confirmacao</p>
-                                </div>
-                            </div>
-                            <button onclick="fecharModalPix()" class="text-slate-400 hover:text-slate-900 transition-all">
-                                <i class="fas fa-times"></i>
-                            </button>
+        const existing = document.getElementById('pixModal');
+        if (existing) {
+        existing.remove();
+        }
+
+        const modalHTML = `
+        <div id="pixModal" class="admin-modal-overlay active">
+            <div class="admin-modal" style="max-width: 500px;">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-blue-50 text-[#23366f] flex items-center justify-center text-xl">
+                            <i class="fa-brands fa-pix"></i>
                         </div>
-
-                        <div class="bg-slate-50 rounded-2xl p-6 mb-6">
-                            <div class="text-center mb-4">
-                                <p class="text-sm text-slate-600 mb-2">Valor a pagar</p>
-                                <p class="text-3xl font-bold text-slate-900">R$ ${pixData.valor.toFixed(2).replace('.', ',')}</p>
-                            </div>
-
-                            <!-- QR Code -->
-                            <div class="bg-white p-4 rounded-xl mb-4 flex items-center justify-center" style="min-height: 200px;">
-                                ${pixData.qr_code_base64
-                                ? `<img src="${pixData.qr_code_base64}" alt="QR Code PIX" class="max-w-full h-auto"
-                                    style="max-height: 250px;">`
-                                : `<div class="text-center">
-                                    <svg class="w-32 h-32 mx-auto mb-2 text-slate-300" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
-                                    </svg>
-                                    <p class="text-xs text-slate-500">QR Code PIX</p>
-                                </div>`
-                                }
-                            </div>
-
-                            <!-- Temporizador -->
-                            <div class="text-center text-sm font-black text-amber-600 uppercase tracking-widest mb-4">
-                                <i class="fas fa-clock mr-1"></i> Expira em: <span id="pixTimer"></span>
-                            </div>
-
-                            <!-- Codigo Copia e Cola -->
-                            <div class="bg-white rounded-xl p-4 mb-4">
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PIX Copia e Cola</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="pixCode" value="${pixData.copia_e_cola}" readonly
-                                        class="flex-1 px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-xs font-mono font-bold text-slate-600 truncate px-2">
-                                    <button onclick="copiarPixCode()"
-                                        class="px-4 py-2 bg-[#23366f] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all flex items-center gap-2 shadow-lg shadow-blue-900/20">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <button onclick="fecharModalPix()"
-                                class="w-full py-4 bg-slate-200 text-slate-700 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-300 transition-all">
-                                Fechar Janela
-                            </button>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-900 tracking-tight">Pagamento PIX</h3>
+                            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Aguardando confirmacao</p>
                         </div>
-
-                        <p class="text-[9px] font-bold text-center text-slate-300 uppercase tracking-widest">
-                            ID da Transacao: ${pixData.transaction_code}
-                        </p>
                     </div>
+                    <button onclick="fecharModalPix()" class="text-slate-400 hover:text-slate-900 transition-all">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                `;
 
-                document.body.insertAdjacentHTML('beforeend', modalHTML);
+                <div class="bg-slate-50 rounded-2xl p-6 mb-6">
+                    <div class="text-center mb-4">
+                        <p class="text-sm text-slate-600 mb-2">Valor a pagar</p>
+                        <p class="text-3xl font-bold text-slate-900">R$ ${pixData.valor.toFixed(2).replace('.', ',')}</p>
+                    </div>
 
-                window.copiarPixCode = () => {
-                    const input = document.getElementById('pixCode');
-                    input.select();
-                    document.execCommand('copy');
-                    alert('Codigo PIX copiado!');
-                };
-
-                window.fecharModalPix = () => {
-                    document.getElementById('pixModal')?.remove();
-                };
-
-                const expiresAt = pixData.expira_timestamp * 1000;
-                const updateTimer = () => {
-                    const now = Date.now();
-                    const diff = expiresAt - now;
-
-                    if (diff <= 0) {
-                        const timerEl = document.getElementById('pixTimer');
-                        if (timerEl) timerEl.textContent = 'Expirado';
-                        return;
-                    }
-                    const minutes = Math.floor(diff / 60000);
-                    const seconds = Math.floor((diff % 60000) / 1000);
-                    const timerEl = document.getElementById('pixTimer');
-                    if (timerEl) timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                };
-                updateTimer();
-                const timerInterval = setInterval(updateTimer, 1000);
-
-                const checkPaymentStatus = async () => {
-                    try {
-                        const response = await fetch(`/api/transacao/${pixData.transaction_id}`);
-                        const data = await response.json();
-
-                        if (data.status === 1) {
-                            clearInterval(timerInterval);
-                            clearInterval(pollingInterval);
-
-                            const modalContent = document.querySelector('#pixModal > div');
-                            modalContent.innerHTML = `
-                            <div class="text-center py-8">
-                                <div
-                                    class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </div>
-                                <h2 class="text-2xl font-bold text-slate-900 mb-2">Pagamento Confirmado!</h2>
-                                <p class="text-slate-600 mb-6">Seus proxies foram alocados com sucesso</p>
-                                <div class="flex items-center justify-center gap-2 mb-4">
-                                    <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                                    <p class="text-sm text-slate-600">Redirecionando...</p>
-                                </div>
-                            </div>
-                            `;
-
-                            setTimeout(() => {
-                                window.location.href = '/dash?section=proxies';
-                            }, 2000);
+                    <!-- QR Code -->
+                    <div class="bg-white p-4 rounded-xl mb-4 flex items-center justify-center" style="min-height: 200px;">
+                        ${pixData.qr_code_base64
+                        ? `<img src="${pixData.qr_code_base64}" alt="QR Code PIX" class="max-w-full h-auto"
+                            style="max-height: 250px;">`
+                        : `<div class="text-center">
+                            <svg class="w-32 h-32 mx-auto mb-2 text-slate-300" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
+                            </svg>
+                            <p class="text-xs text-slate-500">QR Code PIX</p>
+                        </div>`
                         }
-                    } catch (error) {
-                        console.error('Erro ao verificar status do pagamento:', error);
-                    }
-                };
+                    </div>
 
-                const pollingInterval = setInterval(checkPaymentStatus, 3000);
-                checkPaymentStatus();
+                    <!-- Temporizador -->
+                    <div class="text-center text-sm font-black text-amber-600 uppercase tracking-widest mb-4">
+                        <i class="fas fa-clock mr-1"></i> Expira em: <span id="pixTimer"></span>
+                    </div>
+
+                    <!-- Codigo Copia e Cola -->
+                    <div class="bg-white rounded-xl p-4 mb-4">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PIX Copia
+                            e Cola</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="pixCode" value="${pixData.copia_e_cola}" readonly
+                                class="flex-1 px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-xs font-mono font-bold text-slate-600 truncate px-2">
+                            <button onclick="copiarPixCode()"
+                                class="px-4 py-2 bg-[#23366f] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all flex items-center gap-2 shadow-lg shadow-blue-900/20">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button onclick="fecharModalPix()"
+                        class="w-full py-4 bg-slate-200 text-slate-700 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-300 transition-all">
+                        Fechar Janela
+                    </button>
+                </div>
+
+                <p class="text-[9px] font-bold text-center text-slate-300 uppercase tracking-widest">
+                    ID da Transacao: ${pixData.transaction_code}
+                </p>
+            </div>
+        </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        window.copiarPixCode = () => {
+        const input = document.getElementById('pixCode');
+        input.select();
+        document.execCommand('copy');
+        alert('Codigo PIX copiado!');
+        };
+
+        window.fecharModalPix = () => {
+        document.getElementById('pixModal')?.remove();
+        };
+
+        const expiresAt = pixData.expira_timestamp * 1000;
+        const updateTimer = () => {
+        const now = Date.now();
+        const diff = expiresAt - now;
+
+        if (diff <= 0) { const timerEl=document.getElementById('pixTimer'); if (timerEl) timerEl.textContent='Expirado' ;
+            return; } const minutes=Math.floor(diff / 60000); const seconds=Math.floor((diff % 60000) / 1000); const
+            timerEl=document.getElementById('pixTimer'); if (timerEl)
+            timerEl.textContent=`${minutes}:${seconds.toString().padStart(2, '0' )}`; }; updateTimer(); const
+            timerInterval=setInterval(updateTimer, 1000); const checkPaymentStatus=async ()=> {
+            try {
+            const response = await fetch(`/api/transacao/${pixData.transaction_id}`);
+            const data = await response.json();
+
+            if (data.status === 1) {
+            clearInterval(timerInterval);
+            clearInterval(pollingInterval);
+
+            const modalContent = document.querySelector('#pixModal > div');
+            modalContent.innerHTML = `
+            <div class="text-center py-8">
+                <div
+                    class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Pagamento Confirmado!</h2>
+                <p class="text-slate-600 mb-6">Seus proxies foram alocados com sucesso</p>
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    <p class="text-sm text-slate-600">Redirecionando...</p>
+                </div>
+            </div>
+            `;
+
+            setTimeout(() => {
+            window.location.href = '/dash?section=proxies';
+            }, 2000);
+            }
+            } catch (error) {
+            console.error('Erro ao verificar status do pagamento:', error);
+            }
             };
-// Modal PIX
-        @if(session('pix_modal'))
-            (() => {
-            const pixData = @json(session('pix_modal'));
-            renderPixModal(pixData);
-            })();
-        @endif
+
+            const pollingInterval = setInterval(checkPaymentStatus, 3000);
+            checkPaymentStatus();
+            };
+            // Modal PIX
+            @if(session('pix_modal'))
+                (() => {
+                const pixData = @json(session('pix_modal'));
+                renderPixModal(pixData);
+                })();
+            @endif
 
             window.showProxyTestNotification = function(data, type) {
             // Remover notificação existente se houver
@@ -2361,278 +2424,238 @@
             const autoRenewToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
             const setAutoRenew = async (proxyId, enabled, toggleEl) => {
-                if (!proxyId || !autoRenewToken) {
-                    return;
-                }
+            if (!proxyId || !autoRenewToken) {
+            return;
+            }
 
-                if (toggleEl) {
-                    toggleEl.disabled = true;
-                }
+            if (toggleEl) {
+            toggleEl.disabled = true;
+            }
 
-                try {
-                    const response = await fetch('{{ route("proxies.renovar") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': autoRenewToken,
-                        },
-                        body: JSON.stringify({
-                            proxy_id: proxyId,
-                            auto_renew: enabled,
-                        }),
-                    });
+            try {
+            const response = await fetch('{{ route("proxies.renovar") }}', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': autoRenewToken,
+            },
+            body: JSON.stringify({
+            proxy_id: proxyId,
+            auto_renew: enabled,
+            }),
+            });
 
-                    const data = await response.json().catch(() => ({}));
+            const data = await response.json().catch(() => ({}));
 
-                    if (!response.ok || !data.success) {
-                        throw new Error(data.error || data.message || 'Erro ao atualizar renovacao automatica');
-                    }
-                } catch (error) {
-                    if (toggleEl) {
-                        toggleEl.checked = !enabled;
-                    }
-                    alert(error.message || 'Erro ao atualizar renovacao automatica');
-                } finally {
-                    if (toggleEl) {
-                        toggleEl.disabled = false;
-                    }
-                }
+            if (!response.ok || !data.success) {
+            throw new Error(data.error || data.message || 'Erro ao atualizar renovacao automatica');
+            }
+            } catch (error) {
+            if (toggleEl) {
+            toggleEl.checked = !enabled;
+            }
+            alert(error.message || 'Erro ao atualizar renovacao automatica');
+            } finally {
+            if (toggleEl) {
+            toggleEl.disabled = false;
+            }
+            }
             };
 
             const hasCardSaved = {{ isset($savedCards) && count($savedCards) > 0 ? 'true' : 'false' }};
 
             const checkCardBeforeAutoRenew = (toggle) => {
-                if (toggle.checked && !hasCardSaved) {
-                    toggle.checked = false;
+            if (toggle.checked && !hasCardSaved) {
+            toggle.checked = false;
 
-                    const toast = document.createElement('div');
-                    toast.className = 'fixed top-6 right-6 z-[9999] bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 max-w-sm animate-slide-in';
-                    toast.innerHTML = `
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-credit-card text-amber-500 text-lg"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h4 class="text-sm font-bold text-slate-900 mb-1">Nenhum cartão cadastrado</h4>
-                                <p class="text-xs text-slate-500 mb-4">Para ativar a renovação automática, você precisa ter um cartão de crédito cadastrado.</p>
-                                <button type="button" class="go-to-cards-btn px-4 py-2 rounded-xl bg-[#23366f] text-white text-xs font-bold hover:scale-[1.02] transition-all">
-                                    <i class="fas fa-plus mr-1.5"></i> Cadastrar cartão
-                                </button>
-                            </div>
-                            <button type="button" class="close-toast text-slate-300 hover:text-slate-500 transition-colors">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    `;
-                    document.body.appendChild(toast);
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-6 right-6 z-[9999] bg-white border border-slate-200 rounded-2xl shadow-2xl p-6
+            max-w-sm animate-slide-in';
+            toast.innerHTML = `
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-credit-card text-amber-500 text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Nenhum cartão cadastrado</h4>
+                    <p class="text-xs text-slate-500 mb-4">Para ativar a renovação automática, você precisa ter um cartão de
+                        crédito cadastrado.</p>
+                    <button type="button"
+                        class="go-to-cards-btn px-4 py-2 rounded-xl bg-[#23366f] text-white text-xs font-bold hover:scale-[1.02] transition-all">
+                        <i class="fas fa-plus mr-1.5"></i> Cadastrar cartão
+                    </button>
+                </div>
+                <button type="button" class="close-toast text-slate-300 hover:text-slate-500 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            `;
+            document.body.appendChild(toast);
 
-                    toast.querySelector('.go-to-cards-btn').addEventListener('click', () => {
-                        toast.remove();
-                        const cartoesLink = document.querySelector('[data-section-link="cartoes"]');
-                        if (cartoesLink) cartoesLink.click();
-                    });
+            toast.querySelector('.go-to-cards-btn').addEventListener('click', () => {
+            toast.remove();
+            const cartoesLink = document.querySelector('[data-section-link="cartoes"]');
+            if (cartoesLink) cartoesLink.click();
+            });
 
-                    toast.querySelector('.close-toast').addEventListener('click', () => toast.remove());
+            toast.querySelector('.close-toast').addEventListener('click', () => toast.remove());
 
-                    setTimeout(() => toast.remove(), 8000);
+            setTimeout(() => toast.remove(), 8000);
 
-                    return false;
-                }
-                return true;
+            return false;
+            }
+            return true;
             };
 
             document.querySelectorAll('.auto-renew-toggle').forEach(toggle => {
-                toggle.addEventListener('change', () => {
-                    if (!checkCardBeforeAutoRenew(toggle)) return;
-                    const proxyId = toggle.dataset.proxyId;
-                    setAutoRenew(proxyId, toggle.checked, toggle);
-                });
+            toggle.addEventListener('change', () => {
+            if (!checkCardBeforeAutoRenew(toggle)) return;
+            const proxyId = toggle.dataset.proxyId;
+            setAutoRenew(proxyId, toggle.checked, toggle);
+            });
             });
 
             const modalAutoRenewToggle = document.getElementById('renovacao-auto-toggle');
             if (modalAutoRenewToggle) {
-                modalAutoRenewToggle.addEventListener('change', () => {
-                    if (!checkCardBeforeAutoRenew(modalAutoRenewToggle)) return;
-                    const proxyId = modalAutoRenewToggle.dataset.proxyId;
-                    setAutoRenew(proxyId, modalAutoRenewToggle.checked, modalAutoRenewToggle);
-                });
+            modalAutoRenewToggle.addEventListener('change', () => {
+            if (!checkCardBeforeAutoRenew(modalAutoRenewToggle)) return;
+            const proxyId = modalAutoRenewToggle.dataset.proxyId;
+            setAutoRenew(proxyId, modalAutoRenewToggle.checked, modalAutoRenewToggle);
+            });
             }
 
             window.abrirModalRenovacao = function(proxyData) {
-                renovacaoProxyData = proxyData;
+            renovacaoProxyData = proxyData;
 
-                const modalAutoToggle = document.getElementById('renovacao-auto-toggle');
-                if (modalAutoToggle) {
-                    modalAutoToggle.checked = !!proxyData.auto_renew;
-                    modalAutoToggle.dataset.proxyId = proxyData.id;
-                }
+            const modalAutoToggle = document.getElementById('renovacao-auto-toggle');
+            if (modalAutoToggle) {
+            modalAutoToggle.checked = !!proxyData.auto_renew;
+            modalAutoToggle.dataset.proxyId = proxyData.id;
+            }
 
-                // Preencher informações do proxy
-                document.getElementById('renovacao-proxy-endereco').textContent = proxyData.endereco;
-                document.getElementById('renovacao-proxy-pais').textContent = proxyData.pais;
-                document.getElementById('renovacao-expiracao-atual').textContent =
-                    new Date(proxyData.expiracao).toLocaleDateString('pt-BR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
-
-                // Status do proxy
-                const statusEl = document.getElementById('renovacao-proxy-status');
-                if (proxyData.expirado) {
-                    statusEl.innerHTML = '<span class="text-red-600">Expirado</span>';
-                } else if (proxyData.bloqueado) {
-                    statusEl.innerHTML = '<span class="text-amber-600">Bloqueado</span>';
-                } else {
-                    statusEl.innerHTML = '<span class="text-green-600">Ativo</span>';
-                }
-
-                // Mostrar alerta se bloqueado
-                const alertaBloqueado = document.getElementById('renovacao-alerta-bloqueado');
-                if (proxyData.bloqueado) {
-                    alertaBloqueado.classList.remove('hidden');
-                } else {
-                    alertaBloqueado.classList.add('hidden');
-                }
-
-                // Resetar seleção de período
-                document.querySelectorAll('.renovacao-period-radio').forEach(radio => {
-                    radio.checked = false;
-                });
-                document.getElementById('btn-confirmar-renovacao').disabled = true;
-                document.getElementById('renovacao-resumo-periodo').textContent = 'Selecione';
-                document.getElementById('renovacao-resumo-valor').textContent = 'R$ 0,00';
-                document.getElementById('renovacao-resumo-total').textContent = 'R$ 0,00';
-                document.getElementById('renovacao-expiracao-nova').textContent = 'Selecione o período';
-                document.getElementById('renovacao-resumo-nova-data').textContent = '--';
-
-                // Event listeners para os períodos
-                document.querySelectorAll('.renovacao-period-radio').forEach(radio => {
-                    radio.addEventListener('change', function() {
-                        const dias = parseInt(this.value);
-                        const preco = parseFloat(this.dataset.price);
-
-                        // Calcular nova data de expiração
-                        const expiracaoAtual = new Date(proxyData.expiracao);
-                        const hoje = new Date();
-                        let novaExpiracao;
-
-                        if (expiracaoAtual < hoje) {
-                            // Proxy expirado: adiciona dias a partir de hoje
-                            novaExpiracao = new Date(hoje);
-                            novaExpiracao.setDate(novaExpiracao.getDate() + dias);
-                        } else {
-                            // Proxy ativo: adiciona dias à expiração atual
-                            novaExpiracao = new Date(expiracaoAtual);
-                            novaExpiracao.setDate(novaExpiracao.getDate() + dias);
-                        }
-
-                        // Atualizar resumo
-                        document.getElementById('renovacao-resumo-periodo').textContent = `${dias} dias`;
-                        document.getElementById('renovacao-resumo-valor').textContent =
-                            `R$ ${preco.toFixed(2).replace('.', ',')}`;
-                        document.getElementById('renovacao-resumo-total').textContent =
-                            `R$ ${preco.toFixed(2).replace('.', ',')}`;
-                        document.getElementById('renovacao-expiracao-nova').textContent =
-                            novaExpiracao.toLocaleDateString('pt-BR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            });
-                        document.getElementById('renovacao-resumo-nova-data').textContent =
-                            novaExpiracao.toLocaleDateString('pt-BR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric'
-                            });
-
-                        // Habilitar botão de confirmação
-                        document.getElementById('btn-confirmar-renovacao').disabled = false;
-                    });
-                });
-
-                // Exibir modal
-                document.getElementById('modalRenovacao').style.display = 'flex';
-            };
-
-            window.fecharModalRenovacao = function() {
-                document.getElementById('modalRenovacao').style.display = 'none';
-                renovacaoProxyData = null;
-            };
-
-            window.confirmarRenovacao = async function() {
-                const periodoSelecionado = document.querySelector('.renovacao-period-radio:checked');
-
-                if (!periodoSelecionado || !renovacaoProxyData) {
-                    alert('Selecione um período de renovação');
-                    return;
-                }
-
-                const btnConfirmar = document.getElementById('btn-confirmar-renovacao');
-                const originalText = btnConfirmar.innerHTML;
-
-                try {
-                    // Desabilitar botão e mostrar loading
-                    btnConfirmar.disabled = true;
-                    btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
-
-                    // Enviar requisição
-                    const response = await fetch('{{ route("proxies.renovar-pix") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({
-                            proxy_id: renovacaoProxyData.id,
-                            periodo: parseInt(periodoSelecionado.value)
-                        })
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok && data.success) {
-                        // Fechar modal de renovacao
-                        fecharModalRenovacao();
-
-                        if (data.pix_modal) {
-                            renderPixModal(data.pix_modal);
-                            return;
-                        }
-
-                        if (data.redirect) {
-                            window.location.href = data.redirect;
-                        }
-                    } else {
-                        alert(data.error || 'Erro ao processar renovação. Tente novamente.');
-                        btnConfirmar.innerHTML = originalText;
-                        btnConfirmar.disabled = false;
-                    }
-
-                } catch (error) {
-                    console.error('Erro ao processar renovação:', error);
-                    alert('Erro ao conectar com o servidor. Tente novamente.');
-                    btnConfirmar.innerHTML = originalText;
-                    btnConfirmar.disabled = false;
-                }
-            };
-
-            // Fechar modal ao clicar fora
-            document.getElementById('modalRenovacao')?.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    fecharModalRenovacao();
-                }
+            // Preencher informações do proxy
+            document.getElementById('renovacao-proxy-endereco').textContent = proxyData.endereco;
+            document.getElementById('renovacao-proxy-pais').textContent = proxyData.pais;
+            document.getElementById('renovacao-expiracao-atual').textContent =
+            new Date(proxyData.expiracao).toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
             });
 
-            // ==========================================
-            // SELEÇÃO EM MASSA E CÓPIA DE PROXIES
-            // ==========================================
-            (() => {
+            // Status do proxy
+            const statusEl = document.getElementById('renovacao-proxy-status');
+            if (proxyData.expirado) {
+            statusEl.innerHTML = '<span class="text-red-600">Expirado</span>';
+            } else if (proxyData.bloqueado) {
+            statusEl.innerHTML = '<span class="text-amber-600">Bloqueado</span>';
+            } else {
+            statusEl.innerHTML = '<span class="text-green-600">Ativo</span>';
+            }
+
+            // Mostrar alerta se bloqueado
+            const alertaBloqueado = document.getElementById('renovacao-alerta-bloqueado');
+            if (proxyData.bloqueado) {
+            alertaBloqueado.classList.remove('hidden');
+            } else {
+            alertaBloqueado.classList.add('hidden');
+            }
+
+            // Resetar seleção de período
+            document.querySelectorAll('.renovacao-period-radio').forEach(radio => {
+            radio.checked = false;
+            });
+            document.getElementById('btn-confirmar-renovacao').disabled = true;
+            document.getElementById('renovacao-resumo-periodo').textContent = 'Selecione';
+            document.getElementById('renovacao-resumo-valor').textContent = 'R$ 0,00';
+            document.getElementById('renovacao-resumo-total').textContent = 'R$ 0,00';
+            document.getElementById('renovacao-expiracao-nova').textContent = 'Selecione o período';
+            document.getElementById('renovacao-resumo-nova-data').textContent = '--';
+
+            // Event listeners para os períodos
+            document.querySelectorAll('.renovacao-period-radio').forEach(radio => {
+            radio.addEventListener('change', function() {
+            const dias = parseInt(this.value);
+            const preco = parseFloat(this.dataset.price);
+
+            // Calcular nova data de expiração
+            const expiracaoAtual = new Date(proxyData.expiracao);
+            const hoje = new Date();
+            let novaExpiracao;
+
+            if (expiracaoAtual < hoje) { // Proxy expirado: adiciona dias a partir de hoje novaExpiracao=new Date(hoje);
+                novaExpiracao.setDate(novaExpiracao.getDate() + dias); } else { // Proxy ativo: adiciona dias à expiração
+                atual novaExpiracao=new Date(expiracaoAtual); novaExpiracao.setDate(novaExpiracao.getDate() + dias); } //
+                Atualizar resumo document.getElementById('renovacao-resumo-periodo').textContent=`${dias} dias`;
+                document.getElementById('renovacao-resumo-valor').textContent=`R$ ${preco.toFixed(2).replace('.', ',' )}`;
+                document.getElementById('renovacao-resumo-total').textContent=`R$ ${preco.toFixed(2).replace('.', ',' )}`;
+                document.getElementById('renovacao-expiracao-nova').textContent=novaExpiracao.toLocaleDateString('pt-BR', {
+                day: '2-digit' , month: '2-digit' , year: 'numeric' , hour: '2-digit' , minute: '2-digit' });
+                document.getElementById('renovacao-resumo-nova-data').textContent=novaExpiracao.toLocaleDateString('pt-BR',
+                { day: '2-digit' , month: '2-digit' , year: 'numeric' }); // Habilitar botão de confirmação
+                document.getElementById('btn-confirmar-renovacao').disabled=false; }); }); // Exibir modal
+                document.getElementById('modalRenovacao').style.display='flex' ; }; window.fecharModalRenovacao=function() {
+                document.getElementById('modalRenovacao').style.display='none' ; renovacaoProxyData=null; };
+                window.confirmarRenovacao=async function() { const
+                periodoSelecionado=document.querySelector('.renovacao-period-radio:checked'); if (!periodoSelecionado ||
+                !renovacaoProxyData) { alert('Selecione um período de renovação'); return; } const
+                btnConfirmar=document.getElementById('btn-confirmar-renovacao'); const originalText=btnConfirmar.innerHTML;
+                try { // Desabilitar botão e mostrar loading btnConfirmar.disabled=true;
+                btnConfirmar.innerHTML='<i class="fas fa-spinner fa-spin"></i> Processando...' ; // Enviar requisição const
+                response=await fetch('{{ route("proxies.renovar-pix") }}', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                proxy_id: renovacaoProxyData.id,
+                periodo: parseInt(periodoSelecionado.value)
+                })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                // Fechar modal de renovacao
+                fecharModalRenovacao();
+
+                if (data.pix_modal) {
+                renderPixModal(data.pix_modal);
+                return;
+                }
+
+                if (data.redirect) {
+                window.location.href = data.redirect;
+                }
+                } else {
+                alert(data.error || 'Erro ao processar renovação. Tente novamente.');
+                btnConfirmar.innerHTML = originalText;
+                btnConfirmar.disabled = false;
+                }
+
+                } catch (error) {
+                console.error('Erro ao processar renovação:', error);
+                alert('Erro ao conectar com o servidor. Tente novamente.');
+                btnConfirmar.innerHTML = originalText;
+                btnConfirmar.disabled = false;
+                }
+                };
+
+                // Fechar modal ao clicar fora
+                document.getElementById('modalRenovacao')?.addEventListener('click', function(e) {
+                if (e.target === this) {
+                fecharModalRenovacao();
+                }
+                });
+
+                // ==========================================
+                // SELEÇÃO EM MASSA E CÓPIA DE PROXIES
+                // ==========================================
+                (() => {
                 const bulkBar = document.getElementById('bulkBar');
                 if (!bulkBar) return;
 
@@ -2644,78 +2667,76 @@
 
                 // Toggle de protocolo
                 protocolBtns.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        protocolBtns.forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
-                        withProtocol = btn.dataset.protocol === 'com';
-                    });
+                btn.addEventListener('click', () => {
+                protocolBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                withProtocol = btn.dataset.protocol === 'com';
+                });
                 });
 
                 const getSelectedCount = () => {
-                    return document.querySelectorAll('.proxy-row-check:checked').length;
+                return document.querySelectorAll('.proxy-row-check:checked').length;
                 };
 
                 const updateBulkBar = () => {
-                    const count = getSelectedCount();
-                    bulkCount.textContent = `${count} selecionado${count !== 1 ? 's' : ''}`;
+                const count = getSelectedCount();
+                bulkCount.textContent = `${count} selecionado${count !== 1 ? 's' : ''}`;
 
-                    if (count > 0) {
-                        bulkBar.classList.add('visible');
-                    } else {
-                        bulkBar.classList.remove('visible');
-                    }
+                if (count > 0) {
+                bulkBar.classList.add('visible');
+                } else {
+                bulkBar.classList.remove('visible');
+                }
 
-                    // Atualizar estado dos "select all" checkboxes
-                    document.querySelectorAll('.proxy-select-all').forEach(selectAll => {
-                        const group = selectAll.dataset.group;
-                        const panel = document.querySelector(`[data-tab-panel="${group}"]`);
-                        if (!panel || panel.classList.contains('hidden')) return;
-
-                        const rowChecks = panel.querySelectorAll('.proxy-row-check');
-                        const checkedCount = panel.querySelectorAll('.proxy-row-check:checked').length;
-
-                        selectAll.checked = rowChecks.length > 0 && checkedCount === rowChecks.length;
-                        selectAll.indeterminate = checkedCount > 0 && checkedCount < rowChecks.length;
-                    });
-
-                    // Highlight de linhas selecionadas
-                    document.querySelectorAll('.proxy-row').forEach(row => {
-                        const check = row.querySelector('.proxy-row-check');
-                        row.classList.toggle('proxy-row-selected', check?.checked ?? false);
-                    });
-                };
-
-                // Select all checkbox
+                // Atualizar estado dos "select all" checkboxes
                 document.querySelectorAll('.proxy-select-all').forEach(selectAll => {
-                    selectAll.addEventListener('change', () => {
-                        const group = selectAll.dataset.group;
-                        const panel = document.querySelector(`[data-tab-panel="${group}"]`);
-                        if (!panel) return;
+                const group = selectAll.dataset.group;
+                const panel = document.querySelector(`[data-tab-panel="${group}"]`);
+                if (!panel || panel.classList.contains('hidden')) return;
 
-                        panel.querySelectorAll('.proxy-row-check').forEach(check => {
-                            check.checked = selectAll.checked;
-                        });
-                        updateBulkBar();
+                const rowChecks = panel.querySelectorAll('.proxy-row-check');
+                const checkedCount = panel.querySelectorAll('.proxy-row-check:checked').length;
+
+                selectAll.checked = rowChecks.length > 0 && checkedCount === rowChecks.length;
+                selectAll.indeterminate = checkedCount > 0 && checkedCount < rowChecks.length; }); // Highlight de linhas
+                    selecionadas document.querySelectorAll('.proxy-row').forEach(row=> {
+                    const check = row.querySelector('.proxy-row-check');
+                    row.classList.toggle('proxy-row-selected', check?.checked ?? false);
                     });
-                });
+                    };
 
-                // Individual row checkboxes (event delegation)
-                document.addEventListener('change', (e) => {
+                    // Select all checkbox
+                    document.querySelectorAll('.proxy-select-all').forEach(selectAll => {
+                    selectAll.addEventListener('change', () => {
+                    const group = selectAll.dataset.group;
+                    const panel = document.querySelector(`[data-tab-panel="${group}"]`);
+                    if (!panel) return;
+
+                    panel.querySelectorAll('.proxy-row-check').forEach(check => {
+                    check.checked = selectAll.checked;
+                    });
+                    updateBulkBar();
+                    });
+                    });
+
+                    // Individual row checkboxes (event delegation)
+                    document.addEventListener('change', (e) => {
                     if (e.target.classList.contains('proxy-row-check')) {
-                        updateBulkBar();
+                    updateBulkBar();
                     }
-                });
+                    });
 
-                // Copiar selecionados
-                bulkCopyBtn.addEventListener('click', () => {
+                    // Copiar selecionados
+                    bulkCopyBtn.addEventListener('click', () => {
                     const selected = document.querySelectorAll('.proxy-row-check:checked');
                     if (!selected.length) return;
 
                     const countProxies = selected.length;
-                    const proxyRows = selected.length ? Array.from(selected).map(c => c.closest('.proxy-row')).filter(Boolean) : [];
+                    const proxyRows = selected.length ? Array.from(selected).map(c =>
+                    c.closest('.proxy-row')).filter(Boolean) : [];
                     const proxyStrings = proxyRows.map(row => {
-                        const str = row.dataset.proxyString || '';
-                        return withProtocol ? 'socks5://' + str : str;
+                    const str = row.dataset.proxyString || '';
+                    return withProtocol ? 'socks5://' + str : str;
                     }).join('\n');
                     copyToClipboard(proxyStrings || countProxies.toString(), countProxies + ' proxies copiadas');
 
@@ -2723,28 +2744,16 @@
                     const originalHTML = bulkCopyBtn.innerHTML;
                     bulkCopyBtn.innerHTML = '<i class="fas fa-check"></i> ' + countProxies + ' proxies copiadas';
                     setTimeout(() => {
-                        bulkCopyBtn.innerHTML = originalHTML;
+                    bulkCopyBtn.innerHTML = originalHTML;
                     }, 2000);
-                });
+                    });
 
-                // Fechar / desmarcar todos
-                bulkCloseBtn.addEventListener('click', () => {
+                    // Fechar / desmarcar todos
+                    bulkCloseBtn.addEventListener('click', () => {
                     document.querySelectorAll('.proxy-row-check').forEach(c => c.checked = false);
                     document.querySelectorAll('.proxy-select-all').forEach(c => c.checked = false);
                     updateBulkBar();
-                });
-            })();
+                    });
+                    })();
 
 @endsection
-
-
-
-
-
-
-
-
-
-
-
-

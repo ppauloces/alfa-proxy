@@ -1028,8 +1028,8 @@
         }
 
         /* ===================================
-                                                                           RESPONSIVIDADE MOBILE & TABLET
-                                                                        =================================== */
+                                                                                           RESPONSIVIDADE MOBILE & TABLET
+                                                                                        =================================== */
 
         /* Mobile - Até 640px */
         @media (max-width: 640px) {
@@ -1379,6 +1379,29 @@
                         class="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 hover:scale-105 transition-all text-sm shadow-md">
                         <i class="fab fa-whatsapp text-lg"></i>
                         <span>Contatar via WhatsApp</span>
+                    </a>
+                </div>
+
+                {{-- Aviso de Proxies Inativas --}}
+                <div
+                    class="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-2 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+                        <div
+                            class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mx-auto md:mx-0">
+                            <i class="fas fa-info-circle text-blue-600 text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-black text-blue-900 mb-1">Aviso sobre Proxies Inativas</h3>
+                            <p class="text-sm font-medium text-blue-700">Se identificar alguma de suas proxies constando
+                                como <strong>Inativa</strong>, informe o nosso suporte com a sua proxy agora mesmo para
+                                efetuarmos a substituição.
+                            </p>
+                        </div>
+                    </div>
+                    <a href="https://wa.me/557798374278" target="_blank"
+                        class="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 hover:scale-105 transition-all text-sm shadow-md">
+                        <i class="fab fa-whatsapp text-lg"></i>
+                        <span>Solicitar Substituição</span>
                     </a>
                 </div>
 

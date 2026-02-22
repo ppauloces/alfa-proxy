@@ -704,15 +704,16 @@
                                                 <span>Testar proxy</span>
                                             </button>
 
-                                            @if($proxyStatus === 'vendida' && !$proxy->substituido)
-                                                {{-- Botão para SUBSTITUIR proxy caído --}}
+                                            @if(($proxyStatus === 'vendida' || ($proxyStatus === 'bloqueada' && $proxy->user_id)) && !$proxy->substituido)
+                                                {{-- Botão para SUBSTITUIR proxy caído ou de VPS inativada --}}
                                                 <button type="button" class="vps-proxy-action-btn substituir-proxy-btn"
                                                     data-stock-id="{{ $proxy->id }}" data-ip="{{ $farm->ip }}"
                                                     data-porta="{{ $proxy->porta }}" data-pais="{{ $proxy->pais }}"
                                                     data-usuario="{{ $proxy->user?->username ?? $proxy->user?->name ?? 'N/A' }}"
-                                                    data-expiracao="{{ $proxy->expiracao?->format('d/m/Y') ?? 'N/A' }}">
-                                                    <i class="fas fa-exchange-alt"></i>
-                                                    <span>Substituir</span>
+                                                    data-expiracao="{{ $proxy->expiracao?->format('d/m/Y') ?? 'N/A' }}" {{ $proxyStatus === 'bloqueada' ? 'title="Proxy bloqueada por inativação de VPS. Elegível para substituição."' : '' }}>
+                                                    <i
+                                                        class="fas fa-exchange-alt {{ $proxyStatus === 'bloqueada' ? 'text-amber-500' : '' }}"></i>
+                                                    <span>Substituir{{ $proxyStatus === 'bloqueada' ? ' (Inativa)' : '' }}</span>
                                                 </button>
                                             @endif
 

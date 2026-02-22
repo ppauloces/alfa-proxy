@@ -118,16 +118,18 @@
 
     .vps-proxy-actions {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: 0.6rem;
         flex-shrink: 0;
+        justify-content: flex-end;
     }
 
     .vps-proxy-action-btn {
-        min-width: 170px;
-        height: 44px;
-        padding: 0 0.9rem;
-        border-radius: 16px;
+        min-width: 140px;
+        height: 40px;
+        padding: 0 1rem;
+        border-radius: 12px;
         background: #fff;
         border: 1px solid rgba(226, 232, 240, 0.9);
         color: #64748b;
@@ -465,17 +467,27 @@
     @endif
 
     @if($vpsFarm->count() > 0)
-        <!-- Tabs para status da VPS -->
-        <div class="flex flex-wrap gap-2 mb-6">
-            <button type="button"
-                class="vps-tab-btn active px-4 py-2 rounded-xl text-sm font-bold bg-[#23366f] text-white transition-all shadow-sm"
-                data-tab="Operacional">Operacionais</button>
-            <button type="button"
-                class="vps-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all"
-                data-tab="Inativa">Inativas</button>
-            <button type="button"
-                class="vps-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all"
-                data-tab="Excluída">Excluídas</button>
+        <!-- Tabs para status da VPS e busca -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div class="flex flex-wrap gap-2">
+                <button type="button"
+                    class="vps-tab-btn active px-4 py-2 rounded-xl text-sm font-bold bg-[#23366f] text-white transition-all shadow-sm"
+                    data-tab="Operacional">Operacionais</button>
+                <button type="button"
+                    class="vps-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all"
+                    data-tab="Inativa">Inativas</button>
+                <button type="button"
+                    class="vps-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all"
+                    data-tab="Excluída">Excluídas</button>
+            </div>
+
+        </div>
+
+        <div class="relative w-full sm:w-64 mb-6">
+
+            <input type="text" id="vpsSearchInput" placeholder="Pesquisar VPS..."
+                class="w-full pl-5 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#23366f]/20 focus:border-[#23366f] outline-none">
+
         </div>
 
         <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4" id="vpsGrid">
@@ -499,8 +511,7 @@
                                 </p>
                             </div>
                             <div class="flex items-center gap-3 flex-shrink-0">
-                                <span class="badge-status"
-                                    data-status="{{ \Illuminate\Support\Str::slug($farm->status, '-') }}">{{ $farm->status }}</span>
+
                                 <i class="fas fa-pen-to-square text-slate-400 text-sm"></i>
                             </div>
                         </div>
@@ -531,12 +542,27 @@
                         </div>
                     </button>
 
-                    {{-- Botão de Editar VPS (fora do botão principal) --}}
-                    <button type="button"
-                        class="edit-vps-btn absolute top-3 right-3 w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-[#448ccb] hover:bg-blue-50 transition-all flex items-center justify-center z-10"
-                        data-vps-id="{{ $farm->id }}" title="Editar VPS">
-                        <i class="fas fa-cog text-sm"></i>
-                    </button>
+                    <div class="absolute top-3 right-3 flex items-center justify-end w-20 z-10 gap-2 h-8">
+
+                        <span class="badge-status"
+                            data-status="{{ \Illuminate\Support\Str::slug($farm->status, '-') }}">{{ $farm->status }}</span>
+
+                        {{-- Botão de Reinstalar IP (VPS) --}}
+                        <button type="button"
+                            class="reinstalar-vps-btn w-8 h-8 rounded-lg bg-orange-50 text-orange-500 hover:text-orange-700 hover:bg-orange-100 transition-all flex items-center justify-center shrink-0"
+                            title="Reinstalar IP" onclick="abrirModalReinstalar({{ $farm->id }})">
+                            <i class="fas fa-sync-alt text-sm"></i>
+                        </button>
+
+                        {{-- Botão de Editar VPS (fora do botão principal) --}}
+                        <button type="button"
+                            class="edit-vps-btn w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-[#448ccb] hover:bg-blue-50 transition-all flex items-center justify-center shrink-0"
+                            data-vps-id="{{ $farm->id }}" title="Editar VPS">
+                            <i class="fas fa-cog text-sm"></i>
+                        </button>
+                    </div>
+
+
                 </div>
             @endforeach
         </div>
@@ -587,9 +613,32 @@
 
                     <div class="vps-modal-body">
                         <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-50">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-loose">
                                 Proxies Ativas ({{ $farm->proxies->count() }})
                             </p>
+                            @if($farm->proxies->count() > 0)
+                                <div class="flex items-center gap-4">
+                                    <div class="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                                        <label
+                                            class="flex items-center gap-1.5 text-xs text-slate-600 font-semibold cursor-pointer">
+                                            <input type="radio" name="protocolo_copy_{{ $farm->id }}" value="com" checked
+                                                class="w-3.5 h-3.5 text-blue-600 border-gray-300 focus:ring-blue-500 mt-0.5">
+                                            Com protocolo
+                                        </label>
+                                        <label
+                                            class="flex items-center gap-1.5 text-xs text-slate-600 font-semibold cursor-pointer">
+                                            <input type="radio" name="protocolo_copy_{{ $farm->id }}" value="sem"
+                                                class="w-3.5 h-3.5 text-blue-600 border-gray-300 focus:ring-blue-500 mt-0.5">
+                                            Sem protocolo
+                                        </label>
+                                    </div>
+                                    <button type="button"
+                                        class="flex items-center gap-2 px-3 py-1.5 text-sm font-bold bg-white border border-slate-200 shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-all rounded-lg text-slate-700"
+                                        onclick="copiarTodasProxies({{ $farm->id }})">
+                                        <i class="fas fa-copy text-blue-500"></i> Copiar Todas
+                                    </button>
+                                </div>
+                            @endif
                         </div>
 
                         @if($farm->proxies->count() === 0)
@@ -600,7 +649,7 @@
                                 <p class="font-medium">Nenhuma proxy gerada nesta VPS ainda</p>
                             </div>
                         @else
-                            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                            <div class="flex flex-col gap-3">
                                 @foreach($farm->proxies as $proxy)
                                     @php
                                         $statusId = "proxy-status-{$farm->id}-{$proxy->id}";
@@ -838,6 +887,90 @@
                                     class="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors">
                                     <i class="fas fa-save"></i> Salvar Alterações
                                 </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+
+        {{-- Modal de Reinstalação de VPS --}}
+        @foreach($vpsFarm as $farm)
+            <div id="reinstalarVpsModal-{{ $farm->id }}" class="admin-modal-overlay hidden" data-reinstalar-vps-modal
+                style="position:fixed; inset:0; z-index:100000; background:rgba(15,23,42,0.55); align-items:center; justify-content:center; display:none;">
+                <div class="admin-modal"
+                    style="max-width: 600px; width:100%; padding:2rem; border-radius:20px; background:#fff; box-shadow:0 25px 60px rgba(15,23,42,0.18);">
+                    <div class="p-2">
+                        {{-- Header --}}
+                        <div class="flex items-start justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-sync-alt text-orange-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-900">Reinstalar IP / Substituir VPS</h3>
+                                    <p class="text-sm text-slate-500 mt-1">Antiga: {{ $farm->apelido }} ({{ $farm->ip }})</p>
+                                </div>
+                            </div>
+                            <button type="button" class="text-slate-400 hover:text-slate-600 transition-colors"
+                                onclick="fecharModalReinstalar({{ $farm->id }})">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+
+                        {{-- Form --}}
+                        <form id="reinstalarVpsForm-{{ $farm->id }}" onsubmit="submitReinstalarVps(event, {{ $farm->id }})">
+                            <div class="grid grid-cols-2 gap-4 mb-6 text-sm">
+                                <label class="flex flex-col gap-2 col-span-2">
+                                    <span class="text-slate-500 font-semibold">Novo IP da VPS*</span>
+                                    <input type="text" name="ip" class="form-input" placeholder="Novo IP (ex: 201.94.10.20)"
+                                        required>
+                                </label>
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-slate-500 font-semibold">Usuário SSH*</span>
+                                    <input type="text" name="usuario_ssh" class="form-input" placeholder="root" required>
+                                </label>
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-slate-500 font-semibold">Senha SSH*</span>
+                                    <input type="password" name="senha_ssh" class="form-input" placeholder="••••••••" required>
+                                </label>
+
+                                <div class="col-span-2 flex items-center gap-2 cursor-pointer mt-2">
+                                    <input type="checkbox" name="vps_paga" value="1" id="vps_paga_reinstalar_{{ $farm->id }}"
+                                        class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500" checked>
+                                    <label for="vps_paga_reinstalar_{{ $farm->id }}"
+                                        class="text-slate-700 font-semibold cursor-pointer">
+                                        Gerar nova cobrança de Despesa (VPS Paga)
+                                    </label>
+                                </div>
+
+                                {{-- Informativo --}}
+                                <div class="col-span-2 mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                                    <div class="flex gap-3">
+                                        <i class="fas fa-exclamation-triangle text-red-600 mt-0.5"></i>
+                                        <div class="text-sm text-red-800">
+                                            <p class="font-semibold mb-1">Atenção!</p>
+                                            <p class="text-xs">Ao confirmar, a VPS atual será inativada e todas as suas proxies
+                                                serão <strong>bloqueadas</strong>. Uma nova VPS será criada com os dados
+                                                informados acima e as proxies começarão a ser geradas imediatamente na nova
+                                                máquina.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Ações --}}
+                                <div class="col-span-2 flex gap-3 mt-4">
+                                    <button type="button" onclick="fecharModalReinstalar({{ $farm->id }})"
+                                        class="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit"
+                                        class="flex-1 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition-colors"
+                                        id="btn_submit_reinstalar_{{ $farm->id }}">
+                                        <i class="fas fa-sync-alt mr-1"></i> Reinstalar e Gerar
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -2560,6 +2693,40 @@
 
     const vpsTabBtns = document.querySelectorAll('.vps-tab-btn');
     const vpsCardItems = document.querySelectorAll('.vps-card-item');
+    const vpsSearchInput = document.getElementById('vpsSearchInput');
+
+    function filterVpsCards() {
+        const activeTab = document.querySelector('.vps-tab-btn.active')?.dataset.tab || 'Operacional';
+        const query = vpsSearchInput ? vpsSearchInput.value.toLowerCase().trim() : '';
+
+        vpsCardItems.forEach(card => {
+            const statusVal = card.dataset.status;
+
+            const nameEl = card.querySelector('.text-lg.font-semibold');
+            const ipEl = card.querySelector('.text-sm.text-slate-500');
+            const searchableText = ((nameEl?.textContent || '') + ' ' + (ipEl?.textContent || '')).toLowerCase();
+
+            const matchesStatus = (statusVal === activeTab);
+            const matchesQuery = query === '' || searchableText.includes(query);
+
+            if (matchesStatus && matchesQuery) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Refiltrar proxies caso haja uma pesquisa aberta
+        const proxySearchArea = document.getElementById('proxySearch');
+        const clearSearchBtnEl = document.getElementById('clearProxySearch');
+        if (proxySearchArea && proxySearchArea.value.trim() !== '' && clearSearchBtnEl && !clearSearchBtnEl.classList.contains('hidden')) {
+            performSearch(proxySearchArea.value.trim());
+        }
+    }
+
+    if (vpsSearchInput) {
+        vpsSearchInput.addEventListener('input', filterVpsCards);
+    }
 
     if (vpsTabBtns.length > 0) {
         vpsTabBtns.forEach(btn => {
@@ -2574,16 +2741,7 @@
                 btn.classList.add('active', 'bg-[#23366f]', 'text-white', 'shadow-sm');
                 btn.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
 
-                const targetStatus = btn.dataset.tab;
-
-                vpsCardItems.forEach(card => {
-                    const statusVal = card.dataset.status;
-                    if (statusVal === targetStatus) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+                filterVpsCards();
             });
         });
 
@@ -2600,22 +2758,21 @@
         const index = [];
 
         @foreach($vpsFarm as $farm)
-            @if($farm->status === 'Operacional')
-                @foreach($farm->proxies as $proxy)
-                    index.push({
-                        id: {{ $proxy->id }},
-                        vpsId: {{ $farm->id }},
-                        vpsApelido: "{{ $farm->apelido }}",
-                        ip: "{{ $proxy->ip }}",
-                        porta: "{{ $proxy->porta }}",
-                        usuario: "{{ $proxy->usuario }}",
-                        senha: "{{ $proxy->senha }}",
-                        status: "{{ $proxy->bloqueada ? 'bloqueada' : ($proxy->uso_interno ? 'uso_interno' : ($proxy->disponibilidade ? 'disponivel' : 'vendida')) }}",
-                        bloqueada: {{ $proxy->bloqueada ? 'true' : 'false' }},
-                        expiracao: "{{ $proxy->expiracao ? $proxy->expiracao->format('d/m/Y') : 'N/A' }}"
-                    });
-                @endforeach
-            @endif
+            @foreach($farm->proxies as $proxy)
+                index.push({
+                    id: {{ $proxy->id }},
+                    vpsId: {{ $farm->id }},
+                    vpsApelido: "{{ $farm->apelido }}",
+                    vpsStatus: "{{ $farm->status }}",
+                    ip: "{{ $proxy->ip }}",
+                    porta: "{{ $proxy->porta }}",
+                    usuario: "{{ $proxy->usuario }}",
+                    senha: "{{ $proxy->senha }}",
+                    status: "{{ $proxy->bloqueada ? 'bloqueada' : ($proxy->uso_interno ? 'uso_interno' : ($proxy->disponibilidade ? 'disponivel' : 'vendida')) }}",
+                    bloqueada: {{ $proxy->bloqueada ? 'true' : 'false' }},
+                    expiracao: "{{ $proxy->expiracao ? $proxy->expiracao->format('d/m/Y') : 'N/A' }}"
+                });
+            @endforeach
         @endforeach
 
         return index;
@@ -2666,9 +2823,12 @@
         }
 
         const queryLower = query.toLowerCase();
+        const activeTab = document.querySelector('.vps-tab-btn.active')?.dataset.tab || 'Operacional';
 
         // Filtrar proxies
         const results = proxyIndex.filter(proxy => {
+            if (proxy.vpsStatus !== activeTab) return false;
+
             const ipPort = `${proxy.ip}:${proxy.porta}`.toLowerCase();
             return proxy.ip.toLowerCase().includes(queryLower) ||
                 proxy.porta.toString().includes(queryLower) ||
@@ -2862,10 +3022,10 @@
             grid-template-columns: 1fr !important;
         }
 
-        /* Grid dentro da modal */
-        .grid.grid-cols-1.lg\:grid-cols-2.xl\:grid-cols-3 {
+        /* Grid dentro da modal (não mais necessário pois é lista flex col agora) */
+        /* .grid.grid-cols-1.lg\:grid-cols-2.xl\:grid-cols-3 {
             grid-template-columns: 1fr !important;
-        }
+        } */
 
         /* Formulário de cadastro */
         .grid.md\:grid-cols-3 {
@@ -2909,7 +3069,7 @@
 
         /* Badges mobile */
         .badge-status {
-            font-size: 9px !important;
+            font-size: 4px !important;
             padding: 0.2rem 0.5rem !important;
         }
 
@@ -3120,7 +3280,7 @@
 
                 if (!stockId) return;
                 if (!vpsId) {
-                    showToast('❌ Por favor, selecione a VPS de origem.', 'error');
+                    showToast('Por favor, selecione a VPS de origem.', 'error');
                     return;
                 }
 
@@ -3142,7 +3302,7 @@
                     .then(function (resp) { return resp.json(); })
                     .then(function (data) {
                         if (data.success) {
-                            showToast('✅ Proxy substituído! Novo: ' + data.novo_proxy.ip + ':' + data.novo_proxy.porta, 'success');
+                            showToast('Proxy substituído! Novo: ' + data.novo_proxy.ip + ':' + data.novo_proxy.porta, 'success');
                             fecharModalSubstituir();
 
                             const card = document.querySelector('.vps-proxy-card[data-proxy-id="' + stockId + '"]');
@@ -3156,18 +3316,136 @@
                                 if (sub) sub.remove();
                             }
                         } else {
-                            showToast('❌ ' + (data.error || 'Erro ao substituir proxy.'), 'error');
+                            showToast('' + (data.error || 'Erro ao substituir proxy.'), 'error');
                             document.getElementById('modalSubstituirBtnText').innerHTML = '<i class="fas fa-exchange-alt mr-1"></i> Substituir';
                             btnConfirmar.disabled = false;
                         }
                     })
                     .catch(function (err) {
                         console.error(err);
-                        showToast('❌ Erro ao conectar com o servidor.', 'error');
+                        showToast('Erro ao conectar com o servidor.', 'error');
                         document.getElementById('modalSubstituirBtnText').innerHTML = '<i class="fas fa-exchange-alt mr-1"></i> Substituir';
                         btnConfirmar.disabled = false;
                     });
             }
         });
+
+        // Reinstalar IP Modal UI Logic
+        window.abrirModalReinstalar = function (id) {
+            const modal = document.getElementById('reinstalarVpsModal-' + id);
+            if (modal) {
+                // Remove required classes
+                modal.style.display = 'flex';
+                modal.classList.remove('hidden');
+                if (modal.parentNode !== document.body) document.body.appendChild(modal);
+            }
+        };
+
+        window.fecharModalReinstalar = function (id) {
+            const modal = document.getElementById('reinstalarVpsModal-' + id);
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.add('hidden');
+            }
+        };
+
+        window.submitReinstalarVps = function (e, id) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = document.getElementById('btn_submit_reinstalar_' + id);
+            const originalText = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Processando...';
+
+            const formData = new FormData(form);
+            const data = {
+                vps_antiga_id: id,
+                ip: formData.get('ip'),
+                usuario_ssh: formData.get('usuario_ssh'),
+                senha_ssh: formData.get('senha_ssh'),
+                vps_paga: formData.get('vps_paga') ? true : false,
+            };
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+
+            fetch('{{ route("vps.reinstalar") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
+                },
+                body: JSON.stringify(data),
+            })
+                .then(function (resp) { return resp.json(); })
+                .then(function (res) {
+                    if (res.success) {
+                        showToast('✅ ' + res.message, 'success');
+                        fecharModalReinstalar(id);
+                        // recarregar apos 1 seg para vermos a fila
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        showToast('❌ ' + (res.error || 'Erro ao reinstalar VPS.'), 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    showToast('❌ Erro de comunicação com o servidor.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                });
+        };
+
+        // Copiar Todas as Proxies da VPS
+        window.copiarTodasProxies = function (vpsId) {
+            const modal = document.getElementById('vpsModal-' + vpsId);
+            if (!modal) return;
+
+            const comProtocolo = modal.querySelector('input[name="protocolo_copy_' + vpsId + '"][value="com"]').checked;
+
+            let texto = [];
+
+            // Aqui pegamos todas as strings prontas dos botões individuais ("Copiar proxy") contidas dentro dos cards 
+            const proxyCards = modal.querySelectorAll('.vps-proxy-card');
+            proxyCards.forEach(card => {
+                const btn = card.querySelector('[data-action="copy-proxy"]');
+                if (btn) {
+                    const strCom = btn.getAttribute('data-proxy-string');
+                    if (strCom) {
+                        if (comProtocolo) {
+                            texto.push(strCom);
+                        } else {
+                            texto.push(strCom.replace('socks5://', ''));
+                        }
+                    }
+                }
+            });
+
+            if (texto.length === 0) {
+                showToast('❌ Nenhuma proxy encontrada para copiar.', 'error');
+                return;
+            }
+
+            // Usando proxy de textarea para cópia compatível
+            const textArea = document.createElement('textarea');
+            textArea.value = texto.join('\n');
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                const copiado = document.execCommand('copy');
+                if (copiado) {
+                    showToast(`✅ ${texto.length} proxies copiadas para sua área de transferência!`, 'success');
+                } else {
+                    showToast('❌ Não foi possível copiar. Navegador bloqueou.', 'error');
+                }
+            } catch (err) {
+                showToast('❌ Erro inesperado ao tentar copiar.', 'error');
+                console.error(err);
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        };
     })();
 </script>

@@ -19,7 +19,7 @@ Route::get('/', function () {
     return view('index');
 })->name('inicial');
 
-Route::get('/faq', function() {
+Route::get('/faq', function () {
     return view('faq');
 })->name('faq');
 
@@ -117,6 +117,9 @@ Route::middleware(AdminMiddleware::class)->group(function () {
 
     // Atualizar apelido da VPS
     Route::post('/admin/vps/atualizar-apelido', [AdminController::class, 'atualizarApelidoVps'])->name('vps.atualizar-apelido');
+
+    // Reinstalar IP (VPS)
+    Route::post('/admin/vps/reinstalar', [AdminController::class, 'reinstalarVps'])->name('vps.reinstalar');
 
     // Atualizar país da VPS
     Route::post('/admin/vps/atualizar-pais', [AdminController::class, 'atualizarPaisVps'])->name('vps.atualizar-pais');

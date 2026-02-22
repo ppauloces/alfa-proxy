@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -1362,5 +1363,88 @@ class AdminController extends Controller
         }
 
         return response()->json(['error' => 'Falha ao buscar geolocalização'], 502);
+    }
+
+    public function reinstalarVps(Request $request)
+    {
+        $validated = $request->validate([
+            'vps_antiga_id' => 'required|exists:vps,id',
+            'ip' => 'required',
+            'usuario_ssh' => 'required|string|max:255',
+            'senha_ssh' => 'required|string',
+            'vps_paga' => 'nullable|boolean',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $vpsAntiga = Vps::findOrFail($validated['vps_antiga_id']);
+
+            // Inativar VPS antiga
+            $vpsAntiga->update([
+                'status' => 'Inativa',
+                'status_geracao' => 'reinstalled' // Indicar que não é mais operacional
+            ]);
+
+            // Bloquear TODAS as proxies antigas
+            Stock::where('vps_id', $vpsAntiga->id)->update([
+                'bloqueada' => true,
+                'disponibilidade' => false
+            ]);
+
+            $apelido = '[R] ' . $vpsAntiga->apelido;
+
+            // Criar a nova VPS utilizando dados da antiga, mas com novo IP e credenciais
+            $novaVps = Vps::create([
+                'apelido' => $apelido,
+                'ip' => $validated['ip'],
+                'usuario_ssh' => $validated['usuario_ssh'],
+                'senha_ssh' => $validated['senha_ssh'],
+                'valor' => $vpsAntiga->valor,
+                'valor_renovacao' => $vpsAntiga->valor_renovacao,
+                'pais' => $vpsAntiga->pais,
+                'hospedagem' => $vpsAntiga->hospedagem,
+                'periodo_dias' => $vpsAntiga->periodo_dias,
+                'data_contratacao' => now(), // Assume "hoje" como a data de reinstalação
+                'status' => 'Operacional',
+                'status_geracao' => 'pending',
+            ]);
+
+            // Se o usuário pedir para gerar a despesa dessa reinstalação
+            if ($request->has('vps_paga') && $request->vps_paga) {
+                Despesa::create([
+                    'vps_id' => $novaVps->id,
+                    'tipo' => 'compra', // ou reinstalacao, como for sua logica
+                    'valor' => $vpsAntiga->valor,
+                    'descricao' => 'Reinstalação da VPS ' . $novaVps->apelido,
+                    'data_vencimento' => now(),
+                    'data_pagamento' => now(),
+                    'status' => 'pago',
+                ]);
+            }
+
+            DB::commit();
+
+            // Disparar o Job para processamento da API Python de geração de proxies
+            \App\Jobs\GerarProxiesJob::dispatch($novaVps, intval($novaVps->periodo_dias), Auth::id());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'VPS reinstalada com sucesso! A antiga foi inativada e os proxies bloqueados. O novo IP está gerando proxies em background.'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erro ao reinstalar VPS', [
+                'vps_antiga_id' => $request->vps_antiga_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao reinstalar VPS: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

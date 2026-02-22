@@ -938,7 +938,7 @@
 
                                 <div class="col-span-2 flex items-center gap-2 cursor-pointer mt-2">
                                     <input type="checkbox" name="vps_paga" value="1" id="vps_paga_reinstalar_{{ $farm->id }}"
-                                        class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500" checked>
+                                        class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500">
                                     <label for="vps_paga_reinstalar_{{ $farm->id }}"
                                         class="text-slate-700 font-semibold cursor-pointer">
                                         Gerar nova cobrança de Despesa (VPS Paga)

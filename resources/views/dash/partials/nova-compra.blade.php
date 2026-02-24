@@ -140,6 +140,27 @@
         </p>
     </div>
 
+    {{-- Banner de Manutenção --}}
+    <div style="background: linear-gradient(135deg, #f59e0b, #f97316, #ef4444); border-radius: 1.5rem; padding: 1.25rem 1.5rem; box-shadow: 0 10px 30px rgba(249, 115, 22, 0.3);">
+        <div style="display: flex; align-items: flex-start; gap: 1rem;">
+            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.25); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="fas fa-tools" style="color: #fff; font-size: 1.25rem;"></i>
+            </div>
+            <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.375rem;">
+                    <span style="font-size: 10px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: 0.2em;">Aviso Importante</span>
+                    <span style="font-size: 10px; font-weight: 800; color: #fff; background: rgba(255,255,255,0.3); padding: 2px 10px; border-radius: 999px; text-transform: uppercase;">Manutenção</span>
+                </div>
+                <p style="color: #fff; font-weight: 800; font-size: 1rem; margin: 0 0 0.25rem 0; line-height: 1.4;">
+                    As compras de proxies estão temporariamente indisponíveis.
+                </p>
+                <p style="color: #fff; font-size: 0.875rem; font-weight: 500; margin: 0; opacity: 0.92;">
+                    Estamos realizando manutenções no sistema para melhorar sua experiência. Em breve as compras serão reativadas. Agradecemos a compreensão!
+                </p>
+            </div>
+        </div>
+    </div>
+
     @php
         $dataLimitePromocao = \Carbon\Carbon::create(2026, 2, 2, 23, 59, 59);
         $emPromocao = now()->lte($dataLimitePromocao) && !Auth::user()->isRevendedor();
@@ -188,6 +209,8 @@
         </div>
     @endif
 
+    <div class="relative pointer-events-none select-none opacity-40">
+    <div class="absolute inset-0 z-10 rounded-[2rem] cursor-not-allowed" title="Compras temporariamente indisponíveis"></div>
     <form action="{{ route('compra.processar') }}" method="POST" id="orderForm">
         @csrf
         <div class="grid lg:grid-cols-3 gap-8">
@@ -685,6 +708,7 @@
             </div>
         </div>
     </form>
+    </div>
 </div>
 
 <!-- Modal de Processamento de Pagamento -->

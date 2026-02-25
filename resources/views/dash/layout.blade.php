@@ -440,6 +440,17 @@
                 @auth
                     <div class="h-6 w-[1px] bg-slate-200 hidden sm:block"></div>
 
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#23366f]/5 border border-[#23366f]/10">
+                    <a href="{{ route('dash.show', ['section' => 'saldo']) }}">    
+                        <i class="fas fa-wallet text-[10px] text-[#448ccb]"></i>
+                        <span class="text-[11px] font-black text-[#23366f] tracking-tight">
+                            R$ {{ number_format(Auth::user()->saldo ?? 0, 2, ',', '.') }}
+                        </span>
+                    </a>
+                    </div>
+
+                    <div class="h-6 w-[1px] bg-slate-200 hidden sm:block"></div>
+
                     <form action="{{ route('logout.perform') }}" method="GET" class="inline">
                         <button type="submit"
                             class="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer">
@@ -506,15 +517,12 @@
                             class="sidebar-title text-[11px] uppercase tracking-wider text-slate-400 font-medium mb-1.5 px-3">
                             Financeiro</p>
                         <div class="space-y-0.5">
-                            <div class="nav-pill opacity-60 cursor-not-allowed">
+                            <button type="button" class="nav-pill" data-section-link="saldo">
                                 <span class="flex items-center gap-3">
-                                    <i class="fas fa-wallet w-5 text-center text-slate-400"></i>
-                                    <span class="nav-text text-slate-400">Carteira / Saldo</span>
+                                    <i class="fas fa-wallet w-5 text-center"></i>
+                                    <span class="nav-text">Carteira / Saldo</span>
                                 </span>
-                                <span
-                                    class="text-[9px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-medium">Em
-                                    breve</span>
-                            </div>
+                            </button>
                             <button type="button" class="nav-pill" data-section-link="transacoes">
                                 <span class="flex items-center gap-3">
                                     <i class="fas fa-history w-5 text-center"></i>

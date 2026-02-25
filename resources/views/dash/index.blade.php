@@ -1721,6 +1721,23 @@
 
         <section class="dash-section {{ $currentSection === 'nova-compra' ? 'active' : 'hidden' }}"
             data-section="nova-compra">
+            {{-- Aviso de migração de gateway --}}
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mx-auto md:mx-0">
+                        <i class="fas fa-arrows-rotate text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-blue-900 mb-1">Migração de gateway de pagamentos</h3>
+                        <p class="text-sm font-medium text-blue-700">
+                            Estamos migrando para um novo gateway de pagamentos. Em breve as opções de <strong>comprar proxies</strong> e <strong>recarregar saldo</strong> estarão disponíveis novamente. Agradecemos a compreensão!
+                        </p>
+                    </div>
+                </div>
+                <span class="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-100 text-blue-700 font-bold text-sm border border-blue-200">
+                    <i class="fas fa-clock text-sm"></i> Em breve
+                </span>
+            </div>
             @include('dash.partials.nova-compra')
         </section>
 
@@ -1740,6 +1757,45 @@
                     <i class="fas fa-check-circle"></i> {{ session('saldo_success') }}
                 </div>
             @endif
+
+            {{-- Aviso de migração de gateway --}}
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mx-auto md:mx-0">
+                        <i class="fas fa-arrows-rotate text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-blue-900 mb-1">Migração de gateway de pagamentos</h3>
+                        <p class="text-sm font-medium text-blue-700">
+                            Estamos migrando para um novo gateway de pagamentos. Em breve as opções de <strong>comprar proxies</strong> e <strong>recarregar saldo</strong> estarão disponíveis novamente. Agradecemos a compreensão!
+                        </p>
+                    </div>
+                </div>
+                <span class="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-100 text-blue-700 font-bold text-sm border border-blue-200">
+                    <i class="fas fa-clock text-sm"></i> Em breve
+                </span>
+            </div>
+
+            {{-- Aviso de reembolso pendente --}}
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+                    <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mx-auto md:mx-0">
+                        <i class="fas fa-rotate-left text-amber-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-amber-900 mb-1">Reembolso gerado e saldo não chegou?</h3>
+                        <p class="text-sm font-medium text-amber-700">
+                            Se você recebeu a confirmação de reembolso mas o saldo ainda não apareceu na sua carteira, entre em contato com o nosso suporte imediatamente.
+                        </p>
+                    </div>
+                </div>
+                <a href="https://wa.me/557798374278" target="_blank"
+                    class="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 hover:scale-105 transition-all text-sm shadow-md">
+                    <i class="fab fa-whatsapp text-lg"></i>
+                    <span>Falar com suporte</span>
+                </a>
+            </div>
+
             @include('dash.partials.saldo')
         </section>
 

@@ -108,8 +108,10 @@ class WebhookController extends Controller
                         ]);
 
                         // Salvar quais proxies foram alocados nesta transação
-                        $metadata['proxy_ids'] = collect($proxiesAlocados)->pluck('id')->toArray();
+                        $allocatedIds = collect($proxiesAlocados)->pluck('id')->toArray();
+                        $metadata['proxy_ids'] = $allocatedIds;
                         $transacao->metadata = $metadata;
+                        $transacao->stock_ids = $allocatedIds;
                         $transacao->save();
 
                         DB::commit();
@@ -254,8 +256,10 @@ class WebhookController extends Controller
                         ]);
 
                         // Salvar quais proxies foram alocados nesta transação
-                        $metadata['proxy_ids'] = collect($proxiesAlocados)->pluck('id')->toArray();
+                        $allocatedIds = collect($proxiesAlocados)->pluck('id')->toArray();
+                        $metadata['proxy_ids'] = $allocatedIds;
                         $transacao->metadata = $metadata;
+                        $transacao->stock_ids = $allocatedIds;
                         $transacao->save();
 
                         DB::commit();

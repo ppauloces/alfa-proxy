@@ -1052,9 +1052,11 @@ class LogadoController extends Controller
                             'motivo' => $request->motivo,
                         ]);
 
+                        $allocatedIds = collect($proxiesAlocados)->pluck('id')->toArray();
                         $metadata = $transacao->metadata;
-                        $metadata['proxy_ids'] = collect($proxiesAlocados)->pluck('id')->toArray();
+                        $metadata['proxy_ids'] = $allocatedIds;
                         $transacao->metadata = $metadata;
+                        $transacao->stock_ids = $allocatedIds;
                         $transacao->save();
 
                         DB::commit();
@@ -1253,9 +1255,11 @@ class LogadoController extends Controller
                 'motivo' => $request->motivo,
             ]);
 
+            $allocatedIds = collect($proxiesAlocados)->pluck('id')->toArray();
             $metadata = $transacao->metadata;
-            $metadata['proxy_ids'] = collect($proxiesAlocados)->pluck('id')->toArray();
+            $metadata['proxy_ids'] = $allocatedIds;
             $transacao->metadata = $metadata;
+            $transacao->stock_ids = $allocatedIds;
             $transacao->save();
 
             DB::commit();

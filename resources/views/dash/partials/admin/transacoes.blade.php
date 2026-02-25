@@ -189,6 +189,13 @@
                                         <i class="fas text-xs"
                                             :class="proxy.status === 'bloqueada' ? 'fa-lock-open' : 'fa-ban'"></i>
                                     </button>
+                                    {{-- Reembolsar --}}
+                                    <button type="button"
+                                        class="w-8 h-8 rounded-lg bg-slate-50 hover:bg-amber-500 text-slate-400 hover:text-white transition-all inline-flex items-center justify-center"
+                                        :onclick="`openReembolsoModal('${proxy.stock_id}', '${proxy.valor_unitario}', '${proxy.comprador}')`"
+                                        title="Reembolsar">
+                                        <i class="fas fa-rotate-left text-xs"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -390,6 +397,11 @@
                         <i class="fas text-xs" :class="sel?.status === 'bloqueada' ? 'fa-lock-open' : 'fa-ban'"></i>
                         <span x-text="sel?.status === 'bloqueada' ? 'Desbloquear' : 'Bloquear'"></span>
                     </button>
+                    <button type="button"
+                        class="px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-amber-50 text-slate-600 hover:text-amber-600 text-sm font-bold transition-colors flex items-center gap-2"
+                        :onclick="`openReembolsoModal('${sel?.stock_id}', '${sel?.valor_unitario}', '${sel?.comprador}')`">
+                        <i class="fas fa-rotate-left text-xs"></i> Reembolsar
+                    </button>
                 </div>
                 <button @click="showModal = false"
                     class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-sm font-bold text-slate-600 transition-colors">
@@ -584,6 +596,72 @@
             };
         }
 
+        // ============================================
+        // REEMBOLSAR PROXY
+        // ============================================
+        let pendingRefundStockId = null;
+
+        window.openReembolsoModal = function(stockId, valor, comprador) {
+            pendingRefundStockId = stockId;
+
+            const elValor = document.getElementById('reembolsoValor');
+            const elComprador = document.getElementById('reembolsoComprador');
+            if (elValor) elValor.textContent = (valor && valor !== 'null' && valor !== 'undefined')
+                ? 'R$ ' + parseFloat(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+                : '(sem valor registrado)';
+            if (elComprador) elComprador.textContent = (comprador && comprador !== 'null') ? '@' + comprador : 'o comprador';
+
+            const modal = document.getElementById('reembolsoModal');
+            if (!modal) return;
+            if (modal.parentNode !== document.body) document.body.appendChild(modal);
+            modal.classList.remove('hidden');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeReembolsoModal = function() {
+            const modal = document.getElementById('reembolsoModal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            pendingRefundStockId = null;
+        };
+
+        window.confirmarReembolso = async function() {
+            const stockId = pendingRefundStockId;
+            closeReembolsoModal();
+            if (!stockId) { showToast('Erro: ID da proxy nao encontrado.', 'error'); return; }
+
+            try {
+                const response = await fetch('/admin/proxy/reembolsar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    },
+                    body: JSON.stringify({ stock_id: stockId }),
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast(data.message || 'Reembolso realizado com sucesso!', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.error || 'Erro ao processar reembolso.', 'error');
+                }
+            } catch (err) {
+                showToast('Erro ao conectar com o servidor.', 'error');
+            }
+        };
+
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.id === 'reembolsoModal') closeReembolsoModal();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && pendingRefundStockId) closeReembolsoModal();
+        });
+
         document.addEventListener('click', async function handleTogglePort(e) {
             const toggleButton = e.target.closest('[data-toggle-port]');
             if (!toggleButton) return;
@@ -679,6 +757,53 @@
         });
     }
 </script>
+
+<!-- Modal de Confirmação de Reembolso -->
+<div id="reembolsoModal" class="admin-modal-overlay hidden">
+    <div class="admin-modal" style="max-width: 450px;">
+        <div class="p-6">
+            <!-- Header -->
+            <div class="flex items-start gap-4 mb-6">
+                <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-rotate-left text-amber-600 text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-xl font-bold text-slate-900 mb-1">Confirmar Reembolso</h3>
+                    <p class="text-sm text-slate-600">
+                        Reembolsar <strong id="reembolsoValor"></strong> para <strong id="reembolsoComprador"></strong>?
+                    </p>
+                </div>
+            </div>
+
+            <!-- Info -->
+            <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <div class="flex gap-3">
+                    <i class="fas fa-info-circle text-blue-600 mt-0.5 flex-shrink-0"></i>
+                    <div class="text-sm text-blue-800">
+                        <p class="font-semibold mb-1">O que acontecerá:</p>
+                        <ul class="text-xs space-y-1 text-blue-700">
+                            <li>✓ As credenciais do proxy serão <strong>recicladas</strong> (nova senha)</li>
+                            <li>✓ O proxy voltará ao <strong>estoque disponível</strong> para revenda</li>
+                            <li>✓ O valor será <strong>creditado no saldo</strong> do cliente</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ações -->
+            <div class="flex gap-3">
+                <button type="button" onclick="closeReembolsoModal()"
+                    class="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" onclick="confirmarReembolso()"
+                    class="flex-1 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors">
+                    <i class="fas fa-check"></i> Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <style>
     /* Reutiliza o mesmo override do daterangepicker do financeiro */

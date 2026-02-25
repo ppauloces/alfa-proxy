@@ -1239,25 +1239,41 @@ class AdminController extends Controller
             ? Carbon::parse($request->query('end_date'))->endOfDay()
             : Carbon::now()->endOfDay();
 
-        // Cards filtrados por período
-        $proxiesVendidos = Stock::where('disponibilidade', false)
-            ->whereBetween('updated_at', [$startDate, $endDate])
-            ->count();
-        $proxiesAtivos = Stock::where('disponibilidade', false)
-            ->where('bloqueada', false)
-            ->whereBetween('updated_at', [$startDate, $endDate])
-            ->count();
-        $proxiesBloqueados = Stock::where('bloqueada', true)
-            ->whereBetween('updated_at', [$startDate, $endDate])
-            ->count();
-        $receitaTotal = Transaction::where('status', 1)
+        // Transações pagas no período para derivar proxies e receita
+        $transacoesPeriodo = Transaction::where('status', 1)
+            ->whereIn('tipo', ['compra_proxy', 'renovacao'])
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->sum('valor');
+            ->get();
+
+        // IDs únicos de stocks referenciados pelas transações do período
+        $stockIdsNovos = $transacoesPeriodo
+            ->whereNotNull('stock_ids')
+            ->flatMap(fn($t) => $t->stock_ids ?? [])
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // Fallback: stocks com updated_at no período (cobre transações sem stock_ids)
+        $stockIdsFallback = Stock::where('disponibilidade', false)
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->pluck('id')
+            ->toArray();
+
+        $todosStockIds = collect(array_merge($stockIdsNovos, $stockIdsFallback))
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // Cards filtrados por período
+        $proxiesNoPeriodo = Stock::whereIn('id', $todosStockIds)->where('disponibilidade', false)->count();
+        $proxiesAtivos    = Stock::whereIn('id', $todosStockIds)->where('disponibilidade', false)->where('bloqueada', false)->count();
+        $proxiesBloqueados = Stock::whereIn('id', $todosStockIds)->where('bloqueada', true)->count();
+        $receitaTotal = $transacoesPeriodo->sum('valor');
 
         $soldProxyCards = [
             [
                 'label' => 'Total Vendidos',
-                'value' => number_format($proxiesVendidos, 0, ',', '.'),
+                'value' => number_format($proxiesNoPeriodo, 0, ',', '.'),
                 'chip' => 'Proxies',
             ],
             [
@@ -1277,13 +1293,25 @@ class AdminController extends Controller
             ],
         ];
 
+        // Mapear stock_id → transação para lookup rápido
+        $stockToTxn = [];
+        foreach ($transacoesPeriodo as $txn) {
+            if (!empty($txn->stock_ids)) {
+                foreach ($txn->stock_ids as $sid) {
+                    if (!isset($stockToTxn[$sid])) {
+                        $stockToTxn[$sid] = $txn;
+                    }
+                }
+            }
+        }
+
         // Lista de vendas filtrada
         $soldProxies = Stock::with(['user', 'vps'])
+            ->whereIn('id', $todosStockIds)
             ->where('disponibilidade', false)
-            ->whereBetween('updated_at', [$startDate, $endDate])
-            ->orderBy('updated_at', 'desc')
+            ->orderByDesc('updated_at')
             ->get()
-            ->map(function ($proxy) {
+            ->map(function ($proxy) use ($stockToTxn, $transacoesPeriodo) {
                 $expiracao = $proxy->expiracao ? Carbon::parse($proxy->expiracao) : null;
                 $diasRestantes = $expiracao ? now()->diffInDays($expiracao, false) : 0;
 
@@ -1295,30 +1323,35 @@ class AdminController extends Controller
                     ->where('disponibilidade', false)
                     ->count();
 
-                $transactions = Transaction::where('user_id', $proxy->user_id)
-                    ->where('tipo', 'compra_proxy')
-                    ->where('status', 1)
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+                // Buscar transação vinculada: 1) stock_ids direto, 2) temporal fallback
+                $matchedTransaction = $stockToTxn[$proxy->id] ?? null;
 
-                $matchedTransaction = $transactions->first(function ($txn) use ($proxy) {
-                    return abs(strtotime($txn->updated_at) - strtotime($proxy->updated_at)) < 120;
-                });
+                if (!$matchedTransaction) {
+                    $proxyTs = strtotime($proxy->updated_at);
+                    $matchedTransaction = $transacoesPeriodo
+                        ->where('user_id', $proxy->user_id)
+                        ->first(fn($txn) => abs(strtotime($txn->updated_at) - $proxyTs) < 120);
+                }
 
                 $metadata = [];
                 if ($matchedTransaction) {
                     $metaRaw = $matchedTransaction->metadata;
                     if (is_string($metaRaw)) {
-                        $metadata = json_decode($metaRaw, true);
+                        $metadata = json_decode($metaRaw, true) ?? [];
                     } elseif (is_array($metaRaw)) {
                         $metadata = $metaRaw;
                     }
                 }
 
+                // Data da venda: prefere created_at da transação, fallback updated_at do stock
+                $dataVenda = $matchedTransaction
+                    ? Carbon::parse($matchedTransaction->created_at)->format('d/m/Y')
+                    : $proxy->updated_at->format('d/m/Y');
+
                 return [
                     'id' => $proxy->id,
                     'stock_id' => $proxy->id,
-                    'data' => $proxy->updated_at->format('d/m/Y'),
+                    'data' => $dataVenda,
                     'endereco' => $proxy->ip . ':' . $proxy->porta,
                     'comprador' => $proxy->user->username ?? 'Anônimo',
                     'email' => $proxy->user->email ?? 'N/A',
@@ -1444,6 +1477,149 @@ class AdminController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => 'Erro ao reinstalar VPS: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Reembolsar proxy: bloqueia a porta, recicla o usuario Linux com nova senha,
+     * libera o stock para revenda e credita o valor_unitario no saldo do usuario.
+     */
+    public function reembolsarProxy(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'stock_id' => 'required|exists:stocks,id',
+            ]);
+
+            $stock = Stock::with('vps', 'user')->findOrFail($validated['stock_id']);
+
+            if (!$stock->user_id) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Este proxy nao esta atribuido a nenhum usuario.',
+                ], 422);
+            }
+
+            if (!$stock->vps) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'VPS nao encontrada para este proxy.',
+                ], 404);
+            }
+
+            $vps = $stock->vps;
+            $userId = $stock->user_id;
+
+            // Buscar valor_unitario na transacao de compra que contém este stock
+            // 1) Coluna dedicada stock_ids (transacoes novas)
+            $transacao = Transaction::where('user_id', $userId)
+                ->where('tipo', 'compra_proxy')
+                ->where('status', 1)
+                ->whereJsonContains('stock_ids', $stock->id)
+                ->first();
+
+            // 2) Fallback: metadata['proxy_ids'] (transacoes intermediarias)
+            if (!$transacao) {
+                $transacoes = Transaction::where('user_id', $userId)
+                    ->where('tipo', 'compra_proxy')
+                    ->where('status', 1)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+                $transacao = $transacoes->first(function ($txn) use ($stock) {
+                    $ids = $txn->metadata['proxy_ids'] ?? [];
+                    return is_array($ids) && in_array($stock->id, $ids);
+                });
+
+                // 3) Fallback por proximidade temporal (transacoes antigas sem nenhum id salvo)
+                if (!$transacao) {
+                    $transacao = $transacoes->first(function ($txn) use ($stock) {
+                        return abs(strtotime($txn->updated_at) - strtotime($stock->updated_at)) < 120;
+                    });
+                }
+            }
+
+            $valorReembolso = 0.0;
+            if ($transacao && isset($transacao->metadata['valor_unitario'])) {
+                $valorReembolso = (float) $transacao->metadata['valor_unitario'];
+            }
+
+
+
+            $pythonApiUrl = config('services.python_api.url', 'http://127.0.0.1:8001');
+
+
+            // 1) Reciclar usuario Linux (nova senha — invalida acesso do cliente imediatamente)
+            $reciclarPayload = [
+                'ip_vps'         => $vps->ip,
+                'user_ssh'       => $vps->usuario_ssh,
+                'senha_ssh'      => $vps->senha_ssh,
+                'usuario_proxy'  => $stock->usuario,
+            ];
+
+            $reciclarResponse = Http::timeout(30)->post("{$pythonApiUrl}/reciclar", $reciclarPayload);
+
+            if (!$reciclarResponse->successful()) {
+                Log::error('Reembolso: falha ao reciclar usuario proxy', [
+                    'stock_id' => $stock->id,
+                    'response' => $reciclarResponse->body(),
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Falha ao reciclar as credenciais do proxy no servidor.',
+                ], 500);
+            }
+
+            $reciclarData = $reciclarResponse->json();
+            $novaSenha = $reciclarData['nova_senha'] ?? $stock->senha;
+
+            // 2) Atualizar banco em transacao
+            $adminId = auth()->id();
+            DB::transaction(function () use ($stock, $novaSenha, $userId, $valorReembolso, $adminId) {
+                $stock->update([
+                    'senha'               => $novaSenha,
+                    'user_id'             => null,
+                    'disponibilidade'     => true,
+                    'bloqueada'           => false,
+                    'substituido'         => false,
+                    'substituido_por'     => null,
+                    'expiracao'           => null,
+                    'periodo_dias'        => null,
+                    'motivo_uso'          => null,
+                    'renovacao_automatica'=> false,
+                    'reembolsada'         => true,
+                    'reembolsado_por'     => $adminId,
+                    'reembolsado_em'      => now(),
+                ]);
+
+                if ($valorReembolso > 0) {
+                    User::where('id', $userId)->increment('saldo', $valorReembolso);
+                }
+            });
+
+            Log::info('Proxy reembolsada com sucesso', [
+                'stock_id'       => $stock->id,
+                'user_id'        => $userId,
+                'valor_reembolso'=> $valorReembolso,
+                'admin_id'       => auth()->id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Proxy reembolsada! Credenciais recicladas e saldo creditado.',
+                'valor_reembolso' => $valorReembolso,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Excecao ao reembolsar proxy', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao processar reembolso: ' . $e->getMessage(),
             ], 500);
         }
     }

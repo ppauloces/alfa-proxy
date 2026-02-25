@@ -19,12 +19,14 @@ class Transaction extends Model
         'status',
         'metodo_pagamento',
         'tipo',
-        'metadata'
+        'metadata',
+        'stock_ids',
     ];
 
     protected $casts = [
         'metadata' => 'array',
-        'valor' => 'decimal:2'
+        'stock_ids' => 'array',
+        'valor' => 'decimal:2',
     ];
 
     /**

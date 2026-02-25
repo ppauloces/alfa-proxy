@@ -45,64 +45,68 @@
 
     {{-- Área de Ações e Histórico --}}
     <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
-        <div class="flex border-b border-slate-50">
-            <button class="switch-tab flex-1 py-5 font-bold text-sm transition-all flex items-center justify-center gap-2 active text-[#23366f] bg-slate-50/50" data-view="add">
+        {{-- Tabs: bloqueadas com pointer-events-none --}}
+        <div class="flex border-b border-slate-50 pointer-events-none opacity-50 select-none">
+            <button class="switch-tab flex-1 py-5 font-bold text-sm flex items-center justify-center gap-2 text-[#23366f] bg-slate-50/50" tabindex="-1">
                 <i class="fas fa-plus-circle text-xs"></i> Adicionar Saldo
             </button>
-            <button class="switch-tab flex-1 py-5 font-bold text-sm transition-all flex items-center justify-center gap-2 text-slate-400 hover:bg-slate-50" data-view="history">
+            <button class="switch-tab flex-1 py-5 font-bold text-sm flex items-center justify-center gap-2 text-slate-400" tabindex="-1">
                 <i class="fas fa-history text-xs"></i> Histórico de Recargas
             </button>
         </div>
 
         <div class="p-10">
-            <!-- View: Adicionar Saldo -->
+            <!-- View: Adicionar Saldo — bloqueado -->
             <div id="addBalance" class="view-content animate-fadeIn">
-                <div class="max-w-3xl">
-                    <form action="{{ route('saldo.adicionar') }}" method="POST" id="rechargeForm" class="space-y-10">
+                <div class="max-w-3xl relative">
+                    {{-- Overlay de bloqueio --}}
+                    <div class="absolute inset-0 z-10 rounded-2xl bg-white/70 backdrop-blur-[2px] cursor-not-allowed" aria-hidden="true"></div>
+
+                    <form action="{{ route('saldo.adicionar') }}" method="POST" id="rechargeForm" class="space-y-10 pointer-events-none select-none opacity-60">
                         @csrf
                         <div>
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">01. Escolha um valor</label>
                             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                 @foreach([10, 25, 50, 100, 200, 500] as $amount)
-                                    <div class="amount-btn group p-6 rounded-2xl border-2 border-slate-50 hover:border-[#448ccb] hover:bg-blue-50/30 transition-all cursor-pointer text-center" data-amount="{{ $amount }}">
+                                    <div class="amount-btn p-6 rounded-2xl border-2 border-slate-50 text-center">
                                         <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">R$</p>
-                                        <p class="text-2xl font-black text-slate-900 group-hover:text-[#23366f] transition-colors">{{ $amount }}</p>
+                                        <p class="text-2xl font-black text-slate-900">{{ $amount }}</p>
                                     </div>
                                 @endforeach
                             </div>
-                            
+
                             <div class="mt-6 flex items-center gap-4">
                                 <div class="h-px flex-1 bg-slate-100"></div>
                                 <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">ou valor personalizado</span>
                                 <div class="h-px flex-1 bg-slate-100"></div>
                             </div>
 
-                            <div class="mt-6 relative max-w-xs">
-                                <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">R$</span>
-                                <input type="text" name="valor" id="customAmount" class="form-input pl-12 bg-slate-50 border-transparent focus:bg-white focus:border-[#448ccb] h-14 rounded-xl font-bold text-lg" placeholder="0,00" inputmode="decimal">
+                            <div class="mt-6 flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-xl h-14 px-5">
+                                <span class="text-slate-400 font-bold shrink-0">R$</span>
+                                <input type="text" name="valor" id="customAmount" class="flex-1 bg-transparent border-none outline-none font-bold text-lg text-slate-700 placeholder-slate-300" placeholder="0,00" inputmode="decimal" disabled>
                             </div>
                         </div>
 
                         <div>
                             <label class="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">02. Método de Pagamento</label>
                             <div class="grid md:grid-cols-3 gap-4">
-                                <div class="payment-method p-6 rounded-2xl border-2 border-slate-50 hover:border-[#23366f] transition-all cursor-pointer group" data-method="pix">
-                                    <i class="fas fa-qrcode text-2xl text-slate-300 group-hover:text-[#448ccb] mb-4 block"></i>
-                                    <p class="font-bold text-slate-900">PIX</p>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase">Aprovação Instantânea</p>
+                                <div class="p-6 rounded-2xl border-2 border-slate-100 bg-slate-50">
+                                    <i class="fas fa-qrcode text-2xl text-slate-300 mb-4 block"></i>
+                                    <p class="font-bold text-slate-400">PIX</p>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase">Em breve</p>
                                 </div>
-                                <div class="p-6 rounded-2xl border-2 border-slate-100 bg-slate-50 cursor-not-allowed opacity-60">
+                                <div class="p-6 rounded-2xl border-2 border-slate-100 bg-slate-50">
                                     <i class="fas fa-credit-card text-2xl text-slate-300 mb-4 block"></i>
                                     <p class="font-bold text-slate-400">Cartão</p>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase">Em breve</p>
                                 </div>
-                                <div class="p-6 rounded-2xl border-2 border-slate-100 bg-slate-50 cursor-not-allowed opacity-60">
+                                <div class="p-6 rounded-2xl border-2 border-slate-100 bg-slate-50">
                                     <i class="fab fa-bitcoin text-2xl text-slate-300 mb-4 block"></i>
                                     <p class="font-bold text-slate-400">Crypto</p>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase">Em breve</p>
                                 </div>
                             </div>
-                            <input type="hidden" name="metodo_pagamento" id="walletPaymentMethod" required>
+                            <input type="hidden" name="metodo_pagamento" id="walletPaymentMethod">
                         </div>
 
                         <div class="pt-6 border-t border-slate-50 flex flex-col md:flex-row items-center justify-between gap-6">
@@ -110,7 +114,7 @@
                                 <i class="fas fa-info-circle"></i>
                                 <p class="text-xs font-medium">O saldo será creditado imediatamente após a confirmação.</p>
                             </div>
-                            <button type="submit" class="w-full md:w-auto px-12 py-4 rounded-2xl bg-[#23366f] text-white font-black hover:scale-[1.02] transition-all shadow-xl shadow-blue-900/20">
+                            <button type="button" disabled class="w-full md:w-auto px-12 py-4 rounded-2xl bg-slate-200 text-slate-400 font-black cursor-not-allowed">
                                 Confirmar Recarga
                             </button>
                         </div>

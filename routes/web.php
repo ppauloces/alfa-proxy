@@ -107,6 +107,7 @@ Route::middleware(AdminMiddleware::class)->group(function () {
     // Gerenciamento de portas (bloqueio/desbloqueio)
     Route::post('/admin/proxy/bloquear', [AdminController::class, 'bloquearProxy'])->name('proxy.bloquear');
     Route::post('/admin/proxy/desbloquear', [AdminController::class, 'desbloquearProxy'])->name('proxy.desbloquear');
+    Route::post('/admin/proxy/reembolsar', [AdminController::class, 'reembolsarProxy'])->name('proxy.reembolsar');
 
     // Substituição de proxy caído
     Route::post('/admin/proxy/substituir', [AdminController::class, 'substituirProxy'])->name('proxy.substituir');

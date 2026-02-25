@@ -27,7 +27,10 @@ class Stock extends Model
         'uso_interno',
         'finalidade_interna',
         'substituido',
-        'substituido_por'
+        'substituido_por',
+        'reembolsada',
+        'reembolsado_por',
+        'reembolsado_em',
     ];
 
 
@@ -49,6 +52,8 @@ class Stock extends Model
         'bloqueada' => 'boolean',
         'uso_interno' => 'boolean',
         'substituido' => 'boolean',
+        'reembolsada' => 'boolean',
+        'reembolsado_em' => 'datetime',
     ];
 
     public function substituto()

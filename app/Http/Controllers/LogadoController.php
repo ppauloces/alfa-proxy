@@ -558,7 +558,6 @@ class LogadoController extends Controller
 
             $soldProxies = Stock::with(['user', 'vps'])
                 ->where('disponibilidade', false)
-                ->orderBy('updated_at', 'desc')
                 ->get()
                 ->map(function ($proxy) {
                     $expiracao = $proxy->expiracao ? Carbon::parse($proxy->expiracao) : null;
@@ -596,10 +595,16 @@ class LogadoController extends Controller
                         }
                     }
 
+                    // Data da venda: prefere created_at da transação, fallback created_at do stock
+                    $txnCreatedAt = $matchedTransaction
+                        ? Carbon::parse($matchedTransaction->created_at)
+                        : Carbon::parse($proxy->created_at);
+
                     return [
                         'id' => $proxy->id,
                         'stock_id' => $proxy->id,
-                        'data' => $proxy->updated_at->format('d/m/Y'),
+                        'data' => $txnCreatedAt->format('d/m/Y'),
+                        'txn_sort' => $txnCreatedAt->timestamp,
                         'endereco' => $proxy->ip . ':' . $proxy->porta,
                         'comprador' => $proxy->user->username ?? 'Anônimo',
                         'email' => $proxy->user->email ?? 'N/A',
@@ -611,14 +616,15 @@ class LogadoController extends Controller
                         'periodo' => $diasRestantes > 0 ? $diasRestantes . ' dias' : 'Expirado',
                         'gasto_cliente' => 'R$ ' . number_format($gastoCliente, 2, ',', '.'),
                         'pedidos' => $pedidos,
-
-                        // Novo: dados da transação associada
                         'valor_unitario' => $metadata['valor_unitario'] ?? null,
                         'periodo_comprado' => $metadata['periodo'] ?? null,
                         'motivo' => $metadata['motivo'] ?? null,
                     ];
 
-                })->toArray();
+                })
+                ->sortByDesc('txn_sort')
+                ->values()
+                ->toArray();
         }
 
         // Buscar proxies do usuário agrupados por tipo

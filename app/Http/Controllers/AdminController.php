@@ -1309,7 +1309,6 @@ class AdminController extends Controller
         $soldProxies = Stock::with(['user', 'vps'])
             ->whereIn('id', $todosStockIds)
             ->where('disponibilidade', false)
-            ->orderByDesc('updated_at')
             ->get()
             ->map(function ($proxy) use ($stockToTxn, $transacoesPeriodo) {
                 $expiracao = $proxy->expiracao ? Carbon::parse($proxy->expiracao) : null;
@@ -1343,15 +1342,18 @@ class AdminController extends Controller
                     }
                 }
 
-                // Data da venda: prefere created_at da transação, fallback updated_at do stock
-                $dataVenda = $matchedTransaction
-                    ? Carbon::parse($matchedTransaction->created_at)->format('d/m/Y')
-                    : $proxy->updated_at->format('d/m/Y');
+                // Data da venda: prefere created_at da transação, fallback created_at do stock
+                $txnCreatedAt = $matchedTransaction
+                    ? Carbon::parse($matchedTransaction->created_at)
+                    : Carbon::parse($proxy->created_at);
+
+                $dataVenda = $txnCreatedAt->format('d/m/Y');
 
                 return [
                     'id' => $proxy->id,
                     'stock_id' => $proxy->id,
                     'data' => $dataVenda,
+                    'txn_sort' => $txnCreatedAt->timestamp,
                     'endereco' => $proxy->ip . ':' . $proxy->porta,
                     'comprador' => $proxy->user->username ?? 'Anônimo',
                     'email' => $proxy->user->email ?? 'N/A',
@@ -1367,7 +1369,9 @@ class AdminController extends Controller
                     'periodo_comprado' => $metadata['periodo'] ?? null,
                     'motivo' => $metadata['motivo'] ?? null,
                 ];
-            })->values();
+            })
+            ->sortByDesc('txn_sort')
+            ->values();
 
         return response()->json([
             'soldProxyCards' => $soldProxyCards,
@@ -1630,5 +1634,65 @@ class AdminController extends Controller
                 'error' => 'Erro ao processar reembolso: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function usuarioDetalhes(int $id): \Illuminate\Http\JsonResponse
+    {
+        $user = User::findOrFail($id);
+
+        $proxies = Stock::where('user_id', $id)
+            ->where('disponibilidade', false)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($stock) {
+                $expiracao = $stock->expiracao ? Carbon::parse($stock->expiracao) : null;
+                $diasRestantes = $expiracao ? (int) now()->diffInDays($expiracao, false) : 0;
+
+                return [
+                    'id'             => $stock->id,
+                    'endereco'       => $stock->ip . ':' . $stock->porta,
+                    'ip'             => $stock->ip,
+                    'porta'          => $stock->porta,
+                    'usuario'        => $stock->usuario,
+                    'senha'          => $stock->senha,
+                    'status'         => $stock->substituido ? 'substituida' : ($stock->bloqueada ? 'bloqueada' : 'ativa'),
+                    'periodo'        => $diasRestantes,
+                    'expiracao'      => $expiracao ? $expiracao->format('d/m/Y') : '—',
+                    'motivo_uso'     => $stock->motivo_uso,
+                    'periodo_dias'   => $stock->periodo_dias,
+                    'data_compra'    => $stock->created_at->format('d/m/Y'),
+                    'reembolsada'    => (bool) $stock->reembolsada,
+                ];
+            });
+
+        $transacoes = Transaction::where('user_id', $id)
+            ->where('status', 1)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($txn) {
+                $meta = is_array($txn->metadata) ? $txn->metadata : (json_decode($txn->metadata, true) ?? []);
+                return [
+                    'id'         => $txn->id,
+                    'tipo'       => $txn->tipo,
+                    'valor'      => number_format($txn->valor, 2, ',', '.'),
+                    'data'       => Carbon::parse($txn->created_at)->format('d/m/Y H:i'),
+                    'quantidade' => $meta['quantidade'] ?? null,
+                    'periodo'    => $meta['periodo'] ?? null,
+                ];
+            });
+
+        return response()->json([
+            'user' => [
+                'id'       => $user->id,
+                'name'     => $user->name,
+                'username' => $user->username,
+                'email'    => $user->email,
+                'saldo'    => number_format($user->saldo, 2, ',', '.'),
+                'cargo'    => $user->cargo,
+                'created_at' => Carbon::parse($user->created_at)->format('d/m/Y'),
+            ],
+            'proxies'    => $proxies,
+            'transacoes' => $transacoes,
+        ]);
     }
 }

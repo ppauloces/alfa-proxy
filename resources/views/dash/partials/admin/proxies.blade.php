@@ -271,7 +271,7 @@
             <label class="flex flex-col gap-2">
                 <span class="text-slate-500 font-semibold">Usuário (ex: root)*</span>
                 <input type="text" name="usuario_ssh" class="form-input @error('usuario_ssh') border-red-500 @enderror"
-                    placeholder="root" value="{{ old('usuario_ssh') }}" value="root" required>
+                    placeholder="root" value="{{ 'root' }}" required>
                 @error('usuario_ssh')
                     <span class="text-xs text-red-500">{{ $message }}</span>
                 @enderror

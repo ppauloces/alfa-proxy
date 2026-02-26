@@ -6,6 +6,7 @@ use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\PostbackController;
 use App\Http\Controllers\RecuperarSenhaController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\WebhookController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartaoController;
@@ -149,3 +150,6 @@ Route::middleware(AdminMiddleware::class)->group(function () {
     // Geolocalização de IP (proxy server-side para evitar CORS)
     Route::get('/admin/ip-geolocation', [AdminController::class, 'ipGeolocation'])->name('admin.ip-geolocation');
 });
+
+// Webhook XGate sem prefixo /api (a XGate envia para /webhook/xgate)
+Route::post('/webhook/xgate', [WebhookController::class, 'xgate']);

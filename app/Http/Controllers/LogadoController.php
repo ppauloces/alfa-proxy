@@ -11,12 +11,16 @@ use App\Models\Despesa;
 use App\Services\ProxyAllocationService;
 use App\Services\AsaasService;
 use App\Services\AbacatePayService;
+use App\Services\XGateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Rules\CpfCnpj;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
+use chillerlan\QRCode\Output\QROutputInterface;
 
 
 class LogadoController extends Controller
@@ -925,7 +929,7 @@ class LogadoController extends Controller
         return redirect()->route('dash.show', ['section' => 'nova-compra']);
     }
 
-    public function processarCompra(Request $request, ProxyAllocationService $proxyService, AsaasService $asaas, AbacatePayService $abacatePay)
+    public function processarCompra(Request $request, ProxyAllocationService $proxyService, XGateService $xgate)
     {
         $request->validateWithBag('novaCompra', [
             'pais' => 'required',
@@ -1106,138 +1110,101 @@ class LogadoController extends Controller
                 }
             }
 
-            // Se for PIX, criar QR Code (Asaas como primário, AbacatePay como fallback)
+            // PIX: XGate como primário, AbacatePay como fallback
             if ($request->metodo_pagamento === 'pix') {
                 $isAjax = $request->ajax() || $request->wantsJson();
 
-                $pixPayload = [
-                    'amount' => (int) ($valorTotal * 100), // Converter para centavos
-                    'expiresIn' => 1800, // 30 minutos em segundos
-                    'description' => sprintf('%d Proxy(s) %s - %d dias', $request->quantidade, $request->pais, $request->periodo),
-                    'customer' => [
-                        'name' => $usuario->name,
-                        'cellphone' => $usuario->phone ?? '',
-                        'email' => $usuario->email,
-                        'taxId' => $usuario->cpf ?? '', // Asaas exige CPF válido, AbacatePay aceita vazio
-                    ],
-                    'metadata' => [
-                        'externalId' => $transacao->transacao,
-                        'user_id' => Auth::id(),
-                        'tipo' => 'compra_proxy',
-                    ],
-                ];
-
-                $pixData = null;
+                $pixData     = null;
                 $usedGateway = null;
-                $lastError = null;
 
+                // Tentar XGate primeiro
                 try {
-                    // AbacatePay pode ter requisitos diferentes - garantir taxId válido
-                    $abacatePayLoad = $pixPayload;
-                    if (empty($abacatePayLoad['customer']['taxId'])) {
-                        // AbacatePay pode exigir CPF, usar placeholder se não disponível
-                        $abacatePayLoad['customer']['taxId'] = '00000000000';
-                    }
-                    if (empty($abacatePayLoad['customer']['cellphone'])) {
-                        $abacatePayLoad['customer']['cellphone'] = '00000000000';
-                    }
+                    $customerId = $xgate->getOrCreateCustomer($usuario);
+                    $raw        = $xgate->createPixDeposit($valorTotal, $customerId, $transacao->transacao);
 
-                    $abacatePayLoad['metadata'] = (object) array_map('strval', $pixPayload['metadata']);
+                    $pixData = [
+                        'id'           => $raw['id'],
+                        'brCode'       => $raw['code'],
+                        'brCodeBase64' => $this->generateQrBase64($raw['code']),
+                        'expiresAt'    => now()->addMinutes(10)->toIso8601String(),
+                    ];
+                    $usedGateway = 'xgate';
 
-                    $transacao->gateway_type = 'abacatepay';
-                    $transacao->save();
-
-
-                    $pixData = $abacatePay->createPix($abacatePayLoad);
-                    $usedGateway = 'abacatepay';
-                    \Log::info('PIX criado via AbacatePay (fallback)', ['pix_id' => $pixData['id']]);
+                    \Log::info('PIX criado via XGate', ['pix_id' => $raw['id']]);
                 } catch (\Exception $e) {
-                    DB::rollBack();
-                    // $errorMsg = $lastError
-                    //     ? "Asaas: {$lastError} | AbacatePay: {$e->getMessage()}"
-                    //     : $e->getMessage();
-
-                    // if ($isAjax) {
-                    //     return response()->json([
-                    //         'success' => false,
-                    //         'error' => 'Erro ao gerar PIX: ' . $errorMsg,
-                    //     ], 500);
-                    // }
-                    // return back()
-                    //     ->withErrors(['error' => 'Erro ao gerar PIX: ' . $errorMsg], 'novaCompra')
-                    //     ->withInput();
+                    \Log::warning('XGate falhou, tentando AbacatePay', ['error' => $e->getMessage()]);
                 }
 
-                // Tentar Asaas primeiro
-                if (!$pixData && $asaas->isConfigured()) {
+                // Fallback: AbacatePay
+                if (!$pixData) {
                     try {
-                        $pixData = $asaas->createPix($pixPayload);
-                        $usedGateway = 'asaas';
-                        $transacao->gateway_type = 'asaas';
-                        $transacao->save();
+                        $abacatePayLoad = [
+                            'amount'      => (int) ($valorTotal * 100),
+                            'expiresIn'   => 1800,
+                            'description' => sprintf('%d Proxy(s) %s - %d dias', $request->quantidade, $request->pais, $request->periodo),
+                            'customer'    => [
+                                'name'      => $usuario->name,
+                                'cellphone' => $usuario->phone ?: '00000000000',
+                                'email'     => $usuario->email,
+                                'taxId'     => $usuario->cpf  ?: '00000000000',
+                            ],
+                            'metadata'    => (object) [
+                                'externalId' => $transacao->transacao,
+                                'user_id'    => (string) Auth::id(),
+                                'tipo'       => 'compra_proxy',
+                            ],
+                        ];
+
+                        $pixData     = app(AbacatePayService::class)->createPix($abacatePayLoad);
+                        $usedGateway = 'abacatepay';
+
+                        \Log::info('PIX criado via AbacatePay (fallback)', ['pix_id' => $pixData['id']]);
                     } catch (\Exception $e) {
-                        $lastError = $e->getMessage();
-                        \Log::warning('Asaas falhou, tentando AbacatePay', ['error' => $e->getMessage()]);
+                        \Log::error('AbacatePay também falhou na compra', ['error' => $e->getMessage()]);
                     }
                 }
 
-
-                // Se nenhum gateway conseguiu gerar o PIX, retornar erro
                 if (!$pixData) {
                     DB::rollBack();
-                    $errorMsg = 'Erro ao processar compra: nenhum gateway de pagamento disponível. Tente novamente.';
+                    $errorMsg = 'Erro ao gerar PIX. Tente novamente.';
 
                     if ($isAjax) {
-                        return response()->json([
-                            'success' => false,
-                            'error' => $errorMsg,
-                        ], 500);
+                        return response()->json(['success' => false, 'error' => $errorMsg], 500);
                     }
 
-                    return back()
-                        ->withErrors(['error' => $errorMsg], 'novaCompra')
-                        ->withInput();
+                    return back()->withErrors(['error' => $errorMsg], 'novaCompra')->withInput();
                 }
 
-                // Atualizar transação com dados do gateway usado
-                $metadata = $transacao->metadata;
+                $transacao->gateway_type = $usedGateway;
+                $metadata                = $transacao->metadata;
                 $metadata['pix_gateway'] = $usedGateway;
-                $metadata[$usedGateway] = [
-                    'pix_id' => $pixData['id'],
-                    'dev_mode' => $pixData['devMode'] ?? false,
-                    'expires_at' => $pixData['expiresAt'],
-                ];
-                $transacao->metadata = $metadata;
+                $metadata[$usedGateway]  = ['pix_id' => $pixData['id']];
+                $transacao->metadata     = $metadata;
                 $transacao->save();
 
                 DB::commit();
 
-                // Calcular timestamp de expiração
-                $expiresAt = \Carbon\Carbon::parse($pixData['expiresAt']);
-
+                $expiresAt    = \Carbon\Carbon::parse($pixData['expiresAt']);
                 $pixModalData = [
-                    'transaction_id' => $transacao->id,
+                    'transaction_id'   => $transacao->id,
                     'transaction_code' => $transacao->transacao,
-                    'pix_id' => $pixData['id'],
-                    'valor' => $valorTotal,
-                    'copia_e_cola' => $pixData['brCode'],
-                    'qr_code_base64' => $pixData['brCodeBase64'],
-                    'expira_em' => $expiresAt->format('d/m/Y H:i'),
+                    'pix_id'           => $pixData['id'],
+                    'valor'            => $valorTotal,
+                    'copia_e_cola'     => $pixData['brCode'],
+                    'qr_code_base64'   => $pixData['brCodeBase64'],
                     'expira_timestamp' => $expiresAt->timestamp,
-                    'dev_mode' => $pixData['devMode'] ?? false,
-                    'gateway' => $usedGateway,
+                    'expira_em'        => $expiresAt->format('d/m/Y H:i'),
+                    'gateway'          => $usedGateway,
                 ];
 
-                // Se for AJAX, retornar JSON
                 if ($isAjax) {
                     return response()->json([
-                        'success' => true,
+                        'success'   => true,
                         'pix_modal' => $pixModalData,
-                        'redirect' => route('dash.show', ['section' => 'nova-compra']),
+                        'redirect'  => route('dash.show', ['section' => 'nova-compra']),
                     ]);
                 }
 
-                // Retornar para dashboard com modal PIX
                 return redirect()
                     ->route('dash.show', ['section' => 'nova-compra'])
                     ->with('pix_modal', $pixModalData);
@@ -1283,7 +1250,7 @@ class LogadoController extends Controller
     /**
      * Processar renovação de proxy via PIX
      */
-    public function processarRenovacao(Request $request, AsaasService $asaas, AbacatePayService $abacatePay)
+    public function processarRenovacao(Request $request, XGateService $xgate)
     {
         // Validar dados de entrada
         $validated = $request->validate([
@@ -1333,103 +1300,90 @@ class LogadoController extends Controller
                 ],
             ]);
 
-            // Criar PIX (Asaas como primário, AbacatePay como fallback)
-            $pixPayload = [
-                'amount' => (int) ($valorTotal * 100), // Converter para centavos
-                'expiresIn' => 1800, // 30 minutos
-                'description' => sprintf('Renovação Proxy %s:%s - %d dias', $proxy->ip, $proxy->porta, $validated['periodo']),
-                'customer' => [
-                    'name' => $usuario->name,
-                    'cellphone' => $usuario->phone ?? '',
-                    'email' => $usuario->email,
-                    'taxId' => $usuario->cpf ?? '', // Asaas exige CPF válido, AbacatePay aceita vazio
-                ],
-                'metadata' => [
-                    'externalId' => $transacao->transacao,
-                    'user_id' => Auth::id(),
-                    'tipo' => 'renovacao',
-                    'proxy_id' => $proxy->id,
-                ],
-            ];
-
-            $pixData = null;
+            // PIX: XGate como primário, AbacatePay como fallback
+            $pixData     = null;
             $usedGateway = null;
-            $lastError = null;
 
+            // Tentar XGate primeiro
             try {
-                $abacatePayLoad = $pixPayload;
-                if (empty($abacatePayLoad['customer']['taxId'])) {
-                    $abacatePayLoad['customer']['taxId'] = '00000000000';
-                }
-                if (empty($abacatePayLoad['customer']['cellphone'])) {
-                    $abacatePayLoad['customer']['cellphone'] = '00000000000';
-                }
+                $customerId = $xgate->getOrCreateCustomer($usuario);
+                $raw        = $xgate->createPixDeposit($valorTotal, $customerId, $transacao->transacao);
 
-                $abacatePayLoad['metadata'] = (object) array_map('strval', $pixPayload['metadata']);
+                $pixData = [
+                    'id'           => $raw['id'],
+                    'brCode'       => $raw['code'],
+                    'brCodeBase64' => $this->generateQrBase64($raw['code']),
+                    'expiresAt'    => now()->addMinutes(10)->toIso8601String(),
+                ];
+                $usedGateway = 'xgate';
 
-                $transacao->gateway_type = 'abacatepay';
-                $transacao->save();
-
-                $pixData = $abacatePay->createPix($abacatePayLoad);
-                $usedGateway = 'abacatepay';
-                \Log::info('PIX renovação criado via AbacatePay (fallback)', ['pix_id' => $pixData['id']]);
+                \Log::info('PIX renovação criado via XGate', ['pix_id' => $raw['id']]);
             } catch (\Exception $e) {
-                $lastError = $e->getMessage();
-                \Log::warning('AbacatePay falhou na renovação, tentando Asaas', ['error' => $e->getMessage()]);
+                \Log::warning('XGate falhou na renovação, tentando AbacatePay', ['error' => $e->getMessage()]);
             }
 
-            if (!$pixData && $asaas->isConfigured()) {
+            // Fallback: AbacatePay
+            if (!$pixData) {
                 try {
-                    $pixData = $asaas->createPix($pixPayload);
-                    $usedGateway = 'asaas';
-                    $transacao->gateway_type = 'asaas';
-                    $transacao->save();
+                    $abacatePayLoad = [
+                        'amount'      => (int) ($valorTotal * 100),
+                        'expiresIn'   => 1800,
+                        'description' => sprintf('Renovação Proxy %s:%s - %d dias', $proxy->ip, $proxy->porta, $validated['periodo']),
+                        'customer'    => [
+                            'name'      => $usuario->name,
+                            'cellphone' => $usuario->phone ?: '00000000000',
+                            'email'     => $usuario->email,
+                            'taxId'     => $usuario->cpf  ?: '00000000000',
+                        ],
+                        'metadata'    => (object) [
+                            'externalId' => $transacao->transacao,
+                            'user_id'    => (string) Auth::id(),
+                            'tipo'       => 'renovacao',
+                            'proxy_id'   => (string) $proxy->id,
+                        ],
+                    ];
+
+                    $pixData     = app(AbacatePayService::class)->createPix($abacatePayLoad);
+                    $usedGateway = 'abacatepay';
+
+                    \Log::info('PIX renovação criado via AbacatePay (fallback)', ['pix_id' => $pixData['id']]);
                 } catch (\Exception $e) {
-                    $lastError = $e->getMessage();
-                    \Log::warning('Asaas falhou na renovação, tentando AbacatePay', ['error' => $e->getMessage()]);
+                    \Log::error('AbacatePay também falhou na renovação', ['error' => $e->getMessage()]);
                 }
             }
 
-            // Se nenhum gateway conseguiu gerar o PIX, retornar erro
             if (!$pixData) {
                 DB::rollBack();
                 return response()->json([
                     'success' => false,
-                    'error' => 'Erro ao gerar PIX para renovação. Tente novamente.',
+                    'error'   => 'Erro ao gerar PIX para renovação. Tente novamente.',
                 ], 500);
             }
 
-            // Atualizar transação com dados do gateway usado
-            $metadata = $transacao->metadata;
+            $transacao->gateway_type = $usedGateway;
+            $metadata                = $transacao->metadata;
             $metadata['pix_gateway'] = $usedGateway;
-            $metadata[$usedGateway] = [
-                'pix_id' => $pixData['id'],
-                'dev_mode' => $pixData['devMode'] ?? false,
-                'expires_at' => $pixData['expiresAt'],
-            ];
-            $transacao->metadata = $metadata;
+            $metadata[$usedGateway]  = ['pix_id' => $pixData['id']];
+            $transacao->metadata     = $metadata;
             $transacao->save();
 
             DB::commit();
 
-            // Calcular timestamp de expiração
             $expiresAt = \Carbon\Carbon::parse($pixData['expiresAt']);
 
-            // Retornar sucesso com redirecionamento para modal PIX
             return response()->json([
-                'success' => true,
-                'redirect' => route('dash.show', ['section' => 'proxies']),
+                'success'   => true,
+                'redirect'  => route('dash.show', ['section' => 'proxies']),
                 'pix_modal' => [
-                    'transaction_id' => $transacao->id,
+                    'transaction_id'   => $transacao->id,
                     'transaction_code' => $transacao->transacao,
-                    'pix_id' => $pixData['id'],
-                    'valor' => $valorTotal,
-                    'copia_e_cola' => $pixData['brCode'],
-                    'qr_code_base64' => $pixData['brCodeBase64'],
-                    'expira_em' => $expiresAt->format('d/m/Y H:i'),
+                    'pix_id'           => $pixData['id'],
+                    'valor'            => $valorTotal,
+                    'copia_e_cola'     => $pixData['brCode'],
+                    'qr_code_base64'   => $pixData['brCodeBase64'],
                     'expira_timestamp' => $expiresAt->timestamp,
-                    'dev_mode' => $pixData['devMode'] ?? false,
-                    'gateway' => $usedGateway,
+                    'expira_em'        => $expiresAt->format('d/m/Y H:i'),
+                    'gateway'          => $usedGateway,
                 ],
             ]);
 
@@ -1553,17 +1507,133 @@ class LogadoController extends Controller
             }
         }
 
-        // PIX ou Boleto - manter lógica antiga
+        // PIX via XGate (primário) + AbacatePay (fallback)
+        if ($request->metodo_pagamento === 'pix') {
+            $externalRef = 'TXN-' . strtoupper(uniqid());
+
+            $transacao = Transaction::create([
+                'user_id'           => Auth::id(),
+                'email'             => $user->email,
+                'transacao'         => $externalRef,
+                'valor'             => $request->valor,
+                'status'            => 0,
+                'metodo_pagamento'  => 'pix',
+                'payment_method'    => 'pix',
+                'tipo'              => 'recarga',
+                'gateway_type'      => null,
+                'metadata'          => [
+                    'tipo'   => 'recarga',
+                    'motivo' => 'Recarga de saldo',
+                ],
+            ]);
+
+            DB::beginTransaction();
+
+            $pixData     = null;
+            $usedGateway = null;
+
+            // Tentar XGate primeiro
+            try {
+                $xgate      = app(XGateService::class);
+                $customerId = $xgate->getOrCreateCustomer($user);
+                $raw        = $xgate->createPixDeposit((float) $request->valor, $customerId, $externalRef);
+
+                $pixData = [
+                    'id'           => $raw['id'],
+                    'brCode'       => $raw['code'],
+                    'brCodeBase64' => $this->generateQrBase64($raw['code']),
+                    'expiresAt'    => now()->addMinutes(10)->toIso8601String(),
+                ];
+                $usedGateway = 'xgate';
+
+                \Log::info('PIX recarga criado via XGate', ['pix_id' => $raw['id']]);
+            } catch (\Exception $e) {
+                \Log::warning('XGate falhou na recarga, tentando AbacatePay', ['error' => $e->getMessage()]);
+            }
+
+            // Fallback: AbacatePay
+            if (!$pixData) {
+                try {
+                    $abacatePayLoad = [
+                        'amount'      => (int) ($request->valor * 100),
+                        'expiresIn'   => 1800,
+                        'description' => 'Recarga de saldo - R$ ' . number_format($request->valor, 2, ',', '.'),
+                        'customer'    => [
+                            'name'      => $user->name,
+                            'cellphone' => $user->phone ?: '00000000000',
+                            'email'     => $user->email,
+                            'taxId'     => $user->cpf  ?: '00000000000',
+                        ],
+                        'metadata'    => (object) [
+                            'externalId' => $externalRef,
+                            'user_id'    => (string) Auth::id(),
+                            'tipo'       => 'recarga',
+                        ],
+                    ];
+
+                    $pixData     = app(AbacatePayService::class)->createPix($abacatePayLoad);
+                    $usedGateway = 'abacatepay';
+
+                    \Log::info('PIX recarga criado via AbacatePay (fallback)', ['pix_id' => $pixData['id']]);
+                } catch (\Exception $e) {
+                    \Log::error('AbacatePay também falhou na recarga', ['error' => $e->getMessage()]);
+                }
+            }
+
+            if (!$pixData) {
+                DB::rollBack();
+                $transacao->delete();
+
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => false, 'error' => 'Erro ao gerar PIX. Tente novamente.'], 500);
+                }
+
+                return redirect()->route('dash.show', ['section' => 'saldo'])
+                    ->withErrors(['error' => 'Erro ao gerar PIX. Tente novamente.'], 'saldo');
+            }
+
+            $transacao->gateway_type               = $usedGateway;
+            $meta                                  = $transacao->metadata;
+            $meta['pix_gateway']                   = $usedGateway;
+            $meta[$usedGateway]                    = ['pix_id' => $pixData['id']];
+            $transacao->metadata                   = $meta;
+            $transacao->save();
+
+            DB::commit();
+
+            $expiresAt    = \Carbon\Carbon::parse($pixData['expiresAt']);
+            $pixModalData = [
+                'transaction_id'   => $transacao->id,
+                'transaction_code' => $externalRef,
+                'pix_id'           => $pixData['id'],
+                'valor'            => (float) $request->valor,
+                'copia_e_cola'     => $pixData['brCode'],
+                'qr_code_base64'   => $pixData['brCodeBase64'],
+                'expira_timestamp' => $expiresAt->timestamp,
+                'expira_em'        => $expiresAt->format('d/m/Y H:i'),
+                'gateway'          => $usedGateway,
+            ];
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'pix_modal' => $pixModalData]);
+            }
+
+            return redirect()
+                ->route('dash.show', ['section' => 'saldo'])
+                ->with('pix_modal', $pixModalData);
+        }
+
+        // Outros métodos (boleto, etc.) - placeholder
         $transacao = Transaction::create([
-            'user_id' => Auth::id(),
-            'valor' => $request->valor,
-            'status' => 0, // Pendente
+            'user_id'          => Auth::id(),
+            'valor'            => $request->valor,
+            'status'           => 0,
             'metodo_pagamento' => $request->metodo_pagamento,
-            'payment_method' => $request->metodo_pagamento,
-            'tipo' => 'recarga',
+            'payment_method'   => $request->metodo_pagamento,
+            'tipo'             => 'recarga',
         ]);
 
-        return redirect()->route('saldo.show')->with('success', 'Solicitação de recarga criada! Aguardando pagamento.');
+        return redirect()->route('dash.show', ['section' => 'saldo'])->with('success', 'Solicitação de recarga criada! Aguardando pagamento.');
     }
 
     // Histórico de Transações
@@ -1662,6 +1732,16 @@ class LogadoController extends Controller
                 'error' => 'Erro ao conectar com servidor de testes: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    private function generateQrBase64(string $text): string
+    {
+        $options = new QROptions;
+        $options->outputType = QROutputInterface::GDIMAGE_PNG;
+        $options->scale      = 6;
+        $options->imageBase64 = true;
+
+        return (new QRCode($options))->render($text);
     }
 
 }

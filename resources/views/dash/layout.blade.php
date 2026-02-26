@@ -37,7 +37,7 @@
     <noscript><img height="1" width="1" style="display:none"
             src="https://www.facebook.com/tr?id=1162827325630978&ev=PageView&noscript=1" /></noscript>
     <!-- End Meta Pixel Code -->
-    @vite(['resources/css/app.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         :root {
             --sf-dark: #0f172a;

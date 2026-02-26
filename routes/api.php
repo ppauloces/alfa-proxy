@@ -16,6 +16,10 @@ Route::post('/postback/transacao', [PostbackController::class, 'handle'])->name(
 //Webhooks
 Route::post('/webhook/abacatepay', [WebhookController::class, 'abacatepay']);
 Route::post('/webhook/asaas', [WebhookController::class, 'asaas']);
+Route::post('/webhook/xgate', [WebhookController::class, 'xgate']);
+
+// Alias sem prefixo /api (compatibilidade com painéis que não suportam /api)
+Route::post('/xgate-webhook', [WebhookController::class, 'xgate']);
 
 //API Endpoints
 Route::get('/transacao/{transacao_id}', [ApiController::class, 'transacao_status']);

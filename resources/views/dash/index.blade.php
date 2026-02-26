@@ -2230,14 +2230,8 @@
                     <!-- QR Code -->
                     <div class="bg-white p-4 rounded-xl mb-4 flex items-center justify-center" style="min-height: 200px;">
                         ${pixData.qr_code_base64
-                        ? `<img src="${pixData.qr_code_base64}" alt="QR Code PIX" class="max-w-full h-auto"
-                            style="max-height: 250px;">`
-                        : `<div class="text-center">
-                            <svg class="w-32 h-32 mx-auto mb-2 text-slate-300" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
-                            </svg>
-                            <p class="text-xs text-slate-500">QR Code PIX</p>
-                        </div>`
+                        ? `<img src="${pixData.qr_code_base64}" alt="QR Code PIX" class="max-w-full h-auto" style="max-height: 250px;">`
+                        : `<canvas id="pixQrCanvas"></canvas>`
                         }
                     </div>
 
@@ -2275,6 +2269,13 @@
 
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
+        // Gerar QR Code no canvas quando não há base64 (ex: XGate)
+        const qrCanvas = document.getElementById('pixQrCanvas');
+        if (qrCanvas && pixData.copia_e_cola && window.QRCode) {
+            console.log(pixData.copia_e_cola);
+            window.QRCode.toCanvas(qrCanvas, pixData.copia_e_cola, { width: 220, margin: 1 });
+        }
+
         window.copiarPixCode = () => {
         const input = document.getElementById('pixCode');
         input.select();
@@ -2286,7 +2287,10 @@
         document.getElementById('pixModal')?.remove();
         };
 
-        const expiresAt = pixData.expira_timestamp * 1000;
+        // Usar 10 minutos fixos se não houver timestamp de expiração
+        const expiresAt = pixData.expira_timestamp
+            ? pixData.expira_timestamp * 1000
+            : Date.now() + 10 * 60 * 1000;
         const updateTimer = () => {
         const now = Date.now();
         const diff = expiresAt - now;

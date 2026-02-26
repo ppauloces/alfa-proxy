@@ -26,7 +26,8 @@ class User extends Authenticatable
         'username',
         'saldo',
         'cargo',
-        'status'
+        'status',
+        'xgate_customer_id',
     ];
 
     public function setPasswordAttribute($value)

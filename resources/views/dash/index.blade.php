@@ -1375,7 +1375,7 @@
                             </p>
                         </div>
                     </div>
-                    <a href="https://wa.me/557798374278" target="_blank"
+                    <a href="https://wa.me/5511921655260" target="_blank"
                         class="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 hover:scale-105 transition-all text-sm shadow-md">
                         <i class="fab fa-whatsapp text-lg"></i>
                         <span>Contatar via WhatsApp</span>
@@ -1398,7 +1398,7 @@
                             </p>
                         </div>
                     </div>
-                    <a href="https://wa.me/557798374278" target="_blank"
+                    <a href="https://wa.me/5511921655260" target="_blank"
                         class="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 hover:scale-105 transition-all text-sm shadow-md">
                         <i class="fab fa-whatsapp text-lg"></i>
                         <span>Solicitar Substituição</span>
@@ -1789,7 +1789,7 @@
                         </p>
                     </div>
                 </div>
-                <a href="https://wa.me/557798374278" target="_blank"
+                <a href="https://wa.me/5511921655260" target="_blank"
                     class="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 hover:scale-105 transition-all text-sm shadow-md">
                     <i class="fab fa-whatsapp text-lg"></i>
                     <span>Falar com suporte</span>
@@ -2552,7 +2552,7 @@
             toggle.checked = false;
 
             const toast = document.createElement('div');
-
+            toast.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;z-index:99999;background:#fff;border-radius:1rem;box-shadow:0 20px 60px rgba(15,23,42,0.18);border:1px solid #e2e8f0;padding:1.25rem;width:320px;animation:slideInScale .3s cubic-bezier(.34,1.56,.64,1)';
             toast.innerHTML = `
             <div class="flex items-start gap-4">
                 <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">

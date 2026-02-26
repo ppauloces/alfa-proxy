@@ -28,6 +28,21 @@ Schedule::command('proxies:check-expired --batch-size=100')
 
 
 /**
+ * Recuperação de VPS travadas em pending/processing
+ * Roda a cada hora — reencaminha para a fila 'proxies' qualquer VPS parada há mais de 45 min
+ */
+Schedule::command('vps:recover-stuck')
+    ->hourly()
+    ->name('recover-stuck-vps')
+    ->withoutOverlapping(5)
+    ->onSuccess(function () {
+        \Illuminate\Support\Facades\Log::info('Verificação de VPS travadas executada com sucesso');
+    })
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('Falha na verificação de VPS travadas');
+    });
+
+/**
  * Auto-renovacao de proxies via cartao (Stripe)
  */
 Schedule::command('proxies:auto-renew --hours-before=12')

@@ -140,20 +140,6 @@
         </p>
     </div>
 
-    {{-- Banner de Teste --}}
-    <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 1.5rem; padding: 1.25rem 1.5rem; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.25); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <i class="fas fa-flask" style="color: #fff; font-size: 1.25rem;"></i>
-            </div>
-            <div>
-                <p style="color: #fff; font-weight: 800; font-size: 1rem; margin: 0; line-height: 1.4;">
-                    Modo de teste ativo — valor fixado em R$ 1,00
-                </p>
-            </div>
-        </div>
-    </div>
-
     @php
         $dataLimitePromocao = \Carbon\Carbon::create(2026, 2, 2, 23, 59, 59);
         $emPromocao = now()->lte($dataLimitePromocao) && !Auth::user()->isRevendedor();
@@ -203,6 +189,16 @@
     @endif
 
     <div class="relative">
+    {{-- Overlay de bloqueio --}}
+    <div class="absolute inset-0 z-50 rounded-[2rem] bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center gap-4 pointer-events-auto" style="cursor: not-allowed;">
+        <div class="flex flex-col items-center gap-3 text-center px-6">
+            <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
+                <i class="fas fa-lock text-2xl text-slate-400"></i>
+            </div>
+            <p class="text-base font-black text-slate-700">Compras temporariamente indisponíveis</p>
+            <p class="text-sm text-slate-500 font-medium max-w-xs">Em breve você poderá adquirir novos proxies por aqui.</p>
+        </div>
+    </div>
     <form action="{{ route('compra.processar') }}" method="POST" id="orderForm">
         @csrf
         <div class="grid lg:grid-cols-3 gap-8">

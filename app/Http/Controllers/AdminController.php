@@ -1549,30 +1549,38 @@ class AdminController extends Controller
 
             $pythonApiUrl = config('services.python_api.url', 'http://127.0.0.1:8001');
 
+            $novaSenha = $stock->senha;
 
-            // 1) Reciclar usuario Linux (nova senha — invalida acesso do cliente imediatamente)
-            $reciclarPayload = [
-                'ip_vps'         => $vps->ip,
-                'user_ssh'       => $vps->usuario_ssh,
-                'senha_ssh'      => $vps->senha_ssh,
-                'usuario_proxy'  => $stock->usuario,
-            ];
+            // Se a proxy NÃO está bloqueada, reciclar credenciais Linux normalmente.
+            // Se já está bloqueada (porta UFW fechada), pular a reciclagem — acesso já está negado.
+            if (!$stock->bloqueada) {
+                $reciclarPayload = [
+                    'ip_vps'         => $vps->ip,
+                    'user_ssh'       => $vps->usuario_ssh,
+                    'senha_ssh'      => $vps->senha_ssh,
+                    'usuario_proxy'  => $stock->usuario,
+                ];
 
-            $reciclarResponse = Http::timeout(30)->post("{$pythonApiUrl}/reciclar", $reciclarPayload);
+                $reciclarResponse = Http::timeout(30)->post("{$pythonApiUrl}/reciclar", $reciclarPayload);
 
-            if (!$reciclarResponse->successful()) {
-                Log::error('Reembolso: falha ao reciclar usuario proxy', [
+                if (!$reciclarResponse->successful()) {
+                    Log::error('Reembolso: falha ao reciclar usuario proxy', [
+                        'stock_id' => $stock->id,
+                        'response' => $reciclarResponse->body(),
+                    ]);
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Falha ao reciclar as credenciais do proxy no servidor.',
+                    ], 500);
+                }
+
+                $reciclarData = $reciclarResponse->json();
+                $novaSenha = $reciclarData['nova_senha'] ?? $stock->senha;
+            } else {
+                Log::info('Reembolso: proxy ja bloqueada, reciclagem de credenciais ignorada', [
                     'stock_id' => $stock->id,
-                    'response' => $reciclarResponse->body(),
                 ]);
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Falha ao reciclar as credenciais do proxy no servidor.',
-                ], 500);
             }
-
-            $reciclarData = $reciclarResponse->json();
-            $novaSenha = $reciclarData['nova_senha'] ?? $stock->senha;
 
             // 2) Atualizar banco em transacao
             $adminId = auth()->id();

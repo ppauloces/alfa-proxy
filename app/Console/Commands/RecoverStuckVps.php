@@ -56,7 +56,7 @@ class RecoverStuckVps extends Command
                 'erro_geracao'   => null,
             ]);
 
-            GerarProxiesJob::dispatch($vps, $vps->periodo_dias ?? 30, 0);
+            GerarProxiesJob::dispatch($vps, $vps->periodo_dias ?? 30, 0)->onQueue('proxies');
 
             Log::warning('VPS travada detectada e reencaminhada para a fila', [
                 'vps_id'   => $vps->id,

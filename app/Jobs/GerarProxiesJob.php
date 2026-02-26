@@ -14,12 +14,6 @@ class GerarProxiesJob implements ShouldQueue
     use Queueable;
 
     /**
-     * Fila dedicada — processada por um único worker (php artisan queue:work --queue=proxies)
-     * Garante que apenas uma VPS seja processada por vez, evitando conflitos de SSH.
-     */
-    public $queue = 'proxies';
-
-    /**
      * Número de tentativas de reprocessamento em caso de falha
      */
     public $tries = 1;

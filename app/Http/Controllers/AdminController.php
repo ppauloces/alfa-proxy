@@ -116,7 +116,7 @@ class AdminController extends Controller
             $vps->update(['status_geracao' => 'pending']);
 
             // Despachar Job para a fila (processamento em background)
-            \App\Jobs\GerarProxiesJob::dispatch($vps, intval($validated['periodo_dias']), Auth::id());
+            \App\Jobs\GerarProxiesJob::dispatch($vps, intval($validated['periodo_dias']), Auth::id())->onQueue('proxies');
 
             // Resposta imediata ao admin
             if ($request->ajax() || $request->wantsJson()) {
@@ -1463,7 +1463,7 @@ class AdminController extends Controller
             DB::commit();
 
             // Disparar o Job para processamento da API Python de geração de proxies
-            \App\Jobs\GerarProxiesJob::dispatch($novaVps, intval($novaVps->periodo_dias), Auth::id());
+            \App\Jobs\GerarProxiesJob::dispatch($novaVps, intval($novaVps->periodo_dias), Auth::id())->onQueue('proxies');
 
             return response()->json([
                 'success' => true,

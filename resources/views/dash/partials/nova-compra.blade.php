@@ -189,16 +189,6 @@
     @endif
 
     <div class="relative">
-    {{-- Overlay de bloqueio --}}
-    <div class="absolute inset-0 z-50 rounded-[2rem] bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center gap-4 pointer-events-auto" style="cursor: not-allowed;">
-        <div class="flex flex-col items-center gap-3 text-center px-6">
-            <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
-                <i class="fas fa-lock text-2xl text-slate-400"></i>
-            </div>
-            <p class="text-base font-black text-slate-700">Compras temporariamente indisponíveis</p>
-            <p class="text-sm text-slate-500 font-medium max-w-xs">Em breve você poderá adquirir novos proxies por aqui.</p>
-        </div>
-    </div>
     <form action="{{ route('compra.processar') }}" method="POST" id="orderForm">
         @csrf
         <div class="grid lg:grid-cols-3 gap-8">

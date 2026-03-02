@@ -53,6 +53,7 @@
                     <tr>
                         <th>Cliente</th>
                         <th>E-mail</th>
+                        <th>Telefone</th>
                         <th>Cargo</th>
                         <th>Saldo</th>
                         <th>Gasto Total</th>
@@ -65,6 +66,7 @@
                         <tr>
                             <td class="font-semibold text-slate-900">{{ $user['name'] }}</td>
                             <td class="text-xs text-slate-500">{{ $user['email'] }}</td>
+                            <td class="text-xs text-slate-500">{{ $user['phone'] }}</td>
                             @php
                                 $cargo = strtolower((string) ($user['cargo'] ?? ''));
                                 $cargoLabel = $cargo !== '' ? ucfirst($cargo) : 'N/A';

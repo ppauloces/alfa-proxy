@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Cartao;
 use App\Models\Stock;
 use App\Models\Transaction;
+use App\Services\MetaConversionService;
 use App\Services\ProxyRenewalService;
 use App\Services\StripeService;
 use Illuminate\Console\Command;
@@ -173,6 +174,7 @@ class AutoRenewProxies extends Command
                     ]);
 
                     DB::commit();
+                    MetaConversionService::purchase($user, $transacao);
                     $charged++;
                     $this->info("Auto-renew success for proxy #{$proxy->id}");
                 } catch (\Exception $e) {

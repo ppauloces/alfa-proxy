@@ -18,12 +18,12 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Meta Pixel Code -->
+    <meta name="facebook-domain-verification" content="et0zqjm8gvkbm9qqf2zd1vpa19eamr" />
     <script>
         !function (f, b, e, v, n, t, s) {
             if (f.fbq) return; n = f.fbq = function () {
                 n.callMethod ?
-                    n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+                n.callMethod.apply(n, arguments) : n.queue.push(arguments)
             };
             if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
             n.queue = []; t = b.createElement(e); t.async = !0;
@@ -31,11 +31,11 @@
             s.parentNode.insertBefore(t, s)
         }(window, document, 'script',
             'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', '1162827325630978');
+        fbq('init', '729296842350946');
         fbq('track', 'PageView');
     </script>
     <noscript><img height="1" width="1" style="display:none"
-            src="https://www.facebook.com/tr?id=1162827325630978&ev=PageView&noscript=1" /></noscript>
+            src="https://www.facebook.com/tr?id=729296842350946&ev=PageView&noscript=1" /></noscript>
     <!-- End Meta Pixel Code -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -441,12 +441,12 @@
                     <div class="h-6 w-[1px] bg-slate-200 hidden sm:block"></div>
 
                     <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#23366f]/5 border border-[#23366f]/10">
-                    <a href="{{ route('dash.show', ['section' => 'saldo']) }}">    
-                        <i class="fas fa-wallet text-[10px] text-[#448ccb]"></i>
-                        <span class="text-[11px] font-black text-[#23366f] tracking-tight">
-                            R$ {{ number_format(Auth::user()->saldo ?? 0, 2, ',', '.') }}
-                        </span>
-                    </a>
+                        <a href="{{ route('dash.show', ['section' => 'saldo']) }}">
+                            <i class="fas fa-wallet text-[10px] text-[#448ccb]"></i>
+                            <span class="text-[11px] font-black text-[#23366f] tracking-tight">
+                                R$ {{ number_format(Auth::user()->saldo ?? 0, 2, ',', '.') }}
+                            </span>
+                        </a>
                     </div>
 
                     <div class="h-6 w-[1px] bg-slate-200 hidden sm:block"></div>

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Cartao;
 use App\Models\Despesa;
 use App\Services\ProxyAllocationService;
+use App\Services\MetaConversionService;
 use App\Services\AsaasService;
 use App\Services\AbacatePayService;
 use App\Services\XGateService;
@@ -1070,6 +1071,7 @@ class LogadoController extends Controller
                         $transacao->save();
 
                         DB::commit();
+                        MetaConversionService::purchase($usuario, $transacao);
 
                         if ($isAjax) {
                             return response()->json([
@@ -1236,6 +1238,7 @@ class LogadoController extends Controller
             $transacao->save();
 
             DB::commit();
+            MetaConversionService::purchase($usuario, $transacao);
 
             return redirect()
                 ->route('dash.show', ['section' => 'proxies'])
@@ -1751,4 +1754,3 @@ class LogadoController extends Controller
     }
 
 }
-

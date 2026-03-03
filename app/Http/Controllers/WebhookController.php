@@ -7,6 +7,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Services\AbacatePayService;
 use App\Services\AsaasService;
+use App\Services\MetaConversionService;
 use App\Services\ProxyAllocationService;
 use App\Services\ProxyRenewalService;
 use App\Services\XGateService;
@@ -102,6 +103,7 @@ class WebhookController extends Controller
                         $proxy = $renewalService->renewProxy($proxy, (int) $metadata['periodo_adicional']);
 
                         DB::commit();
+                        $this->sendMetaPurchaseEvent($transacao);
 
                         return response()->json([
                             'success' => true,
@@ -129,6 +131,7 @@ class WebhookController extends Controller
                         $transacao->save();
 
                         DB::commit();
+                        $this->sendMetaPurchaseEvent($transacao);
 
                         Log::info('Pagamento AbacatePay processado com sucesso', [
                             'transaction_id' => $transacao->id,
@@ -239,6 +242,7 @@ class WebhookController extends Controller
                         $proxy = $renewalService->renewProxy($proxy, (int) $metadata['periodo_adicional']);
 
                         DB::commit();
+                        $this->sendMetaPurchaseEvent($transacao);
 
                         return response()->json([
                             'success'      => true,
@@ -266,6 +270,7 @@ class WebhookController extends Controller
                         $transacao->save();
 
                         DB::commit();
+                        $this->sendMetaPurchaseEvent($transacao);
 
                         Log::info('Pagamento XGate processado com sucesso', [
                             'transaction_id'   => $transacao->id,
@@ -391,6 +396,7 @@ class WebhookController extends Controller
                         $proxy = $renewalService->renewProxy($proxy, (int) $metadata['periodo_adicional']);
 
                         DB::commit();
+                        $this->sendMetaPurchaseEvent($transacao);
 
                         return response()->json([
                             'success' => true,
@@ -418,6 +424,7 @@ class WebhookController extends Controller
                         $transacao->save();
 
                         DB::commit();
+                        $this->sendMetaPurchaseEvent($transacao);
 
                         Log::info('Pagamento Asaas processado com sucesso', [
                             'transaction_id' => $transacao->id,
@@ -453,5 +460,21 @@ class WebhookController extends Controller
 
             return response()->json(['error' => 'Webhook error'], 500);
         }
+    }
+
+    private function sendMetaPurchaseEvent(Transaction $transacao): void
+    {
+        $user = User::find($transacao->user_id);
+
+        if (!$user) {
+            Log::warning('Usuario nao encontrado para envio do evento Purchase', [
+                'transaction_id' => $transacao->id,
+                'user_id' => $transacao->user_id,
+            ]);
+
+            return;
+        }
+
+        MetaConversionService::purchase($user, $transacao);
     }
 }

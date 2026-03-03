@@ -47,7 +47,7 @@ class MetaConversionService
                 $event,
             ],
             // usar apenas em teste
-            //'test_event_code' => 'TEST18042',
+            'test_event_code' => 'TEST62268',
         ];
 
         $response = Http::withHeaders([

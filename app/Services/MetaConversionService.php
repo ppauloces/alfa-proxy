@@ -47,7 +47,7 @@ class MetaConversionService
                 $event,
             ],
             // usar apenas em teste
-            'test_event_code' => 'TEST62268',
+            //'test_event_code' => 'TEST62268',
         ];
 
         $response = Http::withHeaders([
@@ -55,7 +55,7 @@ class MetaConversionService
             'Content-Type' => 'application/json',
         ])
             ->post(
-                'https://graph.facebook.com/v24.0/' . '269995258741400' . '/events',
+                'https://graph.facebook.com/v24.0/' . '729296842350946' . '/events',
                 $payload
             );
 

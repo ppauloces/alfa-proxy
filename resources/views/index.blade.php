@@ -635,22 +635,56 @@
 
                         <!-- Country -->
                         <div
-                            class="calculator-card bg-white/60 backdrop-blur-md rounded-xl px-4 py-3 flex-1 min-w-[160px] relative group cursor-pointer hover:bg-white/80 transition-all duration-300">
+                            class="calculator-card bg-white/60 backdrop-blur-md rounded-xl px-4 py-3 flex-1 min-w-[160px] relative">
                             <label
                                 class="block text-[10px] font-semibold text-[#94A3B8] mb-1 uppercase tracking-wider">País</label>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <img src="https://flagcdn.com/w20/br.png" alt="Brasil" class="w-5 h-auto">
-                                    <span class="text-[#1E293B] font-bold text-sm">Brasil</span>
+                            <div class="relative" data-ui-select data-sync-select="#countrySelect">
+                                <select id="countrySelect"
+                                    class="appearance-none absolute opacity-0 pointer-events-none w-0 h-0 overflow-hidden">
+                                    <option value="br">Brasil</option>
+                                    <option value="us">EUA</option>
+                                    <option value="eu">Europa</option>
+                                </select>
+
+                                <button type="button"
+                                    class="w-full text-[#1E293B] font-bold text-sm bg-transparent border-none outline-none cursor-pointer hover:text-[#2055d5] transition-colors pr-6 text-left"
+                                    data-ui-select-trigger>
+                                    <span data-ui-select-label class="flex items-center gap-2">
+                                        <img src="https://flagcdn.com/w20/br.png" alt="Brasil" class="w-5 h-auto">
+                                        Brasil
+                                    </span>
+                                </button>
+
+                                <div class="absolute z-[9999] mt-2 w-full rounded-xl border border-slate-200 bg-white shadow-xl hidden overflow-hidden"
+                                    data-ui-select-panel>
+                                    <button type="button"
+                                        class="w-full px-4 py-3 text-left hover:bg-slate-50 font-bold text-sm text-slate-700 flex items-center gap-2"
+                                        data-ui-select-option data-value="br"
+                                        data-label="<img src='https://flagcdn.com/w20/br.png' alt='Brasil' class='w-5 h-auto'> Brasil">
+                                        <img src="https://flagcdn.com/w20/br.png" alt="Brasil" class="w-5 h-auto">
+                                        Brasil
+                                    </button>
+                                    <button type="button"
+                                        class="w-full px-4 py-3 text-left hover:bg-slate-50 font-bold text-sm text-slate-700 flex items-center gap-2"
+                                        data-ui-select-option data-value="us"
+                                        data-label="<img src='https://flagcdn.com/w20/us.png' alt='EUA' class='w-5 h-auto'> EUA">
+                                        <img src="https://flagcdn.com/w20/us.png" alt="EUA" class="w-5 h-auto">
+                                        EUA
+                                    </button>
+                                    <button type="button"
+                                        class="w-full px-4 py-3 text-left hover:bg-slate-50 font-bold text-sm text-slate-700 flex items-center gap-2"
+                                        data-ui-select-option data-value="eu"
+                                        data-label="<img src='https://flagcdn.com/w20/eu.png' alt='Europa' class='w-5 h-auto'> Europa">
+                                        <img src="https://flagcdn.com/w20/eu.png" alt="Europa" class="w-5 h-auto">
+                                        Europa
+                                    </button>
                                 </div>
-                                <svg class="w-3.5 h-3.5 text-[#94A3B8] transition-transform group-hover:translate-y-0.5"
-                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                        d="M19 9l-7 7-7-7"></path>
-                                </svg>
                             </div>
-                            <div class="absolute -bottom-0.5 right-3 text-[9px] text-[#94A3B8] font-medium opacity-70">
-                                Outros países em breve</div>
+                            <svg class="w-3.5 h-3.5 text-[#94A3B8] absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
                         </div>
 
                         <!-- Rental Period -->
@@ -1355,7 +1389,12 @@
             const sync = wrapper.getAttribute('data-sync-select');
             const realSelect = sync ? document.querySelector(sync) : null;
 
-            label.textContent = opt.textContent.trim();
+            const dataLabel = opt.getAttribute('data-label');
+            if (dataLabel) {
+                label.innerHTML = dataLabel;
+            } else {
+                label.textContent = opt.textContent.trim();
+            }
             panel.classList.add('hidden');
 
             if (realSelect) {

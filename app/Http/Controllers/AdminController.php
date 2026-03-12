@@ -8,6 +8,9 @@ use App\Models\User;
 use App\Models\Cartao;
 use App\Models\Despesa;
 use App\Models\Transaction;
+use App\Services\MetaConversionService;
+use App\Services\ProxyRenewalService;
+use App\Services\StripeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -1735,6 +1738,319 @@ class AdminController extends Controller
             ],
             'proxies'    => $proxies,
             'transacoes' => $transacoes,
+        ]);
+    }
+
+    // =============================================
+    // RENOVAÇÕES
+    // =============================================
+
+    public function renovacoes(Request $request)
+    {
+        if (!Auth::user()->isSuperAdmin()) {
+            return redirect()->route('dash.show')->with('error', 'Acesso restrito.');
+        }
+
+        return redirect()->route('dash.show', ['section' => 'admin-renovacoes']);
+    }
+
+    public static function getRenovacoesPendentesData(): array
+    {
+        $renewalService = app(ProxyRenewalService::class);
+
+        $proxies = Stock::with(['user', 'vps'])
+            ->where('renovacao_automatica', true)
+            ->whereNotNull('expiracao')
+            ->whereNotNull('user_id')
+            ->where('uso_interno', false)
+            ->where('expiracao', '<=', now()->addHours(12))
+            ->orderBy('expiracao')
+            ->get();
+
+        $items = [];
+
+        foreach ($proxies as $proxy) {
+            $user = $proxy->user;
+            if (!$user) continue;
+
+            $periodo = (int) ($proxy->periodo_dias ?? 30);
+            $valor = (float) $renewalService->calculateRenewalPrice($user, $periodo);
+
+            $card = Cartao::where('user_id', $user->id)
+                ->where('gateway', 'stripe')
+                ->orderByDesc('is_default')
+                ->first();
+
+            $hasCard = $card && !$card->isExpired() && !empty($card->token_gateway1);
+
+            // Verificar se tem transação de falha recente
+            $hasFailed = Transaction::where('user_id', $user->id)
+                ->where('tipo', 'renovacao')
+                ->where('status', 2)
+                ->where('created_at', '>=', now()->subHours(24))
+                ->where('metadata->proxy_id', $proxy->id)
+                ->exists();
+
+            $expiracao = Carbon::parse($proxy->expiracao);
+
+            $items[] = [
+                'proxy_id' => $proxy->id,
+                'user_id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'endereco' => $proxy->ip . ':' . $proxy->porta,
+                'pais' => $proxy->pais ?? 'Brasil',
+                'expiracao' => $expiracao->format('d/m/Y H:i'),
+                'expirado' => $expiracao->isPast(),
+                'periodo' => $periodo,
+                'valor' => $valor,
+                'has_card' => $hasCard,
+                'card_info' => $hasCard ? ucfirst($card->bandeira) . ' •••• ' . $card->ultimos_digitos : null,
+                'status' => $hasFailed ? 'falha' : ($hasCard ? 'pendente' : 'sem_cartao'),
+                'cobrando' => false,
+            ];
+        }
+
+        // Stats
+        $cobradasHoje = Transaction::where('tipo', 'renovacao')
+            ->where('status', 1)
+            ->where('metodo_pagamento', 'credit_card')
+            ->whereDate('updated_at', today())
+            ->count();
+
+        $falhasHoje = Transaction::where('tipo', 'renovacao')
+            ->where('status', 2)
+            ->where('metodo_pagamento', 'credit_card')
+            ->whereDate('created_at', today())
+            ->count();
+
+        $valorPendente = collect($items)->sum('valor');
+
+        return [
+            'items' => $items,
+            'stats' => [
+                'pendentes' => count($items),
+                'valorPendente' => 'R$ ' . number_format($valorPendente, 2, ',', '.'),
+                'cobradasHoje' => $cobradasHoje,
+                'falhasHoje' => $falhasHoje,
+            ],
+        ];
+    }
+
+    public function renovacoesData(Request $request)
+    {
+        if (!Auth::user()->isSuperAdmin()) {
+            return response()->json(['error' => 'Acesso restrito.'], 403);
+        }
+
+        return response()->json(self::getRenovacoesPendentesData());
+    }
+
+    public function cobrarRenovacao(Request $request)
+    {
+        if (!Auth::user()->isSuperAdmin()) {
+            return response()->json(['error' => 'Acesso restrito.'], 403);
+        }
+
+        $request->validate([
+            'proxy_ids' => 'required|array|min:1',
+            'proxy_ids.*' => 'integer|exists:stocks,id',
+        ]);
+
+        $proxyIds = $request->proxy_ids;
+        $stripeService = app(StripeService::class);
+        $renewalService = app(ProxyRenewalService::class);
+
+        $proxies = Stock::with(['user', 'vps'])
+            ->whereIn('id', $proxyIds)
+            ->where('renovacao_automatica', true)
+            ->whereNotNull('user_id')
+            ->get();
+
+        if ($proxies->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'Nenhum proxy válido encontrado.']);
+        }
+
+        // Agrupar por usuário + período
+        $grouped = [];
+
+        foreach ($proxies as $proxy) {
+            $user = $proxy->user;
+            if (!$user) continue;
+
+            $periodo = (int) ($proxy->periodo_dias ?? 30);
+            $valor = (float) $renewalService->calculateRenewalPrice($user, $periodo);
+
+            if ($valor <= 0) continue;
+
+            $key = $user->id . '_' . $periodo;
+
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = [
+                    'user' => $user,
+                    'periodo' => $periodo,
+                    'valor_unitario' => $valor,
+                    'proxies' => [],
+                ];
+            }
+
+            $grouped[$key]['proxies'][] = $proxy;
+        }
+
+        $totalCobrados = 0;
+        $totalFalhas = 0;
+        $erros = [];
+
+        foreach ($grouped as $group) {
+            $user = $group['user'];
+            $periodo = $group['periodo'];
+            $proxiesDoGrupo = $group['proxies'];
+            $valorUnitario = $group['valor_unitario'];
+            $valorTotal = $valorUnitario * count($proxiesDoGrupo);
+
+            $cards = Cartao::where('user_id', $user->id)
+                ->where('gateway', 'stripe')
+                ->orderByDesc('is_default')
+                ->orderBy('created_at')
+                ->get()
+                ->filter(fn (Cartao $card) => !$card->isExpired() && !empty($card->token_gateway1))
+                ->values();
+
+            if ($cards->isEmpty()) {
+                $totalFalhas += count($proxiesDoGrupo);
+                $erros[] = "Usuário {$user->username}: sem cartão válido.";
+                continue;
+            }
+
+            $proxyIds = collect($proxiesDoGrupo)->pluck('id')->toArray();
+            $proxyDetails = collect($proxiesDoGrupo)->map(fn ($p) => [
+                'id' => $p->id,
+                'ip' => $p->ip,
+                'porta' => $p->porta,
+                'expiracao_anterior' => $p->expiracao,
+            ])->toArray();
+
+            $metadata = [
+                'auto_renew' => false,
+                'manual_by' => Auth::id(),
+                'batch' => count($proxiesDoGrupo) > 1,
+                'proxy_ids' => $proxyIds,
+                'proxy_details' => $proxyDetails,
+                'periodo_adicional' => $periodo,
+                'quantidade' => count($proxiesDoGrupo),
+                'valor_unitario' => $valorUnitario,
+            ];
+
+            $transacao = Transaction::create([
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'transacao' => 'REN-MANUAL-' . strtoupper(uniqid()),
+                'valor' => $valorTotal,
+                'status' => 0,
+                'metodo_pagamento' => 'credit_card',
+                'payment_method' => 'credit_card',
+                'tipo' => 'renovacao',
+                'metadata' => $metadata,
+            ]);
+
+            $proxyListStr = collect($proxiesDoGrupo)
+                ->map(fn ($p) => "{$p->ip}:{$p->porta}")
+                ->implode(', ');
+
+            $paymentMethods = $cards->pluck('token_gateway1')->all();
+            $result = $stripeService->chargeWithFallback([
+                'amount' => (int) round($valorTotal * 100),
+                'description' => sprintf(
+                    'Renovacao manual %d proxy(s) - %d dias [%s]',
+                    count($proxiesDoGrupo),
+                    $periodo,
+                    mb_strimwidth($proxyListStr, 0, 200, '...')
+                ),
+                'customer' => $stripeService->formatCustomer($user),
+                'metadata' => [
+                    'manual_renew' => true,
+                    'admin_id' => Auth::id(),
+                    'proxy_count' => count($proxiesDoGrupo),
+                    'transaction_id' => $transacao->id,
+                ],
+            ], $paymentMethods);
+
+            $attempts = $result['attempts'] ?? [];
+            $metadata['card_attempts'] = $attempts;
+
+            if (!empty($result['success'])) {
+                $usedPaymentMethod = $result['payment_method_id'] ?? null;
+                $usedCard = $cards->firstWhere('token_gateway1', $usedPaymentMethod);
+
+                try {
+                    DB::beginTransaction();
+
+                    $renovados = [];
+                    foreach ($proxiesDoGrupo as $proxy) {
+                        $renewalService->renewProxy($proxy, $periodo);
+                        $renovados[] = [
+                            'id' => $proxy->id,
+                            'expiracao_nova' => $proxy->fresh()->expiracao,
+                        ];
+                    }
+
+                    $transacao->update([
+                        'status' => 1,
+                        'gateway_transaction_id' => $result['data']['id'] ?? null,
+                        'gateway_type' => 'stripe',
+                        'card_id' => $usedCard?->id,
+                        'stock_ids' => $proxyIds,
+                        'metadata' => array_merge($metadata, [
+                            'renovados' => $renovados,
+                        ]),
+                    ]);
+
+                    DB::commit();
+                    MetaConversionService::purchase($user, $transacao);
+                    $totalCobrados += count($proxiesDoGrupo);
+
+                    Log::info('Renovação manual realizada com sucesso', [
+                        'admin_id' => Auth::id(),
+                        'user_id' => $user->id,
+                        'proxy_count' => count($proxiesDoGrupo),
+                        'valor' => $valorTotal,
+                    ]);
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    $totalFalhas += count($proxiesDoGrupo);
+                    $erros[] = "Usuário {$user->username}: erro ao renovar - {$e->getMessage()}";
+
+                    Log::error('Renovação manual falhou após cobrança', [
+                        'admin_id' => Auth::id(),
+                        'user_id' => $user->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+                continue;
+            }
+
+            // Falha na cobrança
+            $totalFalhas += count($proxiesDoGrupo);
+            $metadata['failed_at'] = now()->toIso8601String();
+            $metadata['last_error'] = $result['error'] ?? 'Charge failed';
+            $transacao->status = 2;
+            $transacao->metadata = $metadata;
+            $transacao->save();
+
+            $erros[] = "Usuário {$user->username}: " . ($result['error'] ?? 'Falha na cobrança');
+        }
+
+        $message = "Cobrados: {$totalCobrados} proxy(s).";
+        if ($totalFalhas > 0) {
+            $message .= " Falhas: {$totalFalhas}.";
+        }
+
+        return response()->json([
+            'success' => $totalFalhas === 0 && $totalCobrados > 0,
+            'message' => $message,
+            'cobrados' => $totalCobrados,
+            'falhas' => $totalFalhas,
+            'erros' => $erros,
         ]);
     }
 }

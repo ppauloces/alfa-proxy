@@ -714,6 +714,15 @@ class LogadoController extends Controller
             ];
         });
 
+        // Dados de renovações pendentes (super admin)
+        $renovacoesPendentes = [];
+        $renovacoesStats = ['pendentes' => 0, 'valorPendente' => 'R$ 0,00', 'cobradasHoje' => 0, 'falhasHoje' => 0];
+
+        if ($usuario->isSuperAdmin()) {
+            $renewData = AdminController::getRenovacoesPendentesData();
+            $renovacoesPendentes = $renewData['items'];
+            $renovacoesStats = $renewData['stats'];
+        }
 
         return view('dash.index', compact(
             'usuario',
@@ -744,6 +753,8 @@ class LogadoController extends Controller
             'colaboradores',
             'substituidasStats',
             'proxiesSubstituidos',
+            'renovacoesPendentes',
+            'renovacoesStats',
         ));
     }
 

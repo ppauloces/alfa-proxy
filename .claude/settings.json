@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l /c/laragon/www/alfa-proxy/resources/views/dash/partials/admin/*.blade.php)",
+      "Read(//home/alfaproxy/htdocs/storage/logs/**)"
+    ]
+  }
+}

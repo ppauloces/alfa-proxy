@@ -155,6 +155,11 @@ Route::middleware(AdminMiddleware::class)->group(function () {
 
     // Geolocalização de IP (proxy server-side para evitar CORS)
     Route::get('/admin/ip-geolocation', [AdminController::class, 'ipGeolocation'])->name('admin.ip-geolocation');
+
+    // Renovações manuais (super admin)
+    Route::get('/admin/renovacoes', [AdminController::class, 'renovacoes'])->name('admin.renovacoes');
+    Route::get('/admin/renovacoes/data', [AdminController::class, 'renovacoesData'])->name('admin.renovacoes.data');
+    Route::post('/admin/renovacoes/cobrar', [AdminController::class, 'cobrarRenovacao'])->name('admin.renovacoes.cobrar');
 });
 
 // Webhook XGate sem prefixo /api (a XGate envia para /webhook/xgate)

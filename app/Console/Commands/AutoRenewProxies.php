@@ -255,6 +255,7 @@ class AutoRenewProxies extends Command
             $failed += count($proxiesDoGrupo);
             $metadata['failed_at'] = now()->toIso8601String();
             $metadata['last_error'] = $result['error'] ?? 'Charge failed';
+            $transacao->status = 2;
             $transacao->metadata = $metadata;
             $transacao->save();
             Log::warning('Auto-renew batch charge failed', [

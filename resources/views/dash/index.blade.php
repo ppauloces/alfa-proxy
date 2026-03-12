@@ -1853,6 +1853,11 @@
                     data-section="admin-financeiro">
                     @include('dash.partials.admin.financeiro')
                 </section>
+
+                <section class="dash-section {{ $currentSection === 'admin-renovacoes' ? 'active' : 'hidden' }}"
+                    data-section="admin-renovacoes">
+                    @include('dash.partials.admin.renovacoes')
+                </section>
             @endif
 
         @endif

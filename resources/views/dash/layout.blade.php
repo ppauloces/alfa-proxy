@@ -617,6 +617,12 @@
                                         <span class="nav-text">Relatórios</span>
                                     </span>
                                 </button>
+                                <button type="button" class="nav-pill" data-section-link="admin-renovacoes">
+                                    <span class="flex items-center gap-3">
+                                        <i class="fas fa-redo-alt w-5 text-center"></i>
+                                        <span class="nav-text">Renovações</span>
+                                    </span>
+                                </button>
                             @endif
                         </div>
                     @endif

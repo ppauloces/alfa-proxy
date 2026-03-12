@@ -132,6 +132,9 @@ Route::middleware(AdminMiddleware::class)->group(function () {
     // Atualizar cargo do usuário
     Route::patch('/admin/usuarios/{id}/cargo', [AdminController::class, 'atualizarCargo'])->name('usuarios.atualizar-cargo');
 
+    // Adicionar saldo manualmente
+    Route::post('/admin/usuarios/{id}/saldo', [AdminController::class, 'adicionarSaldo'])->name('admin.usuarios.adicionar-saldo');
+
     // Seções Master (super admin)
     Route::get('/admin/colaboradores', [AdminController::class, 'colaboradores'])->name('admin.colaboradores');
     Route::get('/admin/financeiro', [AdminController::class, 'financeiro'])->name('admin.financeiro');

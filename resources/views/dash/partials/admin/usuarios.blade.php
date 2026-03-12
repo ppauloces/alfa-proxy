@@ -126,6 +126,15 @@
                                             class="fixed w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-[9999]"
                                             :style="`top:${top}px;left:${left}px;`" style="display:none;">
 
+                                            <button type="button"
+                                                @click="open = false; $dispatch('open-saldo-modal', { id: {{ $user->id }}, name: '{{ addslashes($user['name']) }}' })"
+                                                class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center">
+                                                <i class="fas fa-wallet mr-2 text-amber-400"></i>
+                                                Adicionar saldo
+                                            </button>
+
+                                            <div class="border-t border-slate-100 my-1"></div>
+
                                             <p class="px-4 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Alterar cargo</p>
 
                                             @if($cargo !== 'usuario')
@@ -289,6 +298,98 @@
                     Fechar
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+{{-- ============================================ --}}
+{{-- MODAL ADICIONAR SALDO --}}
+{{-- ============================================ --}}
+<div x-data="{
+        show: false,
+        userId: null,
+        userName: '',
+        valor: '',
+        valorDisplay: '',
+        motivo: '',
+        open(e) {
+            this.userId = e.detail.id;
+            this.userName = e.detail.name;
+            this.valor = '';
+            this.valorDisplay = '';
+            this.motivo = '';
+            this.show = true;
+        },
+        maskValor(e) {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v === '') { this.valor = ''; this.valorDisplay = ''; return; }
+            const f = (parseInt(v) / 100).toFixed(2);
+            this.valor = f;
+            this.valorDisplay = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(f);
+        }
+    }"
+    @open-saldo-modal.window="open($event)"
+    @keydown.escape.window="show = false"
+    x-show="show"
+    x-cloak
+    class="fixed inset-0 z-[9999]"
+    style="display:none;">
+
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="show = false"></div>
+
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md" @click.stop>
+
+            <div class="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Adicionar saldo</p>
+                    <h3 class="text-xl font-black text-slate-900 mt-1" x-text="userName">—</h3>
+                </div>
+                <button @click="show = false" class="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <form :action="'/admin/usuarios/' + userId + '/saldo'" method="POST" class="px-6 py-5 space-y-4">
+                @csrf
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Valor (R$)</label>
+                    <input type="hidden" name="valor" :value="valor">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-bold text-slate-400 shrink-0">R$</span>
+                        <input
+                            type="text"
+                            inputmode="numeric"
+                            x-model="valorDisplay"
+                            @input="maskValor($event)"
+                            placeholder="0,00"
+                            required
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400"
+                        />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Motivo <span class="text-slate-300 font-normal">(opcional)</span></label>
+                    <input
+                        type="text"
+                        name="motivo"
+                        x-model="motivo"
+                        placeholder="Ex: Ajuste manual, compensação..."
+                        maxlength="255"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400"
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                    <i class="fas fa-plus text-xs"></i>
+                    Adicionar saldo
+                </button>
+            </form>
         </div>
     </div>
 </div>

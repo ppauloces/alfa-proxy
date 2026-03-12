@@ -795,6 +795,48 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * Adicionar saldo manualmente ao usuário
+     */
+    public function adicionarSaldo(Request $request, $id)
+    {
+        try {
+            $validated = $request->validate([
+                'valor' => 'required|numeric|min:0.01|max:999999.99',
+                'motivo' => 'nullable|string|max:255',
+            ], [
+                'valor.required' => 'O valor é obrigatório.',
+                'valor.min' => 'O valor mínimo é R$ 0,01.',
+                'valor.numeric' => 'O valor deve ser numérico.',
+            ]);
+
+            $user = User::findOrFail($id);
+            $saldoAnterior = $user->saldo;
+            $user->increment('saldo', $validated['valor']);
+
+            Log::info('Saldo adicionado manualmente', [
+                'user_id' => $user->id,
+                'valor' => $validated['valor'],
+                'saldo_anterior' => $saldoAnterior,
+                'saldo_novo' => $user->fresh()->saldo,
+                'motivo' => $validated['motivo'] ?? null,
+                'adicionado_por' => Auth::id(),
+            ]);
+
+            return redirect()->back()->with('success', 'Saldo de R$ ' . number_format($validated['valor'], 2, ',', '.') . ' adicionado com sucesso!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors(['error' => $e->validator->errors()->first()]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao adicionar saldo', [
+                'error' => $e->getMessage(),
+                'user_id' => $id,
+            ]);
+
+            return redirect()->back()->withErrors(['error' => 'Erro ao adicionar saldo: ' . $e->getMessage()]);
+        }
+    }
+
     public function usuarios(Request $request)
     {
         return redirect()->route('dash.show', ['section' => $request->query('section', 'admin-usuarios')]);

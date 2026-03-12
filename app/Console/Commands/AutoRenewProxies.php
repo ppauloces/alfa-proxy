@@ -55,8 +55,10 @@ class AutoRenewProxies extends Command
         $failed = 0;
         $skipped = 0;
 
+        // Agrupar proxies por usuário + período para cobrança única
+        $grouped = [];
+
         foreach ($proxies as $proxy) {
-            $processed++;
             $user = $proxy->user;
 
             if (!$user) {
@@ -66,9 +68,9 @@ class AutoRenewProxies extends Command
             }
 
             $periodo = (int) ($proxy->periodo_dias ?? 30);
-            $valorTotal = (float) $renewalService->calculateRenewalPrice($user, $periodo);
+            $valorUnitario = (float) $renewalService->calculateRenewalPrice($user, $periodo);
 
-            if ($valorTotal <= 0) {
+            if ($valorUnitario <= 0) {
                 $skipped++;
                 Log::warning('Auto-renew skip: zero price', [
                     'proxy_id' => $proxy->id,
@@ -93,6 +95,29 @@ class AutoRenewProxies extends Command
                 continue;
             }
 
+            $key = $user->id . '_' . $periodo;
+
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = [
+                    'user' => $user,
+                    'periodo' => $periodo,
+                    'valor_unitario' => $valorUnitario,
+                    'proxies' => [],
+                ];
+            }
+
+            $grouped[$key]['proxies'][] = $proxy;
+        }
+
+        // Processar cada grupo (1 cobrança por usuário+período)
+        foreach ($grouped as $group) {
+            $user = $group['user'];
+            $periodo = $group['periodo'];
+            $proxiesDoGrupo = $group['proxies'];
+            $valorUnitario = $group['valor_unitario'];
+            $valorTotal = $valorUnitario * count($proxiesDoGrupo);
+            $processed += count($proxiesDoGrupo);
+
             $cards = Cartao::where('user_id', $user->id)
                 ->where('gateway', 'stripe')
                 ->orderByDesc('is_default')
@@ -104,25 +129,40 @@ class AutoRenewProxies extends Command
                 ->values();
 
             if ($cards->isEmpty()) {
-                $skipped++;
+                $skipped += count($proxiesDoGrupo);
                 Log::warning('Auto-renew skip: no valid cards', [
-                    'proxy_id' => $proxy->id,
                     'user_id' => $user->id,
+                    'proxy_count' => count($proxiesDoGrupo),
                 ]);
                 continue;
             }
 
+            $proxyIds = collect($proxiesDoGrupo)->pluck('id')->toArray();
+            $proxyDetails = collect($proxiesDoGrupo)->map(fn ($p) => [
+                'id' => $p->id,
+                'ip' => $p->ip,
+                'porta' => $p->porta,
+                'expiracao_anterior' => $p->expiracao,
+            ])->toArray();
+
             $metadata = [
                 'auto_renew' => true,
-                'proxy_id' => $proxy->id,
-                'proxy_ip' => $proxy->ip,
-                'proxy_porta' => $proxy->porta,
+                'batch' => true,
+                'proxy_ids' => $proxyIds,
+                'proxy_details' => $proxyDetails,
                 'periodo_adicional' => $periodo,
-                'expiracao_anterior' => $proxy->expiracao,
+                'quantidade' => count($proxiesDoGrupo),
+                'valor_unitario' => $valorUnitario,
             ];
 
             if ($dryRun) {
-                $this->line("DRY RUN: would charge proxy #{$proxy->id} (user {$user->id})");
+                $this->line(sprintf(
+                    'DRY RUN: would charge user #%d for %d proxies (%d days) = R$%.2f',
+                    $user->id,
+                    count($proxiesDoGrupo),
+                    $periodo,
+                    $valorTotal
+                ));
                 continue;
             }
 
@@ -138,14 +178,23 @@ class AutoRenewProxies extends Command
                 'metadata' => $metadata,
             ]);
 
+            $proxyListStr = collect($proxiesDoGrupo)
+                ->map(fn ($p) => "{$p->ip}:{$p->porta}")
+                ->implode(', ');
+
             $paymentMethods = $cards->pluck('token_gateway1')->all();
             $result = $stripeService->chargeWithFallback([
                 'amount' => (int) round($valorTotal * 100),
-                'description' => sprintf('Renovacao automatica Proxy %s:%s - %d dias', $proxy->ip, $proxy->porta, $periodo),
+                'description' => sprintf(
+                    'Renovacao automatica %d proxy(s) - %d dias [%s]',
+                    count($proxiesDoGrupo),
+                    $periodo,
+                    mb_strimwidth($proxyListStr, 0, 200, '...')
+                ),
                 'customer' => $stripeService->formatCustomer($user),
                 'metadata' => [
                     'auto_renew' => true,
-                    'proxy_id' => $proxy->id,
+                    'proxy_count' => count($proxiesDoGrupo),
                     'transaction_id' => $transacao->id,
                 ],
             ], $paymentMethods);
@@ -161,42 +210,56 @@ class AutoRenewProxies extends Command
                 try {
                     DB::beginTransaction();
 
-                    $renewalService->renewProxy($proxy, $periodo);
+                    // Renovar todos os proxies do grupo
+                    $renovados = [];
+                    foreach ($proxiesDoGrupo as $proxy) {
+                        $renewalService->renewProxy($proxy, $periodo);
+                        $renovados[] = [
+                            'id' => $proxy->id,
+                            'expiracao_nova' => $proxy->fresh()->expiracao,
+                        ];
+                    }
 
                     $transacao->update([
                         'status' => 1,
                         'gateway_transaction_id' => $result['data']['id'] ?? null,
                         'gateway_type' => 'stripe',
                         'card_id' => $usedCard?->id,
+                        'stock_ids' => $proxyIds,
                         'metadata' => array_merge($metadata, [
-                            'expiracao_nova' => $proxy->fresh()->expiracao,
+                            'renovados' => $renovados,
                         ]),
                     ]);
 
                     DB::commit();
                     MetaConversionService::purchase($user, $transacao);
-                    $charged++;
-                    $this->info("Auto-renew success for proxy #{$proxy->id}");
+                    $charged += count($proxiesDoGrupo);
+                    $this->info(sprintf(
+                        'Auto-renew success: user #%d, %d proxies, R$%.2f',
+                        $user->id,
+                        count($proxiesDoGrupo),
+                        $valorTotal
+                    ));
                 } catch (\Exception $e) {
                     DB::rollBack();
-                    $failed++;
+                    $failed += count($proxiesDoGrupo);
                     Log::error('Auto-renew failed after charge', [
-                        'proxy_id' => $proxy->id,
                         'user_id' => $user->id,
+                        'proxy_ids' => $proxyIds,
                         'error' => $e->getMessage(),
                     ]);
                 }
                 continue;
             }
 
-            $failed++;
+            $failed += count($proxiesDoGrupo);
             $metadata['failed_at'] = now()->toIso8601String();
             $metadata['last_error'] = $result['error'] ?? 'Charge failed';
             $transacao->metadata = $metadata;
             $transacao->save();
-            Log::warning('Auto-renew charge failed', [
-                'proxy_id' => $proxy->id,
+            Log::warning('Auto-renew batch charge failed', [
                 'user_id' => $user->id,
+                'proxy_ids' => $proxyIds,
                 'error' => $result['error'] ?? 'Charge failed',
             ]);
         }

@@ -993,6 +993,72 @@ class LogadoController extends Controller
                 ],
             ]);
 
+            // Se for Saldo, debitar do saldo do usuário
+            if ($request->metodo_pagamento === 'saldo') {
+                if ($usuario->saldo < $valorTotal) {
+                    DB::rollBack();
+                    $errorMsg = sprintf(
+                        'Saldo insuficiente. Seu saldo é R$ %s e o total é R$ %s.',
+                        number_format($usuario->saldo, 2, ',', '.'),
+                        number_format($valorTotal, 2, ',', '.')
+                    );
+
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['success' => false, 'error' => $errorMsg], 400);
+                    }
+
+                    return back()->withErrors(['pagamento' => $errorMsg], 'novaCompra')->withInput();
+                }
+
+                // Debitar saldo
+                $usuario->saldo -= $valorTotal;
+                $usuario->save();
+
+                // Aprovar transação
+                $transacao->update(['status' => 1, 'metodo_pagamento' => 'saldo']);
+
+                // Alocar proxies
+                $proxiesAlocados = $proxyService->allocateProxies(Auth::id(), [
+                    'pais' => $request->pais,
+                    'quantidade' => (int) $request->quantidade,
+                    'periodo_dias' => (int) $request->periodo,
+                    'motivo' => $request->motivo,
+                ]);
+
+                $allocatedIds = collect($proxiesAlocados)->pluck('id')->toArray();
+                $metadata = $transacao->metadata;
+                $metadata['proxy_ids'] = $allocatedIds;
+                $transacao->metadata = $metadata;
+                $transacao->stock_ids = $allocatedIds;
+                $transacao->save();
+
+                DB::commit();
+                MetaConversionService::purchase($usuario, $transacao);
+
+                \Log::info('Compra via saldo aprovada', [
+                    'user_id' => $usuario->id,
+                    'valor' => $valorTotal,
+                    'saldo_restante' => $usuario->saldo,
+                    'proxies' => count($proxiesAlocados),
+                ]);
+
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => sprintf('Compra realizada com saldo! %d proxies alocados.', count($proxiesAlocados)),
+                        'redirect' => route('dash.show', ['section' => 'proxies']),
+                    ]);
+                }
+
+                return redirect()
+                    ->route('dash.show', ['section' => 'proxies'])
+                    ->with('proxies_success', sprintf(
+                        'Compra realizada com saldo! %d proxies alocados. Saldo restante: R$ %s',
+                        count($proxiesAlocados),
+                        number_format($usuario->saldo, 2, ',', '.')
+                    ));
+            }
+
             // Se for Cartão de Crédito, processar via Stripe
             if ($request->metodo_pagamento === 'credit_card') {
                 $stripeService = app(\App\Services\StripeService::class);

@@ -593,7 +593,9 @@
 
                     <div class="grid md:grid-cols-3 gap-4">
                         @php
+                            $saldoUsuario = Auth::user()->saldo ?? 0;
                             $methods = [
+                                ['id' => 'saldo', 'name' => 'SALDO', 'icon' => 'fas fa-wallet', 'desc' => 'R$ ' . number_format($saldoUsuario, 2, ',', '.'), 'enabled' => $saldoUsuario > 0],
                                 ['id' => 'pix', 'name' => 'PIX', 'icon' => 'fas fa-qrcode', 'desc' => 'Instantâneo', 'enabled' => true],
                                 ['id' => 'credit_card', 'name' => 'CARTÃO DE CRÉDITO', 'icon' => 'fas fa-credit-card', 'desc' => 'Máxima segurança', 'enabled' => true],
                                 ['id' => 'usdt', 'name' => 'USDT', 'icon' => 'fab fa-bitcoin', 'desc' => 'Em breve', 'enabled' => false],
@@ -784,31 +786,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let pendingFormData = null;
 
-    // Interceptar submit do formulário quando for cartão
+    // Interceptar submit do formulário quando for cartão ou saldo
     orderForm?.addEventListener('submit', async function(e) {
         const paymentMethod = document.getElementById('orderPaymentMethod').value;
 
-        // Se não for cartão, deixar o formulário seguir normalmente
-        if (paymentMethod !== 'credit_card') {
+        // Se não for cartão nem saldo, deixar o formulário seguir normalmente
+        if (paymentMethod !== 'credit_card' && paymentMethod !== 'saldo') {
             return true;
         }
 
         e.preventDefault();
 
-        // Validações básicas
-        const cardId = document.querySelector('input[name="card_id"]')?.value;
-        if (!cardId) {
-            showToast('Selecione um cartão de crédito para continuar.');
-            return;
+        // Validações básicas para cartão
+        if (paymentMethod === 'credit_card') {
+            const cardId = document.querySelector('input[name="card_id"]')?.value;
+            if (!cardId) {
+                showToast('Selecione um cartão de crédito para continuar.');
+                return;
+            }
         }
 
         // Salvar dados do formulário para possível fallback PIX
         pendingFormData = new FormData(orderForm);
-        
+
         const motivo = document.querySelector('input[name="motivo"]')?.value;
         const periodo = document.querySelector('input[name="periodo"]')?.value;
         const quantidade = document.querySelector('input[name="quantidade"]')?.value;
-        
+
         pendingFormData.append('motivo', motivo);
         pendingFormData.append('periodo', periodo);
         pendingFormData.append('quantidade', quantidade);
@@ -842,7 +846,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 2000);
             } else {
                 // Mostrar erro e oferecer PIX
-                errorMessage.textContent = data.error || 'Houve um problema com seu cartão.';
+                errorMessage.textContent = data.error || 'Houve um problema ao processar o pagamento.';
                 showState('error');
             }
 

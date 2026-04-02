@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\CrmApiController;
 use App\Http\Controllers\PostbackController;
 use App\Http\Controllers\WebhookController;
 use Illuminate\Http\Request;
@@ -27,4 +28,13 @@ Route::get('/transacao/{transacao_id}', [ApiController::class, 'transacao_status
 // Status de geração de proxies (usa autenticação web padrão via session)
 Route::middleware('web')->group(function () {
     Route::get('/vps/status-geracao', [App\Http\Controllers\AdminController::class, 'statusGeracao']);
+});
+
+// API v1 - CRM Integration
+Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+    Route::get('/proxies/available', [CrmApiController::class, 'available']);
+    Route::get('/proxies/available/details', [CrmApiController::class, 'availableDetails']);
+    Route::post('/proxies/allocate', [CrmApiController::class, 'allocate']);
+    Route::get('/proxies/allocated', [CrmApiController::class, 'allocated']);
+    Route::get('/proxies/{id}', [CrmApiController::class, 'show']);
 });

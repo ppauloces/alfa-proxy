@@ -31,6 +31,8 @@ class Stock extends Model
         'reembolsada',
         'reembolsado_por',
         'reembolsado_em',
+        'origem',
+        'crm_referencia',
     ];
 
 

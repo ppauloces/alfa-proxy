@@ -127,7 +127,7 @@ class ProxyAllocationService
      * @param string $paisInput
      * @return string
      */
-    private function getPaisNome(string $paisInput): string
+    public function getPaisNome(string $paisInput): string
     {
         $paisesMap = $this->getPaisesMap();
 

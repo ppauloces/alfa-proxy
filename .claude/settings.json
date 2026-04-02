@@ -2,7 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(wc -l /c/laragon/www/alfa-proxy/resources/views/dash/partials/admin/*.blade.php)",
-      "Read(//home/alfaproxy/htdocs/storage/logs/**)"
+      "Read(//home/alfaproxy/htdocs/storage/logs/**)",
+      "Bash(ls -la \"C:\\\\Users\\\\ppaul\\\\.claude\\\\projects\\\\c--laragon-www-alfa-proxy\\\\memory\"\" 2>/dev/null || echo \"Memory directory not accessible \")",
+      "Read(//c/Users/ppaul/.claude/projects/c--laragon-www-alfa-proxy/memory/**)",
+      "Bash(grep -E \"\\\\.\\(php\\)$\")",
+      "Bash(xargs grep:*)",
+      "Bash(xargs basename:*)",
+      "Bash(find /c/laragon/www/alfa-proxy -name .env* -type f)",
+      "Bash(git -C /c/laragon/www/alfa-proxy log --oneline --all)",
+      "Bash(git -C /c/laragon/www/alfa-proxy log --all --grep=\"api\\\\|external\\\\|reseller\\\\|affiliate\" --oneline)",
+      "Read(//c/laragon/www/alfa-manager/config/**)",
+      "Read(//c/laragon/www/alfa-manager/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\laragon\\www\\alfa-manager"
     ]
   }
 }

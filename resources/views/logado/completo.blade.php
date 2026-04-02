@@ -153,7 +153,7 @@
             <nav class="p-4">
                 <ul class="space-y-1">
                     <li>
-                        <a href="{{ route('dashboard.show') }}" class="sidebar-link active flex items-center space-x-3 p-3 rounded-lg text-gray-700">
+                        <a href="{{ route('dash.show') }}" class="sidebar-link active flex items-center space-x-3 p-3 rounded-lg text-gray-700">
                             <i class="fas fa-user text-blue-500 w-5"></i>
                             <span>Perfil</span>
                         </a>
@@ -168,7 +168,7 @@
                                 <i class="fas fa-chevron-down text-xs transition-transform duration-300"></i>
                             </button>
                             <div class="dropdown-content ml-8" id="ordersDropdown">
-                                <a href="{{ route('socks5.show') }}" class="block p-2 text-sm text-gray-600 hover:text-blue-500">SOCKS5</a>
+                                <a href="{{ route('proxies.show') }}" class="block p-2 text-sm text-gray-600 hover:text-blue-500">SOCKS5</a>
                             </div>
                         </div>
                     </li>

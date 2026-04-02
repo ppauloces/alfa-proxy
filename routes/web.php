@@ -85,6 +85,8 @@ Route::middleware(['auth', CheckUserStatus::class])->group(function () {
     Route::get('/cupons', [LogadoController::class, 'cupons'])->name('cupons.show');
     Route::get('/duvidas', [LogadoController::class, 'duvidas'])->name('duvidas.show');
     Route::get('/api', [LogadoController::class, 'api'])->name('api.show');
+    Route::post('/api/token/generate', [LogadoController::class, 'apiGenerateToken'])->name('api.token.generate');
+    Route::delete('/api/token/{tokenId}', [LogadoController::class, 'apiRevokeToken'])->name('api.token.revoke');
     Route::get('/suporte', [LogadoController::class, 'suporte'])->name('suporte.show');
     Route::get('/configuracoes', [LogadoController::class, 'configuracoes'])->name('configuracoes.show');
 

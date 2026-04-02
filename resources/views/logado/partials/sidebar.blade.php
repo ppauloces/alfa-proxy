@@ -11,14 +11,14 @@
             <nav class="p-4">
                 <ul class="space-y-1">
                     <li>
-                        <a href="{{ route('dashboard.show') }}" class="sidebar-link {{ request()->routeIs('dashboard.show') ? 'active' : '' }} flex items-center space-x-3 p-3 rounded-lg text-gray-700">
+                        <a href="{{ route('dash.show') }}" class="sidebar-link {{ request()->routeIs('dash.show') ? 'active' : '' }} flex items-center space-x-3 p-3 rounded-lg text-gray-700">
                             <i class="fas fa-user text-blue-500 w-5"></i>
                             <span>Perfil</span>
                         </a>
                     </li>
                     <li>
                         <div class="dropdown">
-                            <button class="sidebar-link {{ request()->routeIs('socks5.show') ? 'active' : '' }} flex items-center justify-between w-full p-3 rounded-lg text-gray-700" id="ordersDropdownBtn">
+                            <button class="sidebar-link {{ request()->routeIs('proxies.show') ? 'active' : '' }} flex items-center justify-between w-full p-3 rounded-lg text-gray-700" id="ordersDropdownBtn">
                                 <div class="flex items-center space-x-3">
                                     <i class="fas fa-shopping-cart text-blue-500 w-5"></i>
                                     <span>Pedidos</span>
@@ -26,7 +26,7 @@
                                 <i class="fas fa-chevron-down text-xs transition-transform duration-300"></i>
                             </button>
                             <div class="dropdown-content ml-8" id="ordersDropdown">
-                                <a href="{{ route('socks5.show') }}" class="block p-2 text-sm text-gray-600 hover:text-blue-500">SOCKS5</a>
+                                <a href="{{ route('proxies.show') }}" class="block p-2 text-sm text-gray-600 hover:text-blue-500">SOCKS5</a>
                             </div>
                         </div>
                     </li>
@@ -38,7 +38,7 @@
                         </div>
                     </li>
                     <li>
-                        <a href="{{ route('comprar.show') }}" class="sidebar-link {{ request()->routeIs('comprar.show') ? 'active' : '' }} flex items-center space-x-3 p-3 rounded-lg text-gray-700">
+                        <a href="{{ route('compra.nova') }}" class="sidebar-link {{ request()->routeIs('compra.nova') ? 'active' : '' }} flex items-center space-x-3 p-3 rounded-lg text-gray-700">
                             <i class="fas fa-shopping-bag text-blue-500 w-5"></i>
                             <span>Comprar</span>
                         </a>

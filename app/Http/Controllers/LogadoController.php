@@ -1756,7 +1756,56 @@ class LogadoController extends Controller
     public function api()
     {
         $usuario = User::where('id', Auth::id())->first();
-        return view('logado.api', compact('usuario'));
+        $tokens = $usuario->tokens()->orderBy('created_at', 'desc')->get();
+        return view('logado.api', compact('usuario', 'tokens'));
+    }
+
+    /**
+     * Gera um novo token de API (Sanctum)
+     */
+    public function apiGenerateToken(Request $request)
+    {
+        $usuario = User::where('id', Auth::id())->first();
+
+        // Limitar a 5 tokens ativos
+        if ($usuario->tokens()->count() >= 5) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Limite de 5 tokens atingido. Revogue um token antes de gerar outro.',
+            ], 422);
+        }
+
+        $tokenName = $request->input('name', 'CRM Token');
+        $token = $usuario->createToken($tokenName, ['crm']);
+
+        return response()->json([
+            'success' => true,
+            'token' => $token->plainTextToken,
+            'name' => $tokenName,
+        ]);
+    }
+
+    /**
+     * Revoga um token de API
+     */
+    public function apiRevokeToken(Request $request, int $tokenId)
+    {
+        $usuario = User::where('id', Auth::id())->first();
+        $token = $usuario->tokens()->where('id', $tokenId)->first();
+
+        if (!$token) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Token não encontrado.',
+            ], 404);
+        }
+
+        $token->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Token revogado com sucesso.',
+        ]);
     }
 
     /**

@@ -9,8 +9,8 @@
                 </div>
             </div>
             <nav class="hidden md:flex space-x-6 items-center">
-                <a href="{{ route('dashboard.show') }}" class="text-gray-600 hover:text-blue-500 font-medium">Dashboard</a>
-                <a href="{{ route('socks5.show') }}" class="text-gray-600 hover:text-blue-500 font-medium">Proxies</a>
+                <a href="{{ route('dash.show') }}" class="text-gray-600 hover:text-blue-500 font-medium">Dashboard</a>
+                <a href="{{ route('proxies.show') }}" class="text-gray-600 hover:text-blue-500 font-medium">Proxies</a>
                 <div class="flex items-center space-x-2 text-gray-400 cursor-not-allowed opacity-60">
                     <span class="font-medium">Saldo</span>
                     <span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">Em breve</span>
@@ -36,7 +36,7 @@
                         <span class="hidden md:inline text-gray-700">{{ Auth::user()->username }}</span>
                     </button>
                     <div class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50" id="userMenuDropdown">
-                        <a href="{{ route('dashboard.show') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Meu Perfil</a>
+                        <a href="{{ route('dash.show') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Meu Perfil</a>
                    <!-- <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Configurações</a> -->
                         <a href="{{ route('logout.perform') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sair</a>
                     </div>

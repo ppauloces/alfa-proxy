@@ -37,4 +37,5 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('/proxies/allocate', [CrmApiController::class, 'allocate']);
     Route::get('/proxies/allocated', [CrmApiController::class, 'allocated']);
     Route::get('/proxies/{id}', [CrmApiController::class, 'show']);
+    Route::post('/proxies/test', [CrmApiController::class, 'test']);
 });

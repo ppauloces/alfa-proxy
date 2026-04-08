@@ -204,6 +204,49 @@ class CrmApiController extends Controller
     }
 
     /**
+     * Testa conectividade de um proxy
+     * POST /api/v1/proxies/test
+     *
+     * Body: { "ip": "1.2.3.4", "porta": 1080, "usuario": "user", "senha": "pass" }
+     */
+    public function test(Request $request)
+    {
+        $request->validate([
+            'ip' => 'required|string',
+            'porta' => 'required|integer',
+            'usuario' => 'required|string',
+            'senha' => 'required|string',
+        ]);
+
+        try {
+            $apiUrl = config('services.python_api.url', env('PYTHON_API_URL', 'http://127.0.0.1:8001'));
+
+            $response = \Illuminate\Support\Facades\Http::timeout(15)->post("{$apiUrl}/testar", [
+                'ip' => $request->ip,
+                'porta' => (int) $request->porta,
+                'usuario' => $request->usuario,
+                'senha' => $request->senha,
+                'ip_visto_pelo_servidor' => $request->ip(),
+                'timeout' => 5,
+            ]);
+
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'error' => $response->json()['detail'] ?? 'Erro ao testar proxy',
+            ], $response->status());
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'error' => 'Erro ao conectar com servidor de testes: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Formata um proxy para resposta da API
      */
     private function formatProxy(Stock $proxy): array

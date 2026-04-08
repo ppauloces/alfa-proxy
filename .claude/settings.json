@@ -12,7 +12,18 @@
       "Bash(git -C /c/laragon/www/alfa-proxy log --oneline --all)",
       "Bash(git -C /c/laragon/www/alfa-proxy log --all --grep=\"api\\\\|external\\\\|reseller\\\\|affiliate\" --oneline)",
       "Read(//c/laragon/www/alfa-manager/config/**)",
-      "Read(//c/laragon/www/alfa-manager/**)"
+      "Read(//c/laragon/www/alfa-manager/**)",
+      "Read(//c/laragon/etc/apache2/sites-enabled/**)",
+      "Read(//c/laragon/etc/apache2/sites-enabled//**)",
+      "Read(//c/Windows/System32/drivers/etc/**)",
+      "Bash(grep -n \"class Compra\\\\|table.*compras\" app/Models/*.php)",
+      "Bash(grep \"use App\\\\\\\\\\\\\\\\Models\\\\\\\\\\\\\\\\Transacao\" /c/laragon/www/alfa-manager/app/Http/Controllers/EntregaController.php)",
+      "Bash(find /c/laragon/www/alfa-manager/app -name \"*.php\" -exec grep -l \"marcarComoVendida\" {} \\\\;)",
+      "Bash(grep -n '$produto->proxies' /c/laragon/www/alfa-manager/app/Services/Compras/ManualSaleService.php)",
+      "Bash(grep -n 'protected $fillable\\\\|protected $casts' /c/laragon/www/alfa-manager/app/Models/Proxy.php)",
+      "Bash(find /c/laragon/www/alfa-manager/app/Http/Controllers -type f -name \"*Controller.php\" -exec grep -l \"minhas.*compra\\\\|meus.*compra\\\\|historico\\\\|pedido\" -i {} \\\\;)",
+      "Read(//c/laragon/www/**)",
+      "Bash(grep -r \"testar\\\\|/testar\" /c/laragon/www/alfa-manager/FARMBMS/*.py)"
     ],
     "additionalDirectories": [
       "c:\\laragon\\www\\alfa-manager"

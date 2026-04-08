@@ -231,7 +231,26 @@ class CrmApiController extends Controller
             ]);
 
             if ($response->successful()) {
-                return response()->json($response->json());
+                $data = $response->json();
+
+                // Buscar localização do IP detectado
+                $detectedIp = $data['ip_visto_pelo_servidor'] ?? null;
+                if ($detectedIp) {
+                    try {
+                        $geoResponse = \Illuminate\Support\Facades\Http::timeout(5)
+                            ->get("http://ip-api.com/json/{$detectedIp}?fields=status,city,regionName,country,countryCode");
+
+                        if ($geoResponse->successful() && $geoResponse->json('status') === 'success') {
+                            $geo = $geoResponse->json();
+                            $data['location'] = trim(($geo['city'] ?? '') . ', ' . ($geo['regionName'] ?? '') . ' - ' . ($geo['country'] ?? ''), ', - ');
+                            $data['country_code'] = $geo['countryCode'] ?? null;
+                        }
+                    } catch (\Exception $e) {
+                        // Ignora erro de geolocalização
+                    }
+                }
+
+                return response()->json($data);
             }
 
             return response()->json([

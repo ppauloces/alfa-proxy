@@ -246,6 +246,11 @@ function adminReciclagensPanel() {
         filterStatus: 'all',
         loading: false,
         toast: { show: false, message: '', type: 'success' },
+        autoRefreshTimer: null,
+
+        init() {
+            this.autoRefreshTimer = setInterval(() => this.fetchData(), 30000);
+        },
 
         get filteredItems() {
             const term = this.search.toLowerCase();

@@ -196,7 +196,6 @@
     </div>
 </div>
 
-@push('scripts')
 <script>
 function adminRenovacoesPanel() {
     return {
@@ -326,4 +325,3 @@ function adminRenovacoesPanel() {
     };
 }
 </script>
-@endpush

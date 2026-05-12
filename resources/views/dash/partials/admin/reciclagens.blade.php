@@ -234,7 +234,6 @@
     </div>
 </div>
 
-@push('scripts')
 <script>
 function adminReciclagensPanel() {
     return {
@@ -315,4 +314,3 @@ function adminReciclagensPanel() {
     };
 }
 </script>
-@endpush

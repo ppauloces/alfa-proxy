@@ -55,3 +55,34 @@ Schedule::command('proxies:auto-renew --hours-before=12')
     ->onFailure(function () {
         \Illuminate\Support\Facades\Log::error('Falha na auto-renovacao de proxies');
     });
+
+/**
+ * Aviso 24h antes da reciclagem automatica
+ * Proxies bloqueadas ha mais de (carencia - 24h) recebem e-mail de aviso
+ */
+Schedule::command('proxies:notify-recycling --carencia-dias=7 --aviso-horas=24')
+    ->hourly()
+    ->name('notify-proxy-recycling')
+    ->withoutOverlapping(10)
+    ->onSuccess(function () {
+        \Illuminate\Support\Facades\Log::info('Aviso de reciclagem enviado com sucesso');
+    })
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('Falha no envio de avisos de reciclagem');
+    });
+
+/**
+ * Reciclagem automatica de proxies bloqueadas ha 7+ dias
+ * Regenera senha no servidor, desbloqueia porta e devolve ao estoque
+ */
+Schedule::command('proxies:recycle-expired --carencia-dias=7 --batch-size=50')
+    ->hourly()
+    ->name('recycle-expired-proxies')
+    ->withoutOverlapping(15)
+    ->runInBackground()
+    ->onSuccess(function () {
+        \Illuminate\Support\Facades\Log::info('Reciclagem automatica de proxies executada com sucesso');
+    })
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('Falha na reciclagem automatica de proxies');
+    });

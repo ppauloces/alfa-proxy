@@ -33,6 +33,8 @@ class Stock extends Model
         'reembolsado_em',
         'origem',
         'crm_referencia',
+        'recycling_notified_at',
+        'recycled_at',
     ];
 
 
@@ -56,6 +58,8 @@ class Stock extends Model
         'substituido' => 'boolean',
         'reembolsada' => 'boolean',
         'reembolsado_em' => 'datetime',
+        'recycling_notified_at' => 'datetime',
+        'recycled_at' => 'datetime',
     ];
 
     public function substituto()

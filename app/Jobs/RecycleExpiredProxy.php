@@ -54,6 +54,27 @@ class RecycleExpiredProxy implements ShouldQueue
         }
 
         $vps = $stock->vps;
+
+        // Fail-fast: testa TCP na porta SSH (3s) antes de chamar a API Python.
+        // Evita perder ~60s por SSH timeout em VPSs offline.
+        $sshOpen = false;
+        foreach ([22, 22022] as $sshPort) {
+            $sock = @fsockopen($vps->ip, $sshPort, $errno, $errstr, 3);
+            if ($sock) {
+                fclose($sock);
+                $sshOpen = true;
+                break;
+            }
+        }
+        if (!$sshOpen) {
+            Log::warning('VPS offline (SSH inacessivel) - pulando reciclagem', [
+                'stock_id' => $stock->id,
+                'vps_ip' => $vps->ip,
+            ]);
+            $this->release(3600); // tenta de novo em 1h
+            return;
+        }
+
         $pythonApiUrl = config('services.python_api.url', 'http://127.0.0.1:8001');
 
         $payload = [

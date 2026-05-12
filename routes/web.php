@@ -162,6 +162,11 @@ Route::middleware(AdminMiddleware::class)->group(function () {
     Route::get('/admin/renovacoes', [AdminController::class, 'renovacoes'])->name('admin.renovacoes');
     Route::get('/admin/renovacoes/data', [AdminController::class, 'renovacoesData'])->name('admin.renovacoes.data');
     Route::post('/admin/renovacoes/cobrar', [AdminController::class, 'cobrarRenovacao'])->name('admin.renovacoes.cobrar');
+
+    // Reciclagens automaticas (super admin)
+    Route::get('/admin/reciclagens', [AdminController::class, 'reciclagens'])->name('admin.reciclagens');
+    Route::get('/admin/reciclagens/data', [AdminController::class, 'reciclagensData'])->name('admin.reciclagens.data');
+    Route::post('/admin/reciclagens/forcar', [AdminController::class, 'reciclarManual'])->name('admin.reciclagens.forcar');
 });
 
 // Webhook XGate sem prefixo /api (a XGate envia para /webhook/xgate)

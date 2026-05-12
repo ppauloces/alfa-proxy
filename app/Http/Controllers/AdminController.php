@@ -1841,6 +1841,188 @@ class AdminController extends Controller
         return response()->json(self::getRenovacoesPendentesData());
     }
 
+    public function reciclagens(Request $request)
+    {
+        if (!Auth::user()->isSuperAdmin()) {
+            return redirect()->route('dash.show')->with('error', 'Acesso restrito.');
+        }
+
+        return redirect()->route('dash.show', ['section' => 'admin-reciclagens']);
+    }
+
+    public static function getReciclagensData(): array
+    {
+        $carenciaDias = 7;
+
+        $proxies = Stock::with(['user', 'vps'])
+            ->where(function ($q) {
+                $q->whereNotNull('recycled_at')
+                    ->orWhereNotNull('recycling_notified_at')
+                    ->orWhere(function ($q2) {
+                        $q2->where('bloqueada', true)
+                            ->whereNotNull('user_id')
+                            ->whereNotNull('expiracao');
+                    });
+            })
+            ->orderByRaw('CASE WHEN recycled_at IS NULL THEN 0 ELSE 1 END')
+            ->orderByDesc('recycled_at')
+            ->orderBy('expiracao')
+            ->limit(2000)
+            ->get();
+
+        $items = [];
+        $agora = Carbon::now();
+
+        foreach ($proxies as $proxy) {
+            $expiracao = $proxy->expiracao ? Carbon::parse($proxy->expiracao) : null;
+            $reciclavelEm = $expiracao ? $expiracao->copy()->addDays($carenciaDias) : null;
+
+            if ($proxy->recycled_at) {
+                $status = 'reciclada';
+                $statusLabel = 'Reciclada';
+                $tempoRestante = null;
+            } elseif ($expiracao && $reciclavelEm && $reciclavelEm->isPast() && $proxy->bloqueada) {
+                $status = 'pronta';
+                $statusLabel = 'Pronta para reciclar';
+                $tempoRestante = 0;
+            } elseif ($proxy->recycling_notified_at) {
+                $status = 'avisado';
+                $statusLabel = 'Aviso enviado';
+                $tempoRestante = $reciclavelEm ? max(0, $agora->diffInHours($reciclavelEm, false)) : null;
+            } elseif ($proxy->bloqueada && $expiracao) {
+                $status = 'aguardando';
+                $statusLabel = 'Aguardando carencia';
+                $tempoRestante = $reciclavelEm ? max(0, $agora->diffInHours($reciclavelEm, false)) : null;
+            } else {
+                $status = 'desconhecido';
+                $statusLabel = 'Indefinido';
+                $tempoRestante = null;
+            }
+
+            $items[] = [
+                'id' => $proxy->id,
+                'endereco' => $proxy->ip . ':' . $proxy->porta,
+                'usuario_proxy' => $proxy->usuario,
+                'cliente_email' => $proxy->user?->email,
+                'cliente_username' => $proxy->user?->username,
+                'pais' => $proxy->pais ?? '-',
+                'vps' => $proxy->vps?->apelido ?? $proxy->vps?->ip ?? '-',
+                'bloqueada' => (bool) $proxy->bloqueada,
+                'expiracao' => $expiracao?->format('d/m/Y H:i'),
+                'expirou_ha_dias' => $expiracao ? (int) floor($expiracao->diffInDays($agora, false)) : null,
+                'aviso_enviado_em' => $proxy->recycling_notified_at?->format('d/m/Y H:i'),
+                'reciclada_em' => $proxy->recycled_at?->format('d/m/Y H:i'),
+                'reciclavel_em' => $reciclavelEm?->format('d/m/Y H:i'),
+                'horas_para_reciclar' => $tempoRestante !== null ? (int) round($tempoRestante) : null,
+                'status' => $status,
+                'status_label' => $statusLabel,
+            ];
+        }
+
+        $stats = [
+            'total' => count($items),
+            'aguardando' => count(array_filter($items, fn ($i) => $i['status'] === 'aguardando')),
+            'avisado' => count(array_filter($items, fn ($i) => $i['status'] === 'avisado')),
+            'pronta' => count(array_filter($items, fn ($i) => $i['status'] === 'pronta')),
+            'reciclada' => count(array_filter($items, fn ($i) => $i['status'] === 'reciclada')),
+        ];
+
+        return ['items' => $items, 'stats' => $stats];
+    }
+
+    public function reciclagensData(Request $request)
+    {
+        if (!Auth::user()->isSuperAdmin()) {
+            return response()->json(['error' => 'Acesso restrito.'], 403);
+        }
+
+        return response()->json(self::getReciclagensData());
+    }
+
+    public function reciclarManual(Request $request)
+    {
+        if (!Auth::user()->isSuperAdmin()) {
+            return response()->json(['success' => false, 'error' => 'Acesso restrito.'], 403);
+        }
+
+        $validated = $request->validate([
+            'stock_id' => 'required|integer|exists:stocks,id',
+        ]);
+
+        $stock = Stock::with('vps')->findOrFail($validated['stock_id']);
+
+        if (!$stock->vps) {
+            return response()->json([
+                'success' => false,
+                'error' => 'VPS nao encontrada para este proxy.',
+            ], 422);
+        }
+
+        $pythonApiUrl = config('services.python_api.url', 'http://127.0.0.1:8001');
+
+        try {
+            $response = Http::timeout(180)->post("{$pythonApiUrl}/reciclar", [
+                'ip_vps'        => $stock->vps->ip,
+                'user_ssh'      => $stock->vps->usuario_ssh,
+                'senha_ssh'     => $stock->vps->senha_ssh,
+                'usuario_proxy' => $stock->usuario,
+                'porta'         => $stock->porta,
+            ]);
+
+            if (!$response->successful()) {
+                Log::error('Reciclagem manual via painel falhou', [
+                    'stock_id' => $stock->id,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'admin_id' => Auth::id(),
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'error' => 'API retornou ' . $response->status() . ': ' . substr($response->body(), 0, 200),
+                ], 500);
+            }
+
+            $novaSenha = $response->json('nova_senha') ?? $stock->senha;
+
+            DB::transaction(function () use ($stock, $novaSenha) {
+                $stock->update([
+                    'senha'                 => $novaSenha,
+                    'user_id'               => null,
+                    'disponibilidade'       => true,
+                    'bloqueada'             => false,
+                    'substituido'           => false,
+                    'substituido_por'       => null,
+                    'expiracao'             => null,
+                    'periodo_dias'          => null,
+                    'motivo_uso'            => null,
+                    'renovacao_automatica'  => false,
+                    'recycled_at'           => now(),
+                    'recycling_notified_at' => null,
+                ]);
+            });
+
+            Log::info('Proxy reciclada manualmente via painel', [
+                'stock_id' => $stock->id,
+                'admin_id' => Auth::id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Proxy ' . $stock->ip . ':' . $stock->porta . ' reciclada e devolvida ao estoque.',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Excecao ao reciclar manualmente via painel', [
+                'stock_id' => $stock->id,
+                'error' => $e->getMessage(),
+                'admin_id' => Auth::id(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function cobrarRenovacao(Request $request)
     {
         if (!Auth::user()->isSuperAdmin()) {

@@ -623,6 +623,12 @@
                                         <span class="nav-text">Renovações</span>
                                     </span>
                                 </button>
+                                <button type="button" class="nav-pill" data-section-link="admin-reciclagens">
+                                    <span class="flex items-center gap-3">
+                                        <i class="fas fa-recycle w-5 text-center"></i>
+                                        <span class="nav-text">Reciclagens</span>
+                                    </span>
+                                </button>
                             @endif
                         </div>
                     @endif

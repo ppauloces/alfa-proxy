@@ -1858,6 +1858,11 @@
                     data-section="admin-renovacoes">
                     @include('dash.partials.admin.renovacoes')
                 </section>
+
+                <section class="dash-section {{ $currentSection === 'admin-reciclagens' ? 'active' : 'hidden' }}"
+                    data-section="admin-reciclagens">
+                    @include('dash.partials.admin.reciclagens')
+                </section>
             @endif
 
         @endif

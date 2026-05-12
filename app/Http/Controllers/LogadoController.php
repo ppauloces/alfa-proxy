@@ -717,11 +717,17 @@ class LogadoController extends Controller
         // Dados de renovações pendentes (super admin)
         $renovacoesPendentes = [];
         $renovacoesStats = ['pendentes' => 0, 'valorPendente' => 'R$ 0,00', 'cobradasHoje' => 0, 'falhasHoje' => 0];
+        $reciclagensItems = [];
+        $reciclagensStats = ['total' => 0, 'aguardando' => 0, 'avisado' => 0, 'pronta' => 0, 'reciclada' => 0];
 
         if ($usuario->isSuperAdmin()) {
             $renewData = AdminController::getRenovacoesPendentesData();
             $renovacoesPendentes = $renewData['items'];
             $renovacoesStats = $renewData['stats'];
+
+            $recData = AdminController::getReciclagensData();
+            $reciclagensItems = $recData['items'];
+            $reciclagensStats = $recData['stats'];
         }
 
         return view('dash.index', compact(
@@ -755,6 +761,8 @@ class LogadoController extends Controller
             'proxiesSubstituidos',
             'renovacoesPendentes',
             'renovacoesStats',
+            'reciclagensItems',
+            'reciclagensStats',
         ));
     }
 

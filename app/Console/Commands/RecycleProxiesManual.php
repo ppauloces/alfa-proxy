@@ -94,7 +94,7 @@ class RecycleProxiesManual extends Command
             }
 
             try {
-                $response = Http::timeout(60)->post("{$pythonApiUrl}/reciclar", [
+                $response = Http::timeout(180)->post("{$pythonApiUrl}/reciclar", [
                     'ip_vps'        => $stock->vps->ip,
                     'user_ssh'      => $stock->vps->usuario_ssh,
                     'senha_ssh'     => $stock->vps->senha_ssh,

@@ -18,7 +18,7 @@ class RecycleExpiredProxy implements ShouldQueue
 
     public int $stockId;
     public int $tries = 3;
-    public int $timeout = 90;
+    public int $timeout = 240;
     public int $backoff = 10;
     public bool $deleteWhenMissingModels = true;
 
@@ -64,7 +64,7 @@ class RecycleExpiredProxy implements ShouldQueue
             'porta'         => $stock->porta,
         ];
 
-        $response = Http::timeout(60)->post("{$pythonApiUrl}/reciclar", $payload);
+        $response = Http::timeout(180)->post("{$pythonApiUrl}/reciclar", $payload);
 
         if (!$response->successful()) {
             Log::error('Falha ao reciclar proxy via API Python', [

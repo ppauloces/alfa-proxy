@@ -653,6 +653,7 @@ class LogadoController extends Controller
                 'remaining' => $stock->expiracao ? Carbon::parse($stock->expiracao)->diffForHumans() : null,
                 'auto_renew' => $stock->renovacao_automatica ?? false,
                 'substituido' => $stock->substituido ?? false,
+                'blocked' => $stock->bloqueada ?? false,
             ];
 
             if ($stock->substituido) {

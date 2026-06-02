@@ -1567,9 +1567,23 @@
                                                                     </span>
                                                                 </td>
                                                                 <td class="px-6 py-6 text-center">
+                                                                    @php
+                                                                        $stBlocked = $proxy['blocked'] ?? false;
+                                                                        $stExpired = \Carbon\Carbon::parse($proxy['expires_at'])->isPast();
+                                                                        if ($stBlocked) {
+                                                                            $stClass = 'bg-amber-50 text-amber-600 border-amber-100';
+                                                                            $stLabel = 'Bloqueado';
+                                                                        } elseif ($stExpired) {
+                                                                            $stClass = 'bg-red-50 text-red-600 border-red-100';
+                                                                            $stLabel = 'Expirado';
+                                                                        } else {
+                                                                            $stClass = 'bg-green-50 text-green-600 border-green-100';
+                                                                            $stLabel = 'Ativo';
+                                                                        }
+                                                                    @endphp
                                                                     <span
-                                                                        class="px-4 py-1.5 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-widest border border-green-100">
-                                                                        Ativo
+                                                                        class="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border {{ $stClass }}">
+                                                                        {{ $stLabel }}
                                                                     </span>
                                                                 </td>
                                                                 {{-- Coluna: Renovar via Pix --}}

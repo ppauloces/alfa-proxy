@@ -2681,9 +2681,15 @@
             const hoje = new Date();
             let novaExpiracao;
 
-            if (expiracaoAtual < hoje) { // Proxy expirado: adiciona dias a partir de hoje novaExpiracao=new Date(hoje);
-                novaExpiracao.setDate(novaExpiracao.getDate() + dias); } else { novaExpiracao=new Date(expiracaoAtual);
-                novaExpiracao.setDate(novaExpiracao.getDate() + dias); } // Atualizar resumo
+            if (expiracaoAtual < hoje) {
+                // Proxy expirado: adiciona dias a partir de hoje
+                novaExpiracao = new Date(hoje);
+                novaExpiracao.setDate(novaExpiracao.getDate() + dias);
+            } else {
+                novaExpiracao = new Date(expiracaoAtual);
+                novaExpiracao.setDate(novaExpiracao.getDate() + dias);
+            }
+                // Atualizar resumo
                 document.getElementById('renovacao-resumo-periodo').textContent=`${dias} dias`;
                 document.getElementById('renovacao-resumo-valor').textContent=`R$ ${preco.toFixed(2).replace('.', ',' )}`;
                 document.getElementById('renovacao-resumo-total').textContent=`R$ ${preco.toFixed(2).replace('.', ',' )}`;

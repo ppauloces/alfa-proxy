@@ -1497,6 +1497,132 @@ class LogadoController extends Controller
         }
     }
 
+    /**
+     * Renovar proxy utilizando o saldo da carteira (pagamento instantâneo)
+     */
+    public function renovarComSaldo(Request $request, \App\Services\ProxyRenewalService $renewalService)
+    {
+        $validated = $request->validate([
+            'proxy_id' => 'required|exists:stocks,id',
+            'periodo' => 'required|integer|in:30,60,90,180,360',
+        ]);
+
+        $isAjax = $request->ajax() || $request->wantsJson();
+
+        try {
+            $proxy = Stock::with('vps')->findOrFail($validated['proxy_id']);
+            $usuario = User::find(Auth::id());
+
+            // Verificar se o proxy pode ser renovado por este usuário
+            if (!$renewalService->canRenewProxy($proxy, $usuario)) {
+                $msg = 'Você não tem permissão para renovar este proxy.';
+
+                return $isAjax
+                    ? response()->json(['success' => false, 'error' => $msg], 403)
+                    : back()->withErrors(['error' => $msg]);
+            }
+
+            $valorTotal = $renewalService->calculateRenewalPrice($usuario, $validated['periodo']);
+
+            DB::beginTransaction();
+
+            // Travar o registro do usuário para evitar corrida no débito de saldo
+            $usuario = User::where('id', Auth::id())->lockForUpdate()->first();
+
+            if ($usuario->saldo < $valorTotal) {
+                DB::rollBack();
+
+                $msg = sprintf(
+                    'Saldo insuficiente. Seu saldo é R$ %s e a renovação custa R$ %s.',
+                    number_format($usuario->saldo, 2, ',', '.'),
+                    number_format($valorTotal, 2, ',', '.')
+                );
+
+                return $isAjax
+                    ? response()->json(['success' => false, 'error' => $msg], 400)
+                    : back()->withErrors(['error' => $msg]);
+            }
+
+            $expiracaoAnterior = $proxy->expiracao;
+            $novaExpiracao = $renewalService->calculateNewExpiration($proxy, (int) $validated['periodo']);
+
+            // Criar transação de renovação já aprovada (saldo é instantâneo)
+            $transacao = Transaction::create([
+                'user_id' => $usuario->id,
+                'email' => $usuario->email,
+                'transacao' => 'REN-' . strtoupper(uniqid()),
+                'valor' => $valorTotal,
+                'status' => 1, // Aprovada
+                'metodo_pagamento' => 'saldo',
+                'payment_method' => 'saldo',
+                'tipo' => 'renovacao',
+                'gateway_type' => null,
+                'metadata' => [
+                    'proxy_id' => $proxy->id,
+                    'proxy_ip' => $proxy->ip,
+                    'proxy_porta' => $proxy->porta,
+                    'periodo_adicional' => $validated['periodo'],
+                    'expiracao_anterior' => $expiracaoAnterior,
+                    'expiracao_nova' => $novaExpiracao->format('Y-m-d H:i:s'),
+                    'estava_bloqueado' => $proxy->bloqueada,
+                    'pagamento' => 'saldo',
+                ],
+            ]);
+
+            // Debitar saldo do usuário
+            $usuario->saldo -= $valorTotal;
+            $usuario->save();
+
+            // Renovar proxy: estende expiração e desbloqueia via API se necessário
+            // (lança exceção em caso de falha, revertendo o débito de saldo)
+            $proxy = $renewalService->renewProxy($proxy, (int) $validated['periodo']);
+
+            DB::commit();
+
+            MetaConversionService::purchase($usuario, $transacao);
+
+            \Log::info('Renovação via saldo aprovada', [
+                'user_id' => $usuario->id,
+                'proxy_id' => $proxy->id,
+                'valor' => $valorTotal,
+                'saldo_restante' => $usuario->saldo,
+                'expiracao_nova' => $proxy->expiracao,
+            ]);
+
+            $msg = sprintf(
+                'Proxy renovado com sucesso! Saldo restante: R$ %s',
+                number_format($usuario->saldo, 2, ',', '.')
+            );
+
+            if ($isAjax) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $msg,
+                    'redirect' => route('dash.show', ['section' => 'proxies']),
+                ]);
+            }
+
+            return redirect()
+                ->route('dash.show', ['section' => 'proxies'])
+                ->with('proxies_success', $msg);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            \Log::error('Erro ao renovar proxy via saldo', [
+                'user_id' => Auth::id(),
+                'proxy_id' => $validated['proxy_id'] ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            $msg = 'Erro ao renovar proxy: ' . $e->getMessage();
+
+            return $isAjax
+                ? response()->json(['success' => false, 'error' => $msg], 500)
+                : back()->withErrors(['error' => $msg]);
+        }
+    }
+
     public function dashboard()
     {
         $usuario = User::where('id', Auth::id())->first();

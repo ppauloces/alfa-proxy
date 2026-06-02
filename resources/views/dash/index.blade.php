@@ -2660,6 +2660,10 @@
             radio.checked = false;
             });
             document.getElementById('btn-confirmar-renovacao').disabled = true;
+            const btnSaldoReset = document.getElementById('btn-confirmar-renovacao-saldo');
+            if (btnSaldoReset) btnSaldoReset.disabled = true;
+            const avisoSaldoReset = document.getElementById('renovacao-saldo-aviso');
+            if (avisoSaldoReset) avisoSaldoReset.classList.add('hidden');
             document.getElementById('renovacao-resumo-periodo').textContent = 'Selecione';
             document.getElementById('renovacao-resumo-valor').textContent = 'R$ 0,00';
             document.getElementById('renovacao-resumo-total').textContent = 'R$ 0,00';
@@ -2687,7 +2691,23 @@
                 day: '2-digit' , month: '2-digit' , year: 'numeric' , hour: '2-digit' , minute: '2-digit' });
                 document.getElementById('renovacao-resumo-nova-data').textContent=novaExpiracao.toLocaleDateString('pt-BR',
                 { day: '2-digit' , month: '2-digit' , year: 'numeric' }); // Habilitar botão de confirmação
-                document.getElementById('btn-confirmar-renovacao').disabled=false; }); }); // Exibir modal
+                document.getElementById('btn-confirmar-renovacao').disabled=false;
+
+                // Habilitar botão de saldo apenas se houver saldo suficiente
+                const saldoEl = document.getElementById('renovacao-saldo-disponivel');
+                const saldoDisponivel = saldoEl ? parseFloat(saldoEl.dataset.saldo || '0') : 0;
+                const btnSaldo = document.getElementById('btn-confirmar-renovacao-saldo');
+                const avisoSaldo = document.getElementById('renovacao-saldo-aviso');
+                if (btnSaldo) {
+                if (saldoDisponivel >= preco) {
+                btnSaldo.disabled = false;
+                if (avisoSaldo) avisoSaldo.classList.add('hidden');
+                } else {
+                btnSaldo.disabled = true;
+                if (avisoSaldo) avisoSaldo.classList.remove('hidden');
+                }
+                }
+                }); }); // Exibir modal
                 document.getElementById('modalRenovacao').style.display='flex' ; }; window.fecharModalRenovacao=function() {
                 document.getElementById('modalRenovacao').style.display='none' ; renovacaoProxyData=null; };
                 window.confirmarRenovacao=async function() { const
@@ -2733,6 +2753,60 @@
                 alert('Erro ao conectar com o servidor. Tente novamente.');
                 btnConfirmar.innerHTML = originalText;
                 btnConfirmar.disabled = false;
+                }
+                };
+
+                // Renovação via saldo (pagamento instantâneo)
+                window.confirmarRenovacaoSaldo = async function() {
+                const periodoSelecionado = document.querySelector('.renovacao-period-radio:checked');
+                if (!periodoSelecionado || !renovacaoProxyData) {
+                alert('Selecione um período de renovação');
+                return;
+                }
+
+                if (!confirm('Confirmar a renovação utilizando o seu saldo?')) {
+                return;
+                }
+
+                const btnSaldo = document.getElementById('btn-confirmar-renovacao-saldo');
+                const originalText = btnSaldo.innerHTML;
+
+                try {
+                btnSaldo.disabled = true;
+                btnSaldo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+
+                const response = await fetch('{{ route("proxies.renovar-saldo") }}', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                proxy_id: renovacaoProxyData.id,
+                periodo: parseInt(periodoSelecionado.value)
+                })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                fecharModalRenovacao();
+                if (data.redirect) {
+                window.location.href = data.redirect;
+                } else {
+                window.location.reload();
+                }
+                } else {
+                alert(data.error || 'Erro ao renovar com saldo. Tente novamente.');
+                btnSaldo.innerHTML = originalText;
+                btnSaldo.disabled = false;
+                }
+
+                } catch (error) {
+                console.error('Erro ao renovar com saldo:', error);
+                alert('Erro ao conectar com o servidor. Tente novamente.');
+                btnSaldo.innerHTML = originalText;
+                btnSaldo.disabled = false;
                 }
                 };
 

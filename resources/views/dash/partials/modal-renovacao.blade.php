@@ -113,7 +113,7 @@
             <div class="flex items-center justify-between mb-4">
                 <h4 class="text-sm font-black text-slate-900 uppercase tracking-wider">Resumo da renovação</h4>
                 <div class="px-3 py-1 bg-white rounded-full shadow-sm">
-                    <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">PIX instantâneo</p>
+                    <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Renovação imediata</p>
                 </div>
             </div>
 
@@ -153,8 +153,25 @@
                 </label>
             </div>
         </div>
+{{-- Saldo disponível --}}
+        <div class="bg-slate-50 rounded-2xl p-4 mb-4 border border-slate-200 flex items-center justify-between gap-4">
+            <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Saldo disponível</p>
+                <p
+                    class="text-lg font-black text-slate-900"
+                    id="renovacao-saldo-disponivel"
+                    data-saldo="{{ Auth::user()->saldo }}"
+                >
+                    R$ {{ number_format(Auth::user()->saldo, 2, ',', '.') }}
+                </p>
+            </div>
+            <p id="renovacao-saldo-aviso" class="hidden text-[11px] font-bold text-red-500 text-right max-w-[200px] leading-tight">
+                <i class="fas fa-exclamation-circle mr-1"></i> Saldo insuficiente para este período. Use o PIX ou recarregue sua carteira.
+            </p>
+        </div>
+
 {{-- Botões --}}
-        <div class="flex gap-3">
+        <div class="flex flex-col sm:flex-row gap-3">
             <button
                 type="button"
                 onclick="fecharModalRenovacao()"
@@ -164,12 +181,22 @@
             </button>
             <button
                 type="button"
+                id="btn-confirmar-renovacao-saldo"
+                onclick="confirmarRenovacaoSaldo()"
+                disabled
+                class="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-2xl font-black text-sm uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+                <i class="fas fa-wallet"></i>
+                Pagar com Saldo
+            </button>
+            <button
+                type="button"
                 id="btn-confirmar-renovacao"
                 onclick="confirmarRenovacao()"
                 disabled
                 class="flex-1 py-4 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-2xl font-black text-sm uppercase tracking-wider transition-all shadow-lg shadow-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-                <i class="fas fa-shopping-cart"></i>
+                <i class="fas fa-qrcode"></i>
                 Renovar via PIX
             </button>
         </div>

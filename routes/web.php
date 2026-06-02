@@ -59,6 +59,7 @@ Route::middleware(['auth', CheckUserStatus::class])->group(function () {
     Route::get('/proxies', [LogadoController::class, 'proxies'])->name('proxies.show');
     Route::post('/proxies/renovar', [LogadoController::class, 'renovarProxy'])->name('proxies.renovar');
     Route::post('/proxies/renovar-pix', [LogadoController::class, 'processarRenovacao'])->name('proxies.renovar-pix');
+    Route::post('/proxies/renovar-saldo', [LogadoController::class, 'renovarComSaldo'])->name('proxies.renovar-saldo');
     Route::post('/proxies/exportar', [LogadoController::class, 'exportarProxies'])->name('proxies.exportar');
 
     // Nova Compra
